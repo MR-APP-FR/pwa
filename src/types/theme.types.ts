@@ -1,4 +1,4 @@
-export interface ThemeColors {
+export interface ThemeColors extends Record<string, string> {
   PRIMARY: string;
   PRIMARY_LIGHT: string;
   DANGER: string;
