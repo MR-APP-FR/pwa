@@ -1,0 +1,140 @@
+{
+  "app": {
+    "name": "Manège"
+  },
+  "screens": {
+    "home": {
+      "todayAssignment": "Affectation du jour",
+      "nextAssignment": "Prochaine affectation",
+      "noAssignmentToday": "Pas d'affectation aujourd'hui",
+      "noNextAssignment": "Pas de prochaine affectation",
+      "openingButton": "Ouverture du jour",
+      "closingButton": "Fermeture du jour",
+      "planningButton": "Planning",
+      "availabilityButton": "Disponibilités semaine prochaine",
+      "settingsButton": "Paramètres"
+    },
+    "planning": {
+      "title": "Planning",
+      "empty": "Aucune mission cette semaine",
+      "emptyWeek": "Aucune mission cette semaine",
+      "weekTitle": "Semaine du {start} au {end}",
+      "nextWeek": "Semaine prochaine →",
+      "hour": "9h00",
+      "go": "Aller",
+      "opening": "Ouverture",
+      "closing": "Fermeture",
+      "details": "Détails",
+      "reportIncident": "Signaler un incident",
+      "solo": "Seul(e)",
+      "withColleague": "Avec",
+      "confirmed": "Confirmé",
+      "pending": "En attente",
+      "role": "Rôle",
+      "principal": "Principal",
+      "double": "Doublon",
+      "accessInfo": "Indications d'accès",
+      "metro": "Métro",
+      "phone": "Téléphone",
+      "confirmationStatus": "Statut de confirmation",
+      "yourConfirmation": "Votre confirmation",
+      "colleagueConfirmation": "Confirmation du collègue",
+      "completed": "Terminé"
+    },
+    "planningWeek": {
+      "title": "Planning de la semaine",
+      "noAssignment": "Repos"
+    },
+    "profil": {
+      "title": "Paramètres"
+    }
+  },
+  "settings": {
+    "profile": {
+      "title": "Mon profil",
+      "preferredSitesTitle": "Sites préférés",
+      "noPreferredSites": "Aucun site préféré pour l'instant"
+    },
+    "appearance": {
+      "title": "Apparence",
+      "theme": "Thème",
+      "themeDescription": "Choisissez l'apparence de l'application",
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    },
+    "language": {
+      "title": "Langue",
+      "language": "Langue",
+      "languageDescription": "Choisissez la langue de l'application",
+      "fr": "Français",
+      "en": "English"
+    },
+    "about": {
+      "title": "À propos",
+      "version": "Version"
+    }
+  },
+  "availability": {
+    "title": "Disponibilités",
+    "subtitle": "Semaine du {start} au {end}",
+    "description": "Indiquez vos disponibilités pour la semaine prochaine.",
+    "available": "Disponible",
+    "notAvailable": "Indisponible",
+    "note": "Note (optionnel)",
+    "notePlaceholder": "Commentaire",
+    "send": "Envoyer mes disponibilités",
+    "sent": "Disponibilités envoyées !",
+    "sentDescription": "Votre responsable en sera informé."
+  },
+  "forms": {
+    "opening": {
+      "title": "Ouverture",
+      "feuilleDuJour": "Nombre de feuilles de jour",
+      "ticketsOuverture": "Nombre de tickets à l'ouverture",
+      "fondDeCaisse": "Le fond de caisse est-il de 100 € ?",
+      "fondDeCaisseYes": "Oui",
+      "fondDeCaisseNo": "Non",
+      "observations": "Observations éventuelles",
+      "observationsPlaceholder": "Ajouter une remarque…",
+      "submit": "Valider l'ouverture",
+      "successTitle": "Ouverture enregistrée",
+      "successDescription": "Vos informations d'ouverture ont été enregistrées."
+    },
+    "closing": {
+      "title": "Fermeture",
+      "recetteTotale": "Recette totale du jour (€)",
+      "carteBleue": "Carte bleue (€)",
+      "nombreEnfants": "Nombre d'enfants",
+      "ticketsOuverture": "Nombre de tickets à l'ouverture",
+      "ticketsFermeture": "Nombre de tickets à la fermeture",
+      "payeDuJour": "Payé du jour (€)",
+      "payeManquanteRecuperee": "Payé manquante récupérée ce jour (€)",
+      "payeDuDouble": "Payé du double (€)",
+      "pointCaisse13h": "Point caisse 13h-14h (€)",
+      "pointCaisse20h": "Point caisse 20h-20h35 (€)",
+      "observations": "Observations éventuelles",
+      "observationsPlaceholder": "Ajouter une remarque…",
+      "telecollectePhoto": "Photo de la télécollecte",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "removePhoto": "Supprimer la photo",
+      "submit": "Valider la fermeture",
+      "successTitle": "Fermeture enregistrée",
+      "successDescription": "Vos informations de fermeture ont été enregistrées."
+    }
+  },
+  "common": {
+    "edit": "Modifier",
+    "cancel": "Annuler",
+    "days": {
+      "mon": "L",
+      "tue": "M",
+      "wed": "M",
+      "thu": "J",
+      "fri": "V",
+      "sat": "S",
+      "sun": "D"
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "app": {
+    "name": "Manège"
+  },
+  "screens": {
+    "home": {
+      "todayAssignment": "Today's assignment",
+      "nextAssignment": "Next assignment",
+      "noAssignmentToday": "No assignment today",
+      "noNextAssignment": "No upcoming assignment",
+      "openingButton": "Today's opening",
+      "closingButton": "Today's closing",
+      "planningButton": "Planning",
+      "availabilityButton": "Next week availability",
+      "settingsButton": "Settings"
+    },
+    "planning": {
+      "title": "Planning",
+      "empty": "No missions this week",
+      "emptyWeek": "No missions this week",
+      "weekTitle": "Week of {start} to {end}",
+      "nextWeek": "Next week →",
+      "hour": "9:00 AM",
+      "go": "Go",
+      "opening": "Opening",
+      "closing": "Closing",
+      "details": "Details",
+      "reportIncident": "Report incident",
+      "solo": "Solo",
+      "withColleague": "With",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "role": "Role",
+      "principal": "Principal",
+      "double": "Double",
+      "accessInfo": "Access information",
+      "metro": "Metro",
+      "phone": "Phone",
+      "confirmationStatus": "Confirmation status",
+      "yourConfirmation": "Your confirmation",
+      "colleagueConfirmation": "Colleague confirmation",
+      "completed": "Completed"
+    },
+    "planningWeek": {
+      "title": "Weekly planning",
+      "noAssignment": "Day off"
+    },
+    "profil": {
+      "title": "Settings"
+    }
+  },
+  "settings": {
+    "profile": {
+      "title": "My profile",
+      "preferredSitesTitle": "Preferred sites",
+      "noPreferredSites": "No preferred sites yet"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themeDescription": "Choose the app appearance",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "language": "Language",
+      "languageDescription": "Choose the app language",
+      "fr": "Français",
+      "en": "English"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version"
+    }
+  },
+  "availability": {
+    "title": "Availability",
+    "subtitle": "Week of {start} to {end}",
+    "description": "Let us know your availability for next week.",
+    "available": "Available",
+    "notAvailable": "Not available",
+    "note": "Note (optional)",
+    "notePlaceholder": "Remark",
+    "send": "Send my availability",
+    "sent": "Availability sent!",
+    "sentDescription": "Your manager will be notified."
+  },
+  "forms": {
+    "opening": {
+      "title": "Opening",
+      "feuilleDuJour": "Number of day sheets",
+      "ticketsOuverture": "Number of tickets at opening",
+      "fondDeCaisse": "Is the cash float 100€?",
+      "fondDeCaisseYes": "Yes",
+      "fondDeCaisseNo": "No",
+      "observations": "Additional notes",
+      "observationsPlaceholder": "Add a note…",
+      "submit": "Confirm opening",
+      "successTitle": "Opening saved",
+      "successDescription": "Your opening information has been saved."
+    },
+    "closing": {
+      "title": "Closing",
+      "recetteTotale": "Total takings of the day (€)",
+      "carteBleue": "Card payments (€)",
+      "nombreEnfants": "Number of children",
+      "ticketsOuverture": "Number of tickets at opening",
+      "ticketsFermeture": "Number of tickets at closing",
+      "payeDuJour": "Pay of the day (€)",
+      "payeManquanteRecuperee": "Missing pay recovered today (€)",
+      "payeDuDouble": "Pay of the double (€)",
+      "pointCaisse13h": "Till check 1pm-2pm (€)",
+      "pointCaisse20h": "Till check 8pm-8:35pm (€)",
+      "observations": "Additional notes",
+      "observationsPlaceholder": "Add a note…",
+      "telecollectePhoto": "Tele-collection receipt photo",
+      "addPhoto": "Add a photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "submit": "Confirm closing",
+      "successTitle": "Closing saved",
+      "successDescription": "Your closing information has been saved."
+    }
+  },
+  "common": {
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "days": {
+      "mon": "M",
+      "tue": "T",
+      "wed": "W",
+      "thu": "T",
+      "fri": "F",
+      "sat": "S",
+      "sun": "S"
+    }
+  }
+}
