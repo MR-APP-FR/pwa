@@ -1,12 +1,14 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useTransition } from 'react';
 import { usePlanning } from '../../hooks/api/usePlanning';
+import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { OpeningFormData } from '../../types/form.types';
 import { WEEK_YEAR, WEEK_MONTH } from '../../constants/mock';
+import { submitOpeningForm } from './actions';
 
 function parseNumber(value: string): number | null {
   const trimmed = value.replace(',', '.').trim();
@@ -15,12 +17,17 @@ function parseNumber(value: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
 function OpeningContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const { data: planningData } = usePlanning({ year: WEEK_YEAR, month: WEEK_MONTH });
+  const { data: currentUser } = useCurrentUser();
 
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
@@ -33,6 +40,47 @@ function OpeningContent() {
     observations: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleSubmit() {
+    setSubmitError(null);
+
+    if (!mission) {
+      setSubmitError("Mission introuvable.");
+      return;
+    }
+    if (!currentUser?.user) {
+      setSubmitError('Aucun employé sélectionné. Choisis un profil dans le header.');
+      return;
+    }
+    if (form.feuilleDuJour === null) {
+      setSubmitError('Renseigne le nombre de feuilles de jour.');
+      return;
+    }
+    if (form.ticketsOuverture === null) {
+      setSubmitError("Renseigne le nombre de tickets à l'ouverture.");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.set('siteId', String(mission.site_id));
+    fd.set('userId', String(currentUser.user.id));
+    fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
+    fd.set('feuillesDeJour', String(form.feuilleDuJour));
+    fd.set('ticketsOuverture', String(form.ticketsOuverture));
+    fd.set('fondCaisse100', form.fondDeCaisse100 ? '1' : '0');
+    fd.set('observations', form.observations);
+
+    startTransition(async () => {
+      const result = await submitOpeningForm(fd);
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(result.error);
+      }
+    });
+  }
 
   if (submitted) {
     return (
@@ -130,15 +178,26 @@ function OpeningContent() {
             />
           </div>
         </div>
+
+        {submitError && (
+          <div
+            className="rounded-xl border px-3 py-2 text-xs"
+            style={{ borderColor: '#EB5757', color: '#EB5757', backgroundColor: '#EB575710' }}
+          >
+            {submitError}
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
         <button
-          onClick={() => setSubmitted(true)}
-          className="w-full py-4 rounded-2xl text-base font-bold"
+          type="button"
+          onClick={handleSubmit}
+          disabled={pending}
+          className="w-full py-4 rounded-2xl text-base font-bold disabled:opacity-60"
           style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}
         >
-          {t('forms.opening.submit')}
+          {pending ? '...' : t('forms.opening.submit')}
         </button>
       </div>
     </div>

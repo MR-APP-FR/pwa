@@ -11,3 +11,4 @@ export type {
 } from './user.types';
 export type { Planning, PlanningColleague, PlanningWithColleague } from './planning.types';
 export type { OpeningFormData, ClosingFormData } from '../../types/form.types';
+export type { OpeningFormRow, ClosingFormRow, DailyInfoRow, PhotoSource } from './forms.types';

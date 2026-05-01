@@ -20,4 +20,8 @@ export interface ClosingFormData {
   pointCaisse20h: number | null;
   observations: string;
   telecollectePhotoUri: string | null;
+  /** Provenance de la photo (cf. closing_form.photo_source). */
+  telecollectePhotoSource: 'camera_live' | 'phototheque' | null;
+  /** ms depuis epoch — alimente closing_form.photo_captured_at. */
+  telecollectePhotoCapturedAtMs: number | null;
 }

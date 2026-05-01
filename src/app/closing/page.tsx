@@ -1,19 +1,25 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useRef, Suspense } from 'react';
+import { useState, useRef, Suspense, useTransition } from 'react';
 import { usePlanning } from '../../hooks/api/usePlanning';
+import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
 import { WEEK_YEAR, WEEK_MONTH } from '../../constants/mock';
+import { submitClosingForm } from './actions';
 
 function parseNumber(value: string): number | null {
   const trimmed = value.replace(',', '.').trim();
   if (trimmed.length === 0) return null;
   const n = Number(trimmed);
   return Number.isNaN(n) ? null : n;
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
 const NUMERIC_FIELDS: { key: keyof ClosingFormData; labelKey: string }[] = [
@@ -29,12 +35,31 @@ const NUMERIC_FIELDS: { key: keyof ClosingFormData; labelKey: string }[] = [
   { key: 'pointCaisse20h', labelKey: 'forms.closing.pointCaisse20h' },
 ];
 
+const FORM_FIELD_TO_FORMDATA_KEY: Record<keyof ClosingFormData, string | null> = {
+  missionId: null,
+  recetteTotale: 'recetteTotale',
+  carteBleue: 'carteBleue',
+  nombreEnfants: 'nbEnfants',
+  ticketsOuverture: 'ticketsOuverture',
+  ticketsFermeture: 'ticketsFermeture',
+  payeDuJour: 'payeJour',
+  payeManquanteRecuperee: 'payeManquanteRecuperee',
+  payeDuDouble: 'payeDouble',
+  pointCaisse13h: 'pointCaisse13h',
+  pointCaisse20h: 'pointCaisse20h',
+  observations: 'observations',
+  telecollectePhotoUri: null,
+  telecollectePhotoSource: null,
+  telecollectePhotoCapturedAtMs: null,
+};
+
 function ClosingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data: planningData } = usePlanning({ year: WEEK_YEAR, month: WEEK_MONTH });
+  const { data: currentUser } = useCurrentUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const missionId = Number(searchParams.get('id'));
@@ -54,16 +79,89 @@ function ClosingContent() {
     pointCaisse20h: null,
     observations: '',
     telecollectePhotoUri: null,
+    telecollectePhotoSource: null,
+    telecollectePhotoCapturedAtMs: null,
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setForm((f) => ({ ...f, telecollectePhotoUri: url }));
+      setPhotoFile(file);
+      setForm((f) => {
+        if (f.telecollectePhotoUri?.startsWith('blob:')) {
+          URL.revokeObjectURL(f.telecollectePhotoUri);
+        }
+        const url = URL.createObjectURL(file);
+        return {
+          ...f,
+          telecollectePhotoUri: url,
+          telecollectePhotoSource: 'phototheque',
+          telecollectePhotoCapturedAtMs: file.lastModified,
+        };
+      });
     }
+    e.target.value = '';
   };
+
+  const photoDateLabel =
+    form.telecollectePhotoCapturedAtMs != null
+      ? new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'fr-FR', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(new Date(form.telecollectePhotoCapturedAtMs))
+      : null;
+
+  function handleSubmit() {
+    setSubmitError(null);
+
+    if (!mission) {
+      setSubmitError("Mission introuvable.");
+      return;
+    }
+    if (!currentUser?.user) {
+      setSubmitError('Aucun employé sélectionné. Choisis un profil dans le header.');
+      return;
+    }
+    if (form.recetteTotale === null) {
+      setSubmitError('Renseigne la recette totale.');
+      return;
+    }
+    if (!photoFile || !form.telecollectePhotoSource) {
+      setSubmitError('Photo de télécollecte manquante.');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.set('siteId', String(mission.site_id));
+    fd.set('userId', String(currentUser.user.id));
+    fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
+
+    for (const { key } of NUMERIC_FIELDS) {
+      const dataKey = FORM_FIELD_TO_FORMDATA_KEY[key];
+      if (!dataKey) continue;
+      const value = form[key];
+      fd.set(dataKey, value === null || value === undefined ? '' : String(value));
+    }
+    fd.set('observations', form.observations);
+    fd.set('photo', photoFile);
+    fd.set('photoSource', form.telecollectePhotoSource);
+    if (form.telecollectePhotoCapturedAtMs != null) {
+      fd.set('photoCapturedAtMs', String(form.telecollectePhotoCapturedAtMs));
+    }
+
+    startTransition(async () => {
+      const result = await submitClosingForm(fd);
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(result.error);
+      }
+    });
+  }
 
   if (submitted) {
     return (
@@ -134,27 +232,66 @@ function ClosingContent() {
               className="hidden"
             />
             {form.telecollectePhotoUri ? (
-              <div className="flex items-center gap-3">
-                <Image src={form.telecollectePhotoUri} alt="Photo" width={72} height={72} className="rounded-lg object-cover" />
-                <div className="flex flex-col gap-1 flex-1">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="py-2 rounded-lg border text-xs font-semibold"
-                    style={{ borderColor: colors.PRIMARY, backgroundColor: colors.PRIMARY + '15', color: colors.PRIMARY }}
-                  >
-                    {t('forms.closing.changePhoto')}
-                  </button>
-                  <button
-                    onClick={() => setForm((f) => ({ ...f, telecollectePhotoUri: null }))}
-                    className="py-2 rounded-lg border text-xs font-semibold"
-                    style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY }}
-                  >
-                    {t('forms.closing.removePhoto')}
-                  </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <Image src={form.telecollectePhotoUri} alt="Photo" width={72} height={72} className="rounded-lg object-cover" />
+                  <div className="flex flex-col gap-1 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="py-2 rounded-lg border text-xs font-semibold"
+                      style={{ borderColor: colors.PRIMARY, backgroundColor: colors.PRIMARY + '15', color: colors.PRIMARY }}
+                    >
+                      {t('forms.closing.changePhoto')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhotoFile(null);
+                        setForm((f) => {
+                          if (f.telecollectePhotoUri?.startsWith('blob:')) {
+                            URL.revokeObjectURL(f.telecollectePhotoUri);
+                          }
+                          return {
+                            ...f,
+                            telecollectePhotoUri: null,
+                            telecollectePhotoSource: null,
+                            telecollectePhotoCapturedAtMs: null,
+                          };
+                        });
+                      }}
+                      className="py-2 rounded-lg border text-xs font-semibold"
+                      style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY }}
+                    >
+                      {t('forms.closing.removePhoto')}
+                    </button>
+                  </div>
                 </div>
+                {photoDateLabel && (
+                  <div
+                    className="rounded-xl border px-3 py-2 text-xs leading-relaxed"
+                    style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY, backgroundColor: colors.BG_SECONDARY }}
+                  >
+                    <p>
+                      <span className="font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                        {t('forms.closing.photoSourceLabel')}
+                      </span>{' '}
+                      {form.telecollectePhotoSource === 'camera_live'
+                        ? t('forms.closing.photoSourceLive')
+                        : t('forms.closing.photoSourcePhototheque')}
+                    </p>
+                    <p className="mt-1">
+                      <span className="font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                        {t('forms.closing.photoCapturedAt')}
+                      </span>{' '}
+                      {photoDateLabel}
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full py-3 rounded-lg border text-sm font-semibold"
                 style={{ borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY, color: colors.TEXT_PRIMARY }}
@@ -164,15 +301,26 @@ function ClosingContent() {
             )}
           </div>
         </div>
+
+        {submitError && (
+          <div
+            className="rounded-xl border px-3 py-2 text-xs"
+            style={{ borderColor: '#EB5757', color: '#EB5757', backgroundColor: '#EB575710' }}
+          >
+            {submitError}
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
         <button
-          onClick={() => setSubmitted(true)}
-          className="w-full py-4 rounded-2xl text-base font-bold"
+          type="button"
+          onClick={handleSubmit}
+          disabled={pending}
+          className="w-full py-4 rounded-2xl text-base font-bold disabled:opacity-60"
           style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}
         >
-          {t('forms.closing.submit')}
+          {pending ? '...' : t('forms.closing.submit')}
         </button>
       </div>
     </div>
