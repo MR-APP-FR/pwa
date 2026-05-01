@@ -33,7 +33,7 @@ function ClosingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data: planningData } = usePlanning({ year: WEEK_YEAR, month: WEEK_MONTH });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,16 +54,37 @@ function ClosingContent() {
     pointCaisse20h: null,
     observations: '',
     telecollectePhotoUri: null,
+    telecollectePhotoSource: null,
+    telecollectePhotoCapturedAtMs: null,
   });
   const [submitted, setSubmitted] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setForm((f) => ({ ...f, telecollectePhotoUri: url }));
+      setForm((f) => {
+        if (f.telecollectePhotoUri?.startsWith('blob:')) {
+          URL.revokeObjectURL(f.telecollectePhotoUri);
+        }
+        const url = URL.createObjectURL(file);
+        return {
+          ...f,
+          telecollectePhotoUri: url,
+          telecollectePhotoSource: 'phototheque',
+          telecollectePhotoCapturedAtMs: file.lastModified,
+        };
+      });
     }
+    e.target.value = '';
   };
+
+  const photoDateLabel =
+    form.telecollectePhotoCapturedAtMs != null
+      ? new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'fr-FR', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(new Date(form.telecollectePhotoCapturedAtMs))
+      : null;
 
   if (submitted) {
     return (
@@ -134,27 +155,65 @@ function ClosingContent() {
               className="hidden"
             />
             {form.telecollectePhotoUri ? (
-              <div className="flex items-center gap-3">
-                <Image src={form.telecollectePhotoUri} alt="Photo" width={72} height={72} className="rounded-lg object-cover" />
-                <div className="flex flex-col gap-1 flex-1">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="py-2 rounded-lg border text-xs font-semibold"
-                    style={{ borderColor: colors.PRIMARY, backgroundColor: colors.PRIMARY + '15', color: colors.PRIMARY }}
-                  >
-                    {t('forms.closing.changePhoto')}
-                  </button>
-                  <button
-                    onClick={() => setForm((f) => ({ ...f, telecollectePhotoUri: null }))}
-                    className="py-2 rounded-lg border text-xs font-semibold"
-                    style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY }}
-                  >
-                    {t('forms.closing.removePhoto')}
-                  </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <Image src={form.telecollectePhotoUri} alt="Photo" width={72} height={72} className="rounded-lg object-cover" />
+                  <div className="flex flex-col gap-1 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="py-2 rounded-lg border text-xs font-semibold"
+                      style={{ borderColor: colors.PRIMARY, backgroundColor: colors.PRIMARY + '15', color: colors.PRIMARY }}
+                    >
+                      {t('forms.closing.changePhoto')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => {
+                          if (f.telecollectePhotoUri?.startsWith('blob:')) {
+                            URL.revokeObjectURL(f.telecollectePhotoUri);
+                          }
+                          return {
+                            ...f,
+                            telecollectePhotoUri: null,
+                            telecollectePhotoSource: null,
+                            telecollectePhotoCapturedAtMs: null,
+                          };
+                        })
+                      }
+                      className="py-2 rounded-lg border text-xs font-semibold"
+                      style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY }}
+                    >
+                      {t('forms.closing.removePhoto')}
+                    </button>
+                  </div>
                 </div>
+                {photoDateLabel && (
+                  <div
+                    className="rounded-xl border px-3 py-2 text-xs leading-relaxed"
+                    style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY, backgroundColor: colors.BG_SECONDARY }}
+                  >
+                    <p>
+                      <span className="font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                        {t('forms.closing.photoSourceLabel')}
+                      </span>{' '}
+                      {form.telecollectePhotoSource === 'camera_live'
+                        ? t('forms.closing.photoSourceLive')
+                        : t('forms.closing.photoSourcePhototheque')}
+                    </p>
+                    <p className="mt-1">
+                      <span className="font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                        {t('forms.closing.photoCapturedAt')}
+                      </span>{' '}
+                      {photoDateLabel}
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full py-3 rounded-lg border text-sm font-semibold"
                 style={{ borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY, color: colors.TEXT_PRIMARY }}
@@ -168,6 +227,7 @@ function ClosingContent() {
 
       <div className="px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
         <button
+          type="button"
           onClick={() => setSubmitted(true)}
           className="w-full py-4 rounded-2xl text-base font-bold"
           style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}

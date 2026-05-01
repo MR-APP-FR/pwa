@@ -121,7 +121,11 @@
       "removePhoto": "Supprimer la photo",
       "submit": "Valider la fermeture",
       "successTitle": "Fermeture enregistrée",
-      "successDescription": "Vos informations de fermeture ont été enregistrées."
+      "successDescription": "Vos informations de fermeture ont été enregistrées.",
+      "photoSourceLabel": "Source",
+      "photoSourceLive": "Photo Live",
+      "photoSourcePhototheque": "Photothèque",
+      "photoCapturedAt": "Date / heure"
     }
   },
   "common": {

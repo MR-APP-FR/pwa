@@ -121,7 +121,11 @@
       "removePhoto": "Remove photo",
       "submit": "Confirm closing",
       "successTitle": "Closing saved",
-      "successDescription": "Your closing information has been saved."
+      "successDescription": "Your closing information has been saved.",
+      "photoSourceLabel": "Source",
+      "photoSourceLive": "Live photo",
+      "photoSourcePhototheque": "Photo library",
+      "photoCapturedAt": "Date / time"
     }
   },
   "common": {

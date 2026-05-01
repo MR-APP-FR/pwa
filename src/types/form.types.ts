@@ -20,4 +20,8 @@ export interface ClosingFormData {
   pointCaisse20h: number | null;
   observations: string;
   telecollectePhotoUri: string | null;
+  /** GRE-109 — provenance affichée admin / audit */
+  telecollectePhotoSource: 'camera_live' | 'phototheque' | null;
+  /** ms depuis epoch — souvent File.lastModified */
+  telecollectePhotoCapturedAtMs: number | null;
 }
