@@ -31,13 +31,16 @@ export function Header() {
 }
 
 function DemoModeBanner() {
-  const { colors } = useThemeColors();
+  // PRIMARY_LIGHT est partagé via BRAND entre les deux thèmes (#2A2A2A) ;
+  // on fixe donc la couleur du texte en blanc pour garantir le contraste
+  // en dark mode (où TEXT_INVERSE vaudrait #000000 et rendrait la bannière
+  // illisible). Cf. revue Cursor Bugbot sur GRE-87.
   return (
     <div
       className="px-3 py-1 text-center text-[10px] font-semibold uppercase tracking-wider"
       style={{
-        color: colors.TEXT_INVERSE,
-        backgroundColor: colors.PRIMARY_LIGHT,
+        color: '#FFFFFF',
+        backgroundColor: '#2A2A2A',
       }}
       aria-label="Mode démo, pas d'authentification réelle"
     >
