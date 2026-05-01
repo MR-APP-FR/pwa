@@ -8,6 +8,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { OpeningFormData } from '../../types/form.types';
 import { WEEK_YEAR, WEEK_MONTH } from '../../constants/mock';
 
+const FEUILLES_JOUR_REGEX = /^\d+(\/\d+)?$/;
+
 function parseNumber(value: string): number | null {
   const trimmed = value.replace(',', '.').trim();
   if (trimmed.length === 0) return null;
@@ -27,12 +29,27 @@ function OpeningContent() {
 
   const [form, setForm] = useState<OpeningFormData>({
     missionId,
-    feuilleDuJour: null,
+    feuilleDuJour: '',
     ticketsOuverture: null,
     fondDeCaisse100: true,
     observations: '',
   });
+  const [feuilleError, setFeuilleError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmitOpening() {
+    const raw = form.feuilleDuJour.trim();
+    if (raw.length === 0) {
+      setFeuilleError(t('forms.opening.feuillesRequired'));
+      return;
+    }
+    if (!FEUILLES_JOUR_REGEX.test(raw)) {
+      setFeuilleError(t('forms.opening.feuillesFormatError'));
+      return;
+    }
+    setFeuilleError(null);
+    setSubmitted(true);
+  }
 
   if (submitted) {
     return (
@@ -69,13 +86,27 @@ function OpeningContent() {
           <div className="space-y-1">
             <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>{t('forms.opening.feuilleDuJour')}</label>
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
-              placeholder="0"
-              onChange={(e) => setForm((f) => ({ ...f, feuilleDuJour: parseNumber(e.target.value) }))}
+              autoComplete="off"
+              placeholder={t('forms.opening.feuillePlaceholder')}
+              value={form.feuilleDuJour}
+              onChange={(e) => {
+                setFeuilleError(null);
+                setForm((f) => ({ ...f, feuilleDuJour: e.target.value }));
+              }}
               className="w-full px-3 py-2 rounded-lg border text-sm"
-              style={{ color: colors.TEXT_PRIMARY, borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY }}
+              style={{
+                color: colors.TEXT_PRIMARY,
+                borderColor: feuilleError ? '#EB5757' : colors.BORDER,
+                backgroundColor: colors.BG_SECONDARY,
+              }}
             />
+            {feuilleError && (
+              <p className="text-xs font-medium" style={{ color: '#EB5757' }}>
+                {feuilleError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -134,7 +165,8 @@ function OpeningContent() {
 
       <div className="px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
         <button
-          onClick={() => setSubmitted(true)}
+          type="button"
+          onClick={handleSubmitOpening}
           className="w-full py-4 rounded-2xl text-base font-bold"
           style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}
         >
