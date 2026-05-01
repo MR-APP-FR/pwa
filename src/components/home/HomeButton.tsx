@@ -7,6 +7,7 @@ import {
   Calendar,
   Hand,
   Settings,
+  AlertCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -16,6 +17,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'calendar-outline': Calendar,
   'hand-left-outline': Hand,
   'settings-outline': Settings,
+  'alert-circle-outline': AlertCircle,
 };
 
 interface HomeButtonProps {

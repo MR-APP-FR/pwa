@@ -86,6 +86,15 @@ export default function HomePage() {
           disabled={!hasTodayMission}
         />
         <HomeButton
+          icon="alert-circle-outline"
+          label={t('screens.home.dailyInfoButton')}
+          onPress={() => {
+            if (!todayMission) return;
+            router.push(`/info-jour?id=${todayMission.id}`);
+          }}
+          disabled={!hasTodayMission}
+        />
+        <HomeButton
           icon="calendar-outline"
           label={t('screens.home.planningButton')}
           onPress={() => router.push('/planning')}

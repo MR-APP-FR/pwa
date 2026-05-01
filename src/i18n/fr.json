@@ -10,6 +10,7 @@
       "noNextAssignment": "Pas de prochaine affectation",
       "openingButton": "Ouverture du jour",
       "closingButton": "Fermeture du jour",
+      "dailyInfoButton": "Info du jour",
       "planningButton": "Planning",
       "availabilityButton": "Disponibilités semaine prochaine",
       "settingsButton": "Paramètres"
@@ -122,6 +123,24 @@
       "submit": "Valider la fermeture",
       "successTitle": "Fermeture enregistrée",
       "successDescription": "Vos informations de fermeture ont été enregistrées."
+    },
+    "dailyInfo": {
+      "title": "Info du jour",
+      "nettoyageVeille": "Nettoyage de la veille effectué ?",
+      "pannesSujetsTitle": "Dommages / pannes signalés",
+      "pannesSujetsHelp": "Sélectionnez un ou plusieurs sujets concernés.",
+      "pannesSujetsEmpty": "Aucun sujet déclaré pour ce site. Crée-le ci-dessous.",
+      "pannesSujetCreatePlaceholder": "Nom du sujet à ajouter…",
+      "pannesSujetCreate": "Ajouter",
+      "pannesAutre": "Autre / divers",
+      "pannesAutrePlaceholder": "Décris brièvement (optionnel)",
+      "pannesDetail": "Détail libre (optionnel)",
+      "pannesDetailPlaceholder": "Précise les circonstances ou actions menées…",
+      "carteParking": "Carte parking utilisée ?",
+      "musiqueDisney": "Musique Disney activée ?",
+      "submit": "Envoyer l'info du jour",
+      "successTitle": "Info du jour enregistrée",
+      "successDescription": "Les pannes signalées ont été transmises à l'équipe."
     }
   },
   "common": {
