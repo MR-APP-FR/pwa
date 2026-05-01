@@ -99,7 +99,10 @@
       "observationsPlaceholder": "Ajouter une remarque…",
       "submit": "Valider l'ouverture",
       "successTitle": "Ouverture enregistrée",
-      "successDescription": "Vos informations d'ouverture ont été enregistrées."
+      "successDescription": "Vos informations d'ouverture ont été enregistrées.",
+      "feuillesFormatError": "Format attendu : nombre ou quotient (ex. 12 ou 47/47).",
+      "feuillesRequired": "Indiquez le nombre de feuilles de jour.",
+      "feuillePlaceholder": "ex. 12 ou 47/47"
     },
     "closing": {
       "title": "Fermeture",
@@ -123,6 +126,12 @@
       "successTitle": "Fermeture enregistrée",
       "successDescription": "Vos informations de fermeture ont été enregistrées."
     }
+  },
+  "camera": {
+    "starting": "Caméra…",
+    "capture": "Capturer",
+    "unsupported": "La caméra n'est pas disponible sur cet appareil ou ce navigateur.",
+    "errorPermission": "Accès à la caméra refusé. Autorisez la caméra dans les paramètres du navigateur."
   },
   "common": {
     "edit": "Modifier",

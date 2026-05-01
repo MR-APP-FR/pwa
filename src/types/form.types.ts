@@ -1,6 +1,7 @@
 export interface OpeningFormData {
   missionId: number;
-  feuilleDuJour: number | null;
+  /** Nombre simple (ex. "12") ou quotient métier (ex. "47/47") — voir GRE-107 */
+  feuilleDuJour: string;
   ticketsOuverture: number | null;
   fondDeCaisse100: boolean;
   observations: string;

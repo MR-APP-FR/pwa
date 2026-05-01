@@ -99,7 +99,10 @@
       "observationsPlaceholder": "Add a note…",
       "submit": "Confirm opening",
       "successTitle": "Opening saved",
-      "successDescription": "Your opening information has been saved."
+      "successDescription": "Your opening information has been saved.",
+      "feuillesFormatError": "Expected format: a number or a fraction (e.g. 12 or 47/47).",
+      "feuillesRequired": "Enter the number of day sheets.",
+      "feuillePlaceholder": "e.g. 12 or 47/47"
     },
     "closing": {
       "title": "Closing",
@@ -123,6 +126,12 @@
       "successTitle": "Closing saved",
       "successDescription": "Your closing information has been saved."
     }
+  },
+  "camera": {
+    "starting": "Starting camera…",
+    "capture": "Capture",
+    "unsupported": "Camera is not available on this device or browser.",
+    "errorPermission": "Camera access denied. Allow the camera in your browser settings."
   },
   "common": {
     "edit": "Edit",
