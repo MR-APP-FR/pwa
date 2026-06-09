@@ -2,11 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { User, X, Search, MapPin, Check } from 'lucide-react';
+import { User, X, Search, MapPin, Check, ChevronDown } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSites } from '../../hooks/api/useSites';
+import { useEmployees } from '../../hooks/api/useEmployees';
+import { useProfileStore } from '../../stores/profileStore';
+import { useDemoStore } from '../../stores/demoStore';
+import { formatDateLong } from '../../lib/formatDate';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 function EditSitesModal({
   isOpen,
@@ -71,7 +76,9 @@ function EditSitesModal({
   return createPortal(
     <div
       ref={backdropRef}
-      onClick={(e) => { if (e.target === backdropRef.current) handleClose(); }}
+      onClick={(e) => {
+        if (e.target === backdropRef.current) handleClose();
+      }}
       className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
       style={{
         backgroundColor: isVisible ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
@@ -89,12 +96,9 @@ function EditSitesModal({
           transition: 'transform 0.2s ease, opacity 0.2s ease',
         }}
       >
-        {/* Handle */}
         <div className="flex justify-center pt-3">
           <div className="w-9 h-1 rounded-full" style={{ backgroundColor: colors.TEXT_SECONDARY + '30' }} />
         </div>
-
-        {/* Header */}
         <div className="flex items-start justify-between px-5 pt-4 pb-2">
           <div>
             <h2 className="text-xl font-bold" style={{ color: colors.TEXT_PRIMARY }}>
@@ -112,8 +116,6 @@ function EditSitesModal({
             <X size={16} color={colors.TEXT_SECONDARY} />
           </button>
         </div>
-
-        {/* Search */}
         <div className="px-5 py-2">
           <div
             className="flex items-center rounded-xl px-3 h-10 border"
@@ -138,8 +140,6 @@ function EditSitesModal({
             )}
           </div>
         </div>
-
-        {/* Sites list */}
         <div className="flex-1 overflow-y-auto px-5 pb-3" style={{ minHeight: 0 }}>
           {filteredGroupes.length === 0 ? (
             <div className="flex flex-col items-center py-10 gap-3">
@@ -149,7 +149,6 @@ function EditSitesModal({
           ) : (
             filteredGroupes.map(({ groupe, sites }, idx) => (
               <div key={groupe.id} className={idx > 0 ? 'mt-4' : 'mt-1'}>
-                {/* Group label */}
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.PRIMARY + '60' }} />
                   <span
@@ -160,8 +159,6 @@ function EditSitesModal({
                   </span>
                   <div className="flex-1 h-px" style={{ backgroundColor: colors.TEXT_SECONDARY + '12' }} />
                 </div>
-
-                {/* Site rows */}
                 {sites.map((site) => {
                   const isSelected = selectedIds.includes(site.id);
                   return (
@@ -176,7 +173,6 @@ function EditSitesModal({
                         }`,
                       }}
                     >
-                      {/* Checkbox */}
                       <div
                         className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-colors duration-150"
                         style={{
@@ -189,10 +185,7 @@ function EditSitesModal({
                         {isSelected && <Check size={13} color="#fff" strokeWidth={3} />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p
-                          className="text-sm font-medium truncate"
-                          style={{ color: colors.TEXT_PRIMARY }}
-                        >
+                        <p className="text-sm font-medium truncate" style={{ color: colors.TEXT_PRIMARY }}>
                           {site.name}
                         </p>
                         {(site.ville || site.cp_ville) && (
@@ -208,8 +201,6 @@ function EditSitesModal({
             ))
           )}
         </div>
-
-        {/* Footer */}
         <div
           className="flex gap-3 px-5 py-4 border-t"
           style={{ borderColor: colors.TEXT_SECONDARY + '12' }}
@@ -236,6 +227,183 @@ function EditSitesModal({
   );
 }
 
+function AdminSection({ colors }: { colors: Record<string, string> }) {
+  const { data: employees, isLoading } = useEmployees();
+  const selectedUserId = useProfileStore((s) => s.selectedUserId);
+  const setSelectedUserId = useProfileStore((s) => s.setSelectedUserId);
+  const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
+  const setOverrideDateIso = useDemoStore((s) => s.setOverrideDateIso);
+
+  const [employeeOpen, setEmployeeOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    if (selectedUserId !== null && employees.some((e) => e.id === selectedUserId)) return;
+    setSelectedUserId(employees[0].id);
+  }, [employees, selectedUserId, setSelectedUserId]);
+
+  useEffect(() => {
+    if (!employeeOpen) return;
+    function onClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setEmployeeOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [employeeOpen]);
+
+  const selectedEmployee = useMemo(
+    () => employees?.find((e) => e.id === selectedUserId) ?? null,
+    [employees, selectedUserId],
+  );
+
+  const filtered = useMemo(() => {
+    if (!employees) return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return employees;
+    return employees.filter(
+      (e) =>
+        (e.fullname ?? '').toLowerCase().includes(q) ||
+        e.login.toLowerCase().includes(q) ||
+        e.email.toLowerCase().includes(q),
+    );
+  }, [employees, query]);
+
+  const todayIso = new Date().toISOString().split('T')[0];
+  const selectedDateIso = overrideDateIso ?? todayIso;
+  const selectedDateLabel = formatDateLong(new Date(`${selectedDateIso}T12:00:00`));
+
+  return (
+    <div className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: colors.SETTINGS_SECTION_BG }}>
+      {/* Employee picker */}
+      <div className="px-5 py-4" style={{ borderBottom: `1px solid ${colors.SETTINGS_SEPARATOR}` }}>
+        <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
+          Profil employé
+        </p>
+        <div ref={dropdownRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setEmployeeOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm"
+            style={{
+              borderColor: colors.BORDER,
+              backgroundColor: colors.BG_SECONDARY,
+              color: colors.TEXT_PRIMARY,
+            }}
+          >
+            <span className="truncate font-medium">
+              {isLoading ? 'Chargement…' : (selectedEmployee?.fullname ?? selectedEmployee?.login ?? 'Choisir…')}
+            </span>
+            <ChevronDown size={16} color={colors.TEXT_SECONDARY} />
+          </button>
+
+          {employeeOpen && (
+            <div
+              className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border shadow-lg overflow-hidden"
+              style={{
+                backgroundColor: colors.SETTINGS_SECTION_BG,
+                borderColor: colors.BORDER,
+              }}
+            >
+              <div
+                className="flex items-center gap-2 px-3 py-2"
+                style={{ borderBottom: `1px solid ${colors.SETTINGS_SEPARATOR}` }}
+              >
+                <Search size={14} color={colors.TEXT_SECONDARY} />
+                <input
+                  type="search"
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Rechercher…"
+                  className="w-full bg-transparent text-sm outline-none"
+                  style={{ color: colors.TEXT_PRIMARY }}
+                />
+              </div>
+              <div className="max-h-56 overflow-y-auto py-1">
+                {filtered.map((emp) => {
+                  const selected = emp.id === selectedUserId;
+                  return (
+                    <button
+                      key={emp.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedUserId(emp.id);
+                        setEmployeeOpen(false);
+                        setQuery('');
+                      }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
+                      style={{
+                        backgroundColor: selected ? colors.BG_TERTIARY : 'transparent',
+                        color: colors.TEXT_PRIMARY,
+                      }}
+                    >
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate font-medium">{emp.fullname ?? emp.login}</span>
+                        <span className="truncate text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+                          #{emp.id} · {emp.email}
+                        </span>
+                      </div>
+                      {selected && <Check size={14} color={colors.SUCCESS_STRONG} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Date picker */}
+      <div className="px-5 py-4">
+        <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
+          Date simulée
+        </p>
+        <p className="text-sm font-medium mb-2 capitalize" style={{ color: colors.TEXT_PRIMARY }}>
+          {selectedDateLabel}
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            lang="fr-FR"
+            value={selectedDateIso}
+            onChange={(e) => setOverrideDateIso(e.target.value || null)}
+            className="flex-1 px-3 py-2.5 rounded-lg border text-sm"
+            style={{
+              borderColor: colors.BORDER,
+              backgroundColor: colors.BG_SECONDARY,
+              color: colors.TEXT_PRIMARY,
+              colorScheme: 'light',
+            }}
+          />
+          {overrideDateIso && (
+            <button
+              type="button"
+              onClick={() => setOverrideDateIso(null)}
+              className="px-3 py-2.5 rounded-lg border text-xs font-semibold"
+              style={{
+                borderColor: colors.BORDER,
+                backgroundColor: colors.BG_SECONDARY,
+                color: colors.TEXT_SECONDARY,
+              }}
+            >
+              Aujourd'hui
+            </button>
+          )}
+        </div>
+        {overrideDateIso && (
+          <p className="text-xs mt-1.5" style={{ color: colors.PRIMARY }}>
+            ⚠ Date simulée active — l&apos;app affiche le {selectedDateLabel}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilPage() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -255,14 +423,21 @@ export default function ProfilPage() {
   const ville = currentUserData?.userInfo?.reste_tout_lhiver_sur ?? '';
 
   return (
-    <div className="flex-1 overflow-y-auto pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
+    <div className="flex-1 flex flex-col overflow-y-auto pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
+      <PageHeader title={t('screens.profil.title')} />
       {/* Profile */}
-      <p className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2" style={{ color: colors.TEXT_SECONDARY }}>
+      <p
+        className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
+        style={{ color: colors.TEXT_SECONDARY }}
+      >
         {t('settings.profile.title')}
       </p>
       <div className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: colors.SETTINGS_SECTION_BG }}>
         <div className="flex items-center px-5 py-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: colors.SETTINGS_ICON_BG }}>
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
+            style={{ backgroundColor: colors.SETTINGS_ICON_BG }}
+          >
             <User size={20} color={colors.PRIMARY} />
           </div>
           <div className="flex-1">
@@ -304,9 +479,11 @@ export default function ProfilPage() {
                 style={{ backgroundColor: colors.SUCCESS_STRONG }}
               />
               <div className="flex-1">
-                <p className="text-base font-medium" style={{ color: colors.TEXT_PRIMARY }}>{site.site_name}</p>
+                <p className="text-base font-medium" style={{ color: colors.TEXT_PRIMARY }}>
+                  {site.site_name}
+                </p>
                 <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-                  {site.ville}{site.ville ? ' \u2022 ' : ''}{site.statut}
+                  {site.ville}{site.ville ? ' • ' : ''}{site.statut}
                 </p>
               </div>
             </div>
@@ -314,7 +491,15 @@ export default function ProfilPage() {
         )}
       </div>
 
-      {/* Edit Sites Modal */}
+      {/* Admin (demo) */}
+      <p
+        className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
+        style={{ color: colors.TEXT_SECONDARY }}
+      >
+        Admin · Mode démo
+      </p>
+      <AdminSection colors={colors} />
+
       <EditSitesModal
         isOpen={isEditSitesOpen}
         onClose={() => setIsEditSitesOpen(false)}

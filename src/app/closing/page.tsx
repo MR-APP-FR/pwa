@@ -6,10 +6,14 @@ import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
+import { PannesSection } from '../../components/forms/PannesSection';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
-import { WEEK_YEAR, WEEK_MONTH } from '../../constants/mock';
+import { useDemoDate } from '../../hooks/useDemoDate';
 import { submitClosingForm } from './actions';
+import { submitDailyInfo } from '../../lib/actions/daily-info';
+import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 function parseNumber(value: string): number | null {
   const trimmed = value.replace(',', '.').trim();
@@ -57,8 +61,9 @@ function ClosingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
-  const { t, language } = useTranslation();
-  const { data: planningData } = usePlanning({ year: WEEK_YEAR, month: WEEK_MONTH });
+  const { t } = useTranslation();
+  const { weekYear, weekMonth } = useDemoDate();
+  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: currentUser } = useCurrentUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,6 +87,11 @@ function ClosingContent() {
     telecollectePhotoSource: null,
     telecollectePhotoCapturedAtMs: null,
   });
+
+  const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
+  const [pannesAutre, setPannesAutre] = useState('');
+  const [pannes, setPannes] = useState('');
+
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -109,17 +119,14 @@ function ClosingContent() {
 
   const photoDateLabel =
     form.telecollectePhotoCapturedAtMs != null
-      ? new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'fr-FR', {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        }).format(new Date(form.telecollectePhotoCapturedAtMs))
+      ? formatDateTime(new Date(form.telecollectePhotoCapturedAtMs))
       : null;
 
   function handleSubmit() {
     setSubmitError(null);
 
     if (!mission) {
-      setSubmitError("Mission introuvable.");
+      setSubmitError('Mission introuvable.');
       return;
     }
     if (!currentUser?.user) {
@@ -153,19 +160,47 @@ function ClosingContent() {
       fd.set('photoCapturedAtMs', String(form.telecollectePhotoCapturedAtMs));
     }
 
+    const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
+    const hasPannes =
+      selectedSujetIds.length > 0 ||
+      pannesAutre.trim().length > 0 ||
+      pannes.trim().length > 0;
+
     startTransition(async () => {
       const result = await submitClosingForm(fd);
-      if (result.ok) {
-        setSubmitted(true);
-      } else {
+      if (!result.ok) {
         setSubmitError(result.error);
+        return;
       }
+
+      if (hasPannes) {
+        const dailyResult = await submitDailyInfo({
+          siteId: mission.site_id,
+          userId: currentUser.user.id,
+          date,
+          nettoyageVeille: null,
+          panneSujetIds: selectedSujetIds,
+          pannesAutre: pannesAutre.trim().length === 0 ? null : pannesAutre.trim(),
+          pannes: pannes.trim().length === 0 ? null : pannes.trim(),
+          carteParking: null,
+          musiqueDisney: null,
+        });
+        if (!dailyResult.ok) {
+          setSubmitError(dailyResult.error);
+          return;
+        }
+      }
+
+      setSubmitted(true);
     });
   }
 
   if (submitted) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
+      <div
+        className="flex-1 flex flex-col items-center justify-center p-6 gap-3"
+        style={{ backgroundColor: colors.BG_SECONDARY }}
+      >
         <span className="text-6xl mb-2">&#x2705;</span>
         <h2 className="text-xl font-bold text-center" style={{ color: colors.TEXT_PRIMARY }}>
           {t('forms.closing.successTitle')}
@@ -186,18 +221,24 @@ function ClosingContent() {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
+      {mission && (
+        <PageHeader
+          title={t('forms.closing.title')}
+          subtitle={mission.site_name}
+          detail={formatMissionDate(mission.year, mission.month, mission.day)}
+          showBack
+        />
+      )}
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
-        {mission && (
-          <div className="rounded-2xl border px-5 py-4" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
-            <p className="text-lg font-bold" style={{ color: colors.TEXT_PRIMARY }}>{mission.site_name}</p>
-            <p className="text-sm mt-1" style={{ color: colors.TEXT_SECONDARY }}>{`${mission.day}/${mission.month}/${mission.year}`}</p>
-          </div>
-        )}
-
-        <div className="rounded-2xl border px-5 py-5 space-y-5" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
+        <div
+          className="rounded-2xl border px-5 py-5 space-y-5"
+          style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}
+        >
           {NUMERIC_FIELDS.map(({ key, labelKey }) => (
             <div key={key} className="space-y-1">
-              <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>{t(labelKey)}</label>
+              <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                {t(labelKey)}
+              </label>
               <input
                 type="number"
                 inputMode="decimal"
@@ -209,8 +250,29 @@ function ClosingContent() {
             </div>
           ))}
 
+          <PannesSection
+            siteId={mission?.site_id}
+            selectedSujetIds={selectedSujetIds}
+            onToggleSujet={(id) =>
+              setSelectedSujetIds((prev) =>
+                prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+              )
+            }
+            pannesAutre={pannesAutre}
+            onPannesAutreChange={setPannesAutre}
+            pannes={pannes}
+            onPannesChange={setPannes}
+            onClearPannes={() => {
+              setSelectedSujetIds([]);
+              setPannesAutre('');
+              setPannes('');
+            }}
+          />
+
           <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>{t('forms.closing.observations')}</label>
+            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+              {t('forms.closing.observations')}
+            </label>
             <textarea
               placeholder={t('forms.closing.observationsPlaceholder')}
               value={form.observations}
@@ -222,7 +284,9 @@ function ClosingContent() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>{t('forms.closing.telecollectePhoto')}</label>
+            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+              {t('forms.closing.telecollectePhoto')}
+            </label>
             <input
               ref={fileInputRef}
               type="file"
@@ -234,13 +298,23 @@ function ClosingContent() {
             {form.telecollectePhotoUri ? (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  <Image src={form.telecollectePhotoUri} alt="Photo" width={72} height={72} className="rounded-lg object-cover" />
+                  <Image
+                    src={form.telecollectePhotoUri}
+                    alt="Photo"
+                    width={72}
+                    height={72}
+                    className="rounded-lg object-cover"
+                  />
                   <div className="flex flex-col gap-1 flex-1">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="py-2 rounded-lg border text-xs font-semibold"
-                      style={{ borderColor: colors.PRIMARY, backgroundColor: colors.PRIMARY + '15', color: colors.PRIMARY }}
+                      style={{
+                        borderColor: colors.PRIMARY,
+                        backgroundColor: colors.PRIMARY + '15',
+                        color: colors.PRIMARY,
+                      }}
                     >
                       {t('forms.closing.changePhoto')}
                     </button>
@@ -270,7 +344,11 @@ function ClosingContent() {
                 {photoDateLabel && (
                   <div
                     className="rounded-xl border px-3 py-2 text-xs leading-relaxed"
-                    style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY, backgroundColor: colors.BG_SECONDARY }}
+                    style={{
+                      borderColor: colors.BORDER,
+                      color: colors.TEXT_SECONDARY,
+                      backgroundColor: colors.BG_SECONDARY,
+                    }}
                   >
                     <p>
                       <span className="font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
@@ -294,7 +372,11 @@ function ClosingContent() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full py-3 rounded-lg border text-sm font-semibold"
-                style={{ borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY, color: colors.TEXT_PRIMARY }}
+                style={{
+                  borderColor: colors.BORDER,
+                  backgroundColor: colors.BG_SECONDARY,
+                  color: colors.TEXT_PRIMARY,
+                }}
               >
                 {t('forms.closing.addPhoto')}
               </button>
@@ -312,7 +394,10 @@ function ClosingContent() {
         )}
       </div>
 
-      <div className="px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
+      <div
+        className="px-5 py-4 border-t"
+        style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}
+      >
         <button
           type="button"
           onClick={handleSubmit}

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { Settings } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { ProfileSwitcher } from '../dev/ProfileSwitcher';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export function Header() {
   const { colors } = useThemeColors();
@@ -21,9 +22,6 @@ export function Header() {
         <Link href="/" className="flex items-center justify-center no-underline">
           <Image src="/logo.png" alt="Manège" width={190} height={57} />
         </Link>
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          <ProfileSwitcher />
-        </div>
       </div>
       <DemoModeBanner />
     </header>
@@ -31,20 +29,27 @@ export function Header() {
 }
 
 function DemoModeBanner() {
-  // PRIMARY_LIGHT est partagé via BRAND entre les deux thèmes (#2A2A2A) ;
-  // on fixe donc la couleur du texte en blanc pour garantir le contraste
-  // en dark mode (où TEXT_INVERSE vaudrait #000000 et rendrait la bannière
-  // illisible). Cf. revue Cursor Bugbot sur GRE-87.
+  const { t } = useTranslation();
+
   return (
     <div
-      className="px-3 py-1 text-center text-[10px] font-semibold uppercase tracking-wider"
+      className="flex items-center justify-between gap-2 px-3 py-1.5"
       style={{
         color: '#FFFFFF',
         backgroundColor: '#2A2A2A',
       }}
       aria-label="Mode démo, pas d'authentification réelle"
     >
-      Mode démo · profil sélectionnable
+      <span className="text-[10px] font-semibold uppercase tracking-wider">Mode démo</span>
+      <Link
+        href="/profil"
+        className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider no-underline transition-opacity active:opacity-70"
+        style={{ color: '#FFFFFF' }}
+        aria-label={t('screens.home.settingsButton')}
+      >
+        <Settings size={12} strokeWidth={2.25} />
+        {t('screens.home.settingsButton')}
+      </Link>
     </div>
   );
 }

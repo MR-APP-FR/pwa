@@ -4,8 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, Suspense } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-
-const DAY_LABELS_FR = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+import { formatPlanningDayLabel, formatWeekRange } from '../../lib/formatDate';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 interface DayAvailability {
   available: boolean;
@@ -18,17 +18,6 @@ function buildWeekDays(startDate: Date): Date[] {
     d.setDate(startDate.getDate() + i);
     return d;
   });
-}
-
-function formatDayLabel(date: Date, index: number): string {
-  const day = DAY_LABELS_FR[index] ?? '';
-  return `${day} ${date.getDate()} ${date.toLocaleDateString('fr-FR', { month: 'long' })}`;
-}
-
-function formatWeekRange(start: Date, end: Date): string {
-  const s = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-  const e = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-  return `${s} au ${e}`;
 }
 
 function AvailabilityContent() {
@@ -84,10 +73,12 @@ function AvailabilityContent() {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
+      <PageHeader
+        title={t('availability.title')}
+        subtitle={formatWeekRange(start, end)}
+        showBack
+      />
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
-        <p className="text-base font-semibold capitalize" style={{ color: colors.TEXT_SECONDARY }}>
-          {formatWeekRange(start, end)}
-        </p>
         <p className="text-sm mb-2" style={{ color: colors.TEXT_SECONDARY }}>
           {t('availability.description')}
         </p>
@@ -109,7 +100,7 @@ function AvailabilityContent() {
                   className="text-base font-semibold"
                   style={{ color: day.available ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY }}
                 >
-                  {formatDayLabel(date, index)}
+                  {formatPlanningDayLabel(date)}
                 </span>
                 <div className="inline-flex items-center gap-2">
                   <button

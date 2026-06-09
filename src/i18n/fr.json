@@ -10,9 +10,10 @@
       "noNextAssignment": "Pas de prochaine affectation",
       "openingButton": "Ouverture du jour",
       "closingButton": "Fermeture du jour",
-      "dailyInfoButton": "Info du jour",
       "planningButton": "Planning",
       "availabilityButton": "Disponibilités semaine prochaine",
+      "messagesButton": "Messages Information",
+      "trainingVideoButton": "Vidéo Formation",
       "settingsButton": "Paramètres"
     },
     "planning": {
@@ -20,7 +21,9 @@
       "empty": "Aucune mission cette semaine",
       "emptyWeek": "Aucune mission cette semaine",
       "weekTitle": "Semaine du {start} au {end}",
-      "nextWeek": "Semaine prochaine →",
+      "planningWeekTitle": "Semaine du %{date}",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
       "hour": "9h00",
       "go": "Aller",
       "opening": "Ouverture",
@@ -48,6 +51,9 @@
     },
     "profil": {
       "title": "Paramètres"
+    },
+    "mission": {
+      "title": "Mission"
     }
   },
   "settings": {
@@ -125,9 +131,15 @@
       "successDescription": "Vos informations de fermeture ont été enregistrées."
     },
     "dailyInfo": {
-      "title": "Info du jour",
       "nettoyageVeille": "Nettoyage de la veille effectué ?",
       "pannesSujetsTitle": "Dommages / pannes signalés",
+      "pannesHasQuestion": "Y a-t-il des dommages / pannes ?",
+      "pannesReportButton": "Signaler des pannes",
+      "pannesNone": "Aucune panne signalée",
+      "pannesSummaryCount": "{{count}} sujet(s)",
+      "pannesSummaryDetail": "Détail renseigné",
+      "pannesModalSelectionTitle": "Sélection des pannes",
+      "pannesModalDone": "Terminer",
       "pannesSujetsHelp": "Sélectionnez un ou plusieurs sujets concernés.",
       "pannesSujetsEmpty": "Aucun sujet déclaré pour ce site. Crée-le ci-dessous.",
       "pannesSujetCreatePlaceholder": "Nom du sujet à ajouter…",
@@ -137,10 +149,7 @@
       "pannesDetail": "Détail libre (optionnel)",
       "pannesDetailPlaceholder": "Précise les circonstances ou actions menées…",
       "carteParking": "Carte parking utilisée ?",
-      "musiqueDisney": "Musique Disney activée ?",
-      "submit": "Envoyer l'info du jour",
-      "successTitle": "Info du jour enregistrée",
-      "successDescription": "Les pannes signalées ont été transmises à l'équipe."
+      "musiqueDisney": "Musique Disney activée ?"
     }
   },
   "common": {

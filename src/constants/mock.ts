@@ -1,9 +1,9 @@
 /**
  * Mock configuration
- * Set USE_MOCK_DATE to true to use the mock date (28 jan 2026),
- * set to false to use the real current date.
+ * Set to true only for demos / tests figés sur janvier 2026.
+ * En usage normal, laisser false : TODAY, semaine et usePlanning suivent la date réelle.
  */
-export const USE_MOCK_DATE = true;
+export const USE_MOCK_DATE = false;
 
 const MOCK_DATE = new Date(2026, 0, 28); // mercredi 28 janvier 2026
 

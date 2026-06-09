@@ -8,6 +8,8 @@ import {
   Hand,
   Settings,
   AlertCircle,
+  MessagesSquare,
+  CirclePlay,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -18,6 +20,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'hand-left-outline': Hand,
   'settings-outline': Settings,
   'alert-circle-outline': AlertCircle,
+  'messages-outline': MessagesSquare,
+  'video-outline': CirclePlay,
 };
 
 interface HomeButtonProps {
@@ -41,7 +45,7 @@ export function HomeButton({ icon, label, onPress, disabled }: HomeButtonProps) 
         borderColor: colors.BORDER,
         opacity: disabled ? 0.4 : 1,
         width: 'calc(50% - 6px)',
-        minHeight: 112,
+        minHeight: 124,
       }}
     >
       <div
@@ -51,7 +55,7 @@ export function HomeButton({ icon, label, onPress, disabled }: HomeButtonProps) 
         <IconComponent size={24} color={colors.PRIMARY} />
       </div>
       <span
-        className="text-xs font-medium text-center leading-tight"
+        className="text-base font-medium text-center leading-snug"
         style={{ color: colors.TEXT_PRIMARY }}
       >
         {label}

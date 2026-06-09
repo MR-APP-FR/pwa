@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
+import { formatDayMonth, formatWeekday } from '../../lib/formatDate';
 
 interface PlanningDayCardProps {
   date: Date;
@@ -16,8 +17,8 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
   const { colors } = useThemeColors();
   const { t } = useTranslation();
 
-  const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-  const dateLabel = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  const dayLabel = formatWeekday(date);
+  const dateLabel = formatDayMonth(date);
 
   const content = (
     <div

@@ -10,9 +10,10 @@
       "noNextAssignment": "No upcoming assignment",
       "openingButton": "Today's opening",
       "closingButton": "Today's closing",
-      "dailyInfoButton": "Daily info",
       "planningButton": "Planning",
       "availabilityButton": "Next week availability",
+      "messagesButton": "Information messages",
+      "trainingVideoButton": "Training video",
       "settingsButton": "Settings"
     },
     "planning": {
@@ -20,7 +21,9 @@
       "empty": "No missions this week",
       "emptyWeek": "No missions this week",
       "weekTitle": "Week of {start} to {end}",
-      "nextWeek": "Next week →",
+      "planningWeekTitle": "Week of %{date}",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
       "hour": "9:00 AM",
       "go": "Go",
       "opening": "Opening",
@@ -48,6 +51,9 @@
     },
     "profil": {
       "title": "Settings"
+    },
+    "mission": {
+      "title": "Mission"
     }
   },
   "settings": {
@@ -125,9 +131,15 @@
       "successDescription": "Your closing information has been saved."
     },
     "dailyInfo": {
-      "title": "Daily info",
       "nettoyageVeille": "Was yesterday's cleaning done?",
       "pannesSujetsTitle": "Reported damages / breakdowns",
+      "pannesHasQuestion": "Are there any damages or breakdowns?",
+      "pannesReportButton": "Report breakdowns",
+      "pannesNone": "No breakdowns reported",
+      "pannesSummaryCount": "{{count}} item(s)",
+      "pannesSummaryDetail": "Details provided",
+      "pannesModalSelectionTitle": "Select breakdowns",
+      "pannesModalDone": "Done",
       "pannesSujetsHelp": "Select one or more affected items.",
       "pannesSujetsEmpty": "No items configured for this site. Add one below.",
       "pannesSujetCreatePlaceholder": "Name of the item to add…",
@@ -137,10 +149,7 @@
       "pannesDetail": "Free-form details (optional)",
       "pannesDetailPlaceholder": "Add context or actions taken…",
       "carteParking": "Parking card used?",
-      "musiqueDisney": "Disney music on?",
-      "submit": "Send daily info",
-      "successTitle": "Daily info saved",
-      "successDescription": "Reported breakdowns have been forwarded."
+      "musiqueDisney": "Disney music on?"
     }
   },
   "common": {

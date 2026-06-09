@@ -22,5 +22,3 @@ export interface ThemeColors extends Record<string, string> {
   SETTINGS_ICON_BG: string;
   BORDER: string;
 }
-
-export type ThemeMode = 'system' | 'light' | 'dark';

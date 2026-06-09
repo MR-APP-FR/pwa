@@ -6,14 +6,17 @@ import { usePlanning } from '../../hooks/api/usePlanning';
 import { useSites } from '../../hooks/api/useSites';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import { WEEK_YEAR, WEEK_MONTH } from '../../constants/mock';
+import { useDemoDate } from '../../hooks/useDemoDate';
+import { formatDateLong } from '../../lib/formatDate';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 function MissionContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { data: planningData } = usePlanning({ year: WEEK_YEAR, month: WEEK_MONTH });
+  const { weekYear, weekMonth } = useDemoDate();
+  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: sitesData } = useSites();
 
   const missionId = Number(searchParams.get('id'));
@@ -28,22 +31,30 @@ function MissionContent() {
     );
   }
 
-  const dateLabel = new Date(mission.year, mission.month - 1, mission.day).toLocaleDateString(
-    'fr-FR',
-    { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' },
-  );
+  const dateLabel = formatDateLong(new Date(mission.year, mission.month - 1, mission.day));
 
   const hasGps = site?.latitude != null && site?.longitude != null;
   const mapsUrl = hasGps
     ? `https://maps.google.com/?q=${site!.latitude},${site!.longitude}`
     : '#';
+  const hasSiteInfo =
+    Boolean(site?.adresse) ||
+    Boolean(site?.metro?.length) ||
+    Boolean(site?.indication?.length) ||
+    hasGps;
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
+      <PageHeader
+        title={t('screens.mission.title')}
+        subtitle={mission.site_name}
+        detail={dateLabel}
+        showBack
+      />
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
         {/* Site */}
+        {hasSiteInfo && (
         <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
-          <h2 className="text-xl font-bold" style={{ color: colors.TEXT_PRIMARY }}>{mission.site_name}</h2>
           {site?.adresse && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{site.adresse}</p>}
           {site?.metro && site.metro.length > 0 && (
             <div className="flex justify-between">
@@ -69,13 +80,10 @@ function MissionContent() {
             </a>
           )}
         </div>
+        )}
 
-        {/* Date & Role */}
+        {/* Role */}
         <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
-          <div className="flex justify-between">
-            <span className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>Date</span>
-            <span className="text-sm font-medium capitalize" style={{ color: colors.TEXT_PRIMARY }}>{dateLabel}</span>
-          </div>
           <div className="flex justify-between">
             <span className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{t('screens.planning.role')}</span>
             <span className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>

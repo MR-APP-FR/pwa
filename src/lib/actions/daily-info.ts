@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '../../lib/supabase/server';
+import { createClient } from '../supabase/server';
 
 /**
  * GRE-57 — server actions pour la page info-jour.
