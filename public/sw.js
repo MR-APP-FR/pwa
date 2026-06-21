@@ -1,4 +1,4 @@
-const CACHE_NAME = 'manege-v1';
+const CACHE_NAME = 'manege-v2';
 const STATIC_ASSETS = ['/', '/planning', '/profil'];
 
 self.addEventListener('install', (event) => {
@@ -18,6 +18,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // Ne jamais mettre en cache les appels Supabase (évite une liste vide figée sur iOS PWA)
+  if (url.hostname.includes('supabase.co')) {
+    return;
+  }
+
   // Network-first strategy: try network, fall back to cache
   event.respondWith(
     fetch(event.request)

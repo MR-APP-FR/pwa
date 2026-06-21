@@ -234,6 +234,9 @@ function EmployeePickerModal({
   colors,
   employees,
   isLoading,
+  isError,
+  error,
+  onRetry,
   selectedUserId,
   onSelect,
 }: {
@@ -242,6 +245,9 @@ function EmployeePickerModal({
   colors: Record<string, string>;
   employees: ReturnType<typeof useEmployees>['data'];
   isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  onRetry: () => void;
   selectedUserId: number | null;
   onSelect: (id: number) => void;
 }) {
@@ -263,6 +269,25 @@ function EmployeePickerModal({
           {isLoading ? (
             <div className="py-6 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
               Chargement…
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
+                Impossible de charger les employés.
+              </p>
+              {error?.message && (
+                <p className="text-xs px-2" style={{ color: colors.TEXT_SECONDARY }}>
+                  {error.message}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={onRetry}
+                className="rounded-xl border px-4 py-2 text-sm font-medium"
+                style={{ borderColor: colors.BORDER, color: colors.TEXT_PRIMARY }}
+              >
+                Réessayer
+              </button>
             </div>
           ) : !employees || employees.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-6">
@@ -312,13 +337,19 @@ function EmployeePickerModal({
 }
 
 function AdminSection({ colors }: { colors: Record<string, string> }) {
-  const { data: employees, isLoading } = useEmployees();
+  const { data: employees, isLoading, isError, error, refetch, isFetching } = useEmployees();
   const selectedUserId = useProfileStore((s) => s.selectedUserId);
   const setSelectedUserId = useProfileStore((s) => s.setSelectedUserId);
   const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
   const setOverrideDateIso = useDemoStore((s) => s.setOverrideDateIso);
 
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (employeeModalOpen) {
+      void refetch();
+    }
+  }, [employeeModalOpen, refetch]);
 
   useEffect(() => {
     if (!employees || employees.length === 0) return;
@@ -367,7 +398,10 @@ function AdminSection({ colors }: { colors: Record<string, string> }) {
         onClose={() => setEmployeeModalOpen(false)}
         colors={colors}
         employees={employees}
-        isLoading={isLoading}
+        isLoading={isLoading || isFetching}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
         selectedUserId={selectedUserId}
         onSelect={setSelectedUserId}
       />
