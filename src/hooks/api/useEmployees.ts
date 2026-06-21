@@ -1,11 +1,12 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchDemoEmployees } from '../../app/profil/actions';
+import { createClient } from '../../lib/supabase/client';
 
 /**
  * Liste minimale d'employé pour le profile switcher (GRE-87).
- * Chargée via server action (service-role, RPC ou requête anon).
+ * Via RPC `get_demo_employees` (SECURITY DEFINER) — même pattern client
+ * que useSites / usePlanning / useCurrentUser.
  */
 export interface EmployeeOption {
   id: number;
@@ -16,6 +17,17 @@ export interface EmployeeOption {
 }
 
 const QUERY_KEY = ['employees', 'demo-switcher'] as const;
+
+async function fetchDemoEmployees(): Promise<EmployeeOption[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('get_demo_employees');
+
+  if (error) {
+    throw new Error(`useEmployees failed: ${error.message}`);
+  }
+
+  return (data ?? []) as EmployeeOption[];
+}
 
 export function useEmployees() {
   return useQuery({
