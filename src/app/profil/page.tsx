@@ -227,38 +227,40 @@ function EditSitesModal({
   );
 }
 
-function AdminSection({ colors }: { colors: Record<string, string> }) {
-  const { data: employees, isLoading } = useEmployees();
-  const selectedUserId = useProfileStore((s) => s.selectedUserId);
-  const setSelectedUserId = useProfileStore((s) => s.setSelectedUserId);
-  const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
-  const setOverrideDateIso = useDemoStore((s) => s.setOverrideDateIso);
-
-  const [employeeOpen, setEmployeeOpen] = useState(false);
+function EmployeePickerModal({
+  isOpen,
+  onClose,
+  colors,
+  employees,
+  isLoading,
+  selectedUserId,
+  onSelect,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  colors: Record<string, string>;
+  employees: ReturnType<typeof useEmployees>['data'];
+  isLoading: boolean;
+  selectedUserId: number | null;
+  onSelect: (id: number) => void;
+}) {
   const [query, setQuery] = useState('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!employees || employees.length === 0) return;
-    if (selectedUserId !== null && employees.some((e) => e.id === selectedUserId)) return;
-    setSelectedUserId(employees[0].id);
-  }, [employees, selectedUserId, setSelectedUserId]);
-
-  useEffect(() => {
-    if (!employeeOpen) return;
-    function onClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setEmployeeOpen(false);
-      }
+    if (isOpen) {
+      setQuery('');
+      requestAnimationFrame(() => setIsVisible(true));
+    } else {
+      setIsVisible(false);
     }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [employeeOpen]);
+  }, [isOpen]);
 
-  const selectedEmployee = useMemo(
-    () => employees?.find((e) => e.id === selectedUserId) ?? null,
-    [employees, selectedUserId],
-  );
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(onClose, 200);
+  };
 
   const filtered = useMemo(() => {
     if (!employees) return [];
@@ -271,6 +273,172 @@ function AdminSection({ colors }: { colors: Record<string, string> }) {
         e.email.toLowerCase().includes(q),
     );
   }, [employees, query]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      ref={backdropRef}
+      onClick={(e) => {
+        if (e.target === backdropRef.current) handleClose();
+      }}
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center px-0 sm:px-4"
+      style={{
+        backgroundColor: isVisible ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
+        transition: 'background-color 0.2s ease',
+      }}
+    >
+      <div
+        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
+        style={{
+          backgroundColor: colors.BG_PRIMARY,
+          maxHeight: '85vh',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+          transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
+          opacity: isVisible ? 1 : 0,
+          transition: 'transform 0.25s ease, opacity 0.2s ease',
+        }}
+      >
+        <div className="flex justify-center pt-3">
+          <div className="w-9 h-1 rounded-full" style={{ backgroundColor: colors.TEXT_SECONDARY + '30' }} />
+        </div>
+        <div className="flex items-start justify-between px-5 pt-4 pb-2">
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: colors.TEXT_PRIMARY }}>
+              Profil employé
+            </h2>
+            <p className="text-xs mt-1" style={{ color: colors.TEXT_SECONDARY }}>
+              Mode démo · choisir un employé
+            </p>
+          </div>
+          <button
+            onClick={handleClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: colors.TEXT_SECONDARY + '15' }}
+          >
+            <X size={16} color={colors.TEXT_SECONDARY} />
+          </button>
+        </div>
+        <div className="px-5 py-2">
+          <div
+            className="flex items-center rounded-xl px-3 h-10 border"
+            style={{
+              backgroundColor: colors.TEXT_SECONDARY + '08',
+              borderColor: colors.TEXT_SECONDARY + '15',
+            }}
+          >
+            <Search size={16} color={colors.TEXT_SECONDARY} className="mr-2 flex-shrink-0" />
+            <input
+              type="search"
+              autoFocus
+              placeholder="Rechercher un employé…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex-1 bg-transparent text-sm outline-none"
+              style={{ color: colors.TEXT_PRIMARY }}
+            />
+            {query && (
+              <button onClick={() => setQuery('')} className="ml-2">
+                <X size={14} color={colors.TEXT_SECONDARY} />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 pb-3" style={{ minHeight: 0 }}>
+          {isLoading ? (
+            <div className="py-10 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+              Chargement…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center py-10 gap-3">
+              <User size={36} color={colors.TEXT_SECONDARY + '40'} />
+              <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                Aucun employé trouvé
+              </p>
+            </div>
+          ) : (
+            filtered.map((emp) => {
+              const selected = emp.id === selectedUserId;
+              return (
+                <button
+                  key={emp.id}
+                  type="button"
+                  onClick={() => {
+                    onSelect(emp.id);
+                    handleClose();
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-lg mb-1 text-left transition-colors duration-150"
+                  style={{
+                    backgroundColor: selected ? colors.SUCCESS_STRONG + '0D' : 'transparent',
+                    border: `1px solid ${
+                      selected ? colors.SUCCESS_STRONG + '40' : colors.TEXT_SECONDARY + '10'
+                    }`,
+                  }}
+                >
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{
+                      backgroundColor: selected ? colors.SUCCESS_STRONG : 'transparent',
+                      border: `1.5px solid ${
+                        selected ? colors.SUCCESS_STRONG : colors.TEXT_SECONDARY + '35'
+                      }`,
+                    }}
+                  >
+                    {selected && <Check size={13} color="#fff" strokeWidth={3} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: colors.TEXT_PRIMARY }}>
+                      {emp.fullname ?? emp.login}
+                    </p>
+                    <p className="text-[11px] truncate" style={{ color: colors.TEXT_SECONDARY }}>
+                      #{emp.id} · {emp.email}
+                    </p>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+        <div
+          className="px-5 py-4 border-t"
+          style={{
+            borderColor: colors.TEXT_SECONDARY + '12',
+            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
+          }}
+        >
+          <button
+            onClick={handleClose}
+            className="w-full py-3 rounded-xl text-sm font-medium border transition-colors duration-150"
+            style={{ borderColor: colors.TEXT_SECONDARY + '20', color: colors.TEXT_SECONDARY }}
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function AdminSection({ colors }: { colors: Record<string, string> }) {
+  const { data: employees, isLoading } = useEmployees();
+  const selectedUserId = useProfileStore((s) => s.selectedUserId);
+  const setSelectedUserId = useProfileStore((s) => s.setSelectedUserId);
+  const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
+  const setOverrideDateIso = useDemoStore((s) => s.setOverrideDateIso);
+
+  const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    if (selectedUserId !== null && employees.some((e) => e.id === selectedUserId)) return;
+    setSelectedUserId(employees[0].id);
+  }, [employees, selectedUserId, setSelectedUserId]);
+
+  const selectedEmployee = useMemo(
+    () => employees?.find((e) => e.id === selectedUserId) ?? null,
+    [employees, selectedUserId],
+  );
 
   const todayIso = new Date().toISOString().split('T')[0];
   const selectedDateIso = overrideDateIso ?? todayIso;
@@ -286,79 +454,32 @@ function AdminSection({ colors }: { colors: Record<string, string> }) {
         <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
           Profil employé
         </p>
-        <div ref={dropdownRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setEmployeeOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm"
-            style={{
-              borderColor: colors.BORDER,
-              backgroundColor: colors.BG_SECONDARY,
-              color: colors.TEXT_PRIMARY,
-            }}
-          >
-            <span className="truncate font-medium">
-              {isLoading ? 'Chargement…' : (selectedEmployee?.fullname ?? selectedEmployee?.login ?? 'Choisir…')}
-            </span>
-            <ChevronDown size={16} color={colors.TEXT_SECONDARY} />
-          </button>
-
-          {employeeOpen && (
-            <div
-              className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border shadow-lg overflow-hidden"
-              style={{
-                backgroundColor: colors.SETTINGS_SECTION_BG,
-                borderColor: colors.BORDER,
-              }}
-            >
-              <div
-                className="flex items-center gap-2 px-3 py-2"
-                style={{ borderBottom: `1px solid ${colors.SETTINGS_SEPARATOR}` }}
-              >
-                <Search size={14} color={colors.TEXT_SECONDARY} />
-                <input
-                  type="search"
-                  autoFocus
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Rechercher…"
-                  className="w-full bg-transparent text-sm outline-none"
-                  style={{ color: colors.TEXT_PRIMARY }}
-                />
-              </div>
-              <div className="max-h-56 overflow-y-auto py-1">
-                {filtered.map((emp) => {
-                  const selected = emp.id === selectedUserId;
-                  return (
-                    <button
-                      key={emp.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedUserId(emp.id);
-                        setEmployeeOpen(false);
-                        setQuery('');
-                      }}
-                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
-                      style={{
-                        backgroundColor: selected ? colors.BG_TERTIARY : 'transparent',
-                        color: colors.TEXT_PRIMARY,
-                      }}
-                    >
-                      <div className="flex min-w-0 flex-col">
-                        <span className="truncate font-medium">{emp.fullname ?? emp.login}</span>
-                        <span className="truncate text-xs" style={{ color: colors.TEXT_SECONDARY }}>
-                          #{emp.id} · {emp.email}
-                        </span>
-                      </div>
-                      {selected && <Check size={14} color={colors.SUCCESS_STRONG} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => setEmployeeModalOpen(true)}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm"
+          style={{
+            borderColor: colors.BORDER,
+            backgroundColor: colors.BG_SECONDARY,
+            color: colors.TEXT_PRIMARY,
+          }}
+        >
+          <span className="truncate font-medium">
+            {isLoading ? 'Chargement…' : (selectedEmployee?.fullname ?? selectedEmployee?.login ?? 'Choisir…')}
+          </span>
+          <ChevronDown size={16} color={colors.TEXT_SECONDARY} />
+        </button>
       </div>
+
+      <EmployeePickerModal
+        isOpen={employeeModalOpen}
+        onClose={() => setEmployeeModalOpen(false)}
+        colors={colors}
+        employees={employees}
+        isLoading={isLoading}
+        selectedUserId={selectedUserId}
+        onSelect={setSelectedUserId}
+      />
 
       {/* Date picker */}
       <div className="px-5 py-4">
