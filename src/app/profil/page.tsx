@@ -13,6 +13,7 @@ import { useDemoStore } from '../../stores/demoStore';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { BottomSheetModal } from '../../components/common/BottomSheetModal';
 
 function EditSitesModal({
   isOpen,
@@ -244,179 +245,69 @@ function EmployeePickerModal({
   selectedUserId: number | null;
   onSelect: (id: number) => void;
 }) {
-  const [query, setQuery] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
-  const backdropRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      requestAnimationFrame(() => setIsVisible(true));
-    } else {
-      setIsVisible(false);
-    }
-  }, [isOpen]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 200);
-  };
-
-  const filtered = useMemo(() => {
-    if (!employees) return [];
-    const q = query.trim().toLowerCase();
-    if (!q) return employees;
-    return employees.filter(
-      (e) =>
-        (e.fullname ?? '').toLowerCase().includes(q) ||
-        e.login.toLowerCase().includes(q) ||
-        e.email.toLowerCase().includes(q),
-    );
-  }, [employees, query]);
-
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div
-      ref={backdropRef}
-      onClick={(e) => {
-        if (e.target === backdropRef.current) handleClose();
-      }}
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center px-0 sm:px-4"
-      style={{
-        backgroundColor: isVisible ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
-        transition: 'background-color 0.2s ease',
-      }}
+  return (
+    <BottomSheetModal
+      isOpen={isOpen}
+      onClose={onClose}
+      colors={colors}
+      title="Profil employé"
+      titleId="employee-picker-title"
+      closeAriaLabel="Fermer"
+      doneLabel="Terminé"
     >
-      <div
-        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
-        style={{
-          backgroundColor: colors.BG_PRIMARY,
-          maxHeight: '85vh',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-          transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
-          opacity: isVisible ? 1 : 0,
-          transition: 'transform 0.25s ease, opacity 0.2s ease',
-        }}
-      >
-        <div className="flex justify-center pt-3">
-          <div className="w-9 h-1 rounded-full" style={{ backgroundColor: colors.TEXT_SECONDARY + '30' }} />
-        </div>
-        <div className="flex items-start justify-between px-5 pt-4 pb-2">
-          <div>
-            <h2 className="text-xl font-bold" style={{ color: colors.TEXT_PRIMARY }}>
-              Profil employé
-            </h2>
-            <p className="text-xs mt-1" style={{ color: colors.TEXT_SECONDARY }}>
-              Mode démo · choisir un employé
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: colors.TEXT_SECONDARY + '15' }}
-          >
-            <X size={16} color={colors.TEXT_SECONDARY} />
-          </button>
-        </div>
-        <div className="px-5 py-2">
-          <div
-            className="flex items-center rounded-xl px-3 h-10 border"
-            style={{
-              backgroundColor: colors.TEXT_SECONDARY + '08',
-              borderColor: colors.TEXT_SECONDARY + '15',
-            }}
-          >
-            <Search size={16} color={colors.TEXT_SECONDARY} className="mr-2 flex-shrink-0" />
-            <input
-              type="search"
-              autoFocus
-              placeholder="Rechercher un employé…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm outline-none"
-              style={{ color: colors.TEXT_PRIMARY }}
-            />
-            {query && (
-              <button onClick={() => setQuery('')} className="ml-2">
-                <X size={14} color={colors.TEXT_SECONDARY} />
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-3" style={{ minHeight: 0 }}>
+      {({ close }) => (
+        <>
+          <p className="mb-3 text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+            Mode démo · choisir un employé
+          </p>
           {isLoading ? (
-            <div className="py-10 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+            <div className="py-6 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
               Chargement…
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center py-10 gap-3">
+          ) : !employees || employees.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-6">
               <User size={36} color={colors.TEXT_SECONDARY + '40'} />
               <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
                 Aucun employé trouvé
               </p>
             </div>
           ) : (
-            filtered.map((emp) => {
-              const selected = emp.id === selectedUserId;
-              return (
-                <button
-                  key={emp.id}
-                  type="button"
-                  onClick={() => {
-                    onSelect(emp.id);
-                    handleClose();
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-lg mb-1 text-left transition-colors duration-150"
-                  style={{
-                    backgroundColor: selected ? colors.SUCCESS_STRONG + '0D' : 'transparent',
-                    border: `1px solid ${
-                      selected ? colors.SUCCESS_STRONG + '40' : colors.TEXT_SECONDARY + '10'
-                    }`,
-                  }}
-                >
-                  <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{
-                      backgroundColor: selected ? colors.SUCCESS_STRONG : 'transparent',
-                      border: `1.5px solid ${
-                        selected ? colors.SUCCESS_STRONG : colors.TEXT_SECONDARY + '35'
-                      }`,
+            <div className="space-y-2">
+              {employees.map((emp) => {
+                const selected = emp.id === selectedUserId;
+                return (
+                  <button
+                    key={emp.id}
+                    type="button"
+                    onClick={() => {
+                      onSelect(emp.id);
+                      close();
                     }}
+                    className="card-surface flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-opacity active:opacity-80"
                   >
-                    {selected && <Check size={13} color="#fff" strokeWidth={3} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: colors.TEXT_PRIMARY }}>
-                      {emp.fullname ?? emp.login}
-                    </p>
-                    <p className="text-[11px] truncate" style={{ color: colors.TEXT_SECONDARY }}>
-                      #{emp.id} · {emp.email}
-                    </p>
-                  </div>
-                </button>
-              );
-            })
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className="truncate text-sm font-bold leading-snug"
+                        style={{
+                          color: selected ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY,
+                          fontFamily: 'var(--font-display)',
+                        }}
+                      >
+                        {emp.fullname ?? emp.login}
+                      </p>
+                      <p className="truncate text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+                        #{emp.id} · {emp.email}
+                      </p>
+                    </div>
+                    {selected && <Check size={18} color={colors.SUCCESS_STRONG} strokeWidth={2.5} />}
+                  </button>
+                );
+              })}
+            </div>
           )}
-        </div>
-        <div
-          className="px-5 py-4 border-t"
-          style={{
-            borderColor: colors.TEXT_SECONDARY + '12',
-            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
-          }}
-        >
-          <button
-            onClick={handleClose}
-            className="w-full py-3 rounded-xl text-sm font-medium border transition-colors duration-150"
-            style={{ borderColor: colors.TEXT_SECONDARY + '20', color: colors.TEXT_SECONDARY }}
-          >
-            Fermer
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
+        </>
+      )}
+    </BottomSheetModal>
   );
 }
 

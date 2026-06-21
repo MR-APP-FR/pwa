@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSujets } from '../../hooks/api/useSujets';
 import { createSujet } from '../../lib/actions/daily-info';
-import { PrimaryButton } from '../common/PrimaryButton';
+import { BottomSheetModal } from '../common/BottomSheetModal';
 import { YesNoToggle } from '../common/YesNoToggle';
 import { RADIUS } from '../../constants/design';
 
@@ -186,114 +185,6 @@ function PannesSelectionContent({
   );
 }
 
-function PannesModal({
-  isOpen,
-  onClose,
-  colors,
-  children,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  colors: Record<string, string>;
-  children: React.ReactNode;
-}) {
-  const { t } = useTranslation();
-  const [isVisible, setIsVisible] = useState(false);
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      requestAnimationFrame(() => setIsVisible(true));
-    } else {
-      setIsVisible(false);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (isOpen) {
-      dialogRef.current?.focus();
-    }
-  }, [isOpen]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 200);
-  };
-
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div
-      ref={backdropRef}
-      onClick={(e) => {
-        if (e.target === backdropRef.current) handleClose();
-      }}
-      className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center sm:px-4"
-      style={{
-        backgroundColor: isVisible ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
-        transition: 'background-color 0.2s ease',
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pannes-modal-title"
-        tabIndex={-1}
-        className="flex w-full max-w-md flex-col overflow-hidden outline-none sm:rounded-2xl"
-        style={{
-          backgroundColor: colors.BG_SECONDARY,
-          maxHeight: '90vh',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-          transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
-          opacity: isVisible ? 1 : 0,
-          transition: 'transform 0.2s ease, opacity 0.2s ease',
-        }}
-      >
-        <div className="flex justify-center pt-3">
-          <div className="h-1 w-9 rounded-full" style={{ backgroundColor: colors.TEXT_SECONDARY + '30' }} />
-        </div>
-        <div className="flex items-start justify-between px-4 pb-2 pt-4">
-          <h2
-            id="pannes-modal-title"
-            className="pr-4 text-xl font-bold"
-            style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
-          >
-            {t('forms.dailyInfo.pannesModalSelectionTitle')}
-          </h2>
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label={t('common.cancel')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-            style={{ backgroundColor: colors.TEXT_SECONDARY + '15' }}
-          >
-            <X size={16} color={colors.TEXT_SECONDARY} />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {children}
-          <PrimaryButton onClick={handleClose} className="mt-4 w-full py-3.5 text-base">
-            {t('forms.dailyInfo.pannesModalDone')}
-          </PrimaryButton>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 export function PannesSection({
   siteId,
   selectedSujetIds,
@@ -401,7 +292,15 @@ export function PannesSection({
         )}
       </div>
 
-      <PannesModal isOpen={modalOpen} onClose={closeModal} colors={colors}>
+      <BottomSheetModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        colors={colors}
+        title={t('forms.dailyInfo.pannesModalSelectionTitle')}
+        titleId="pannes-modal-title"
+        closeAriaLabel={t('common.cancel')}
+        doneLabel={t('forms.dailyInfo.pannesModalDone')}
+      >
         <PannesSelectionContent
           siteId={siteId}
           selectedSujetIds={selectedSujetIds}
@@ -409,7 +308,7 @@ export function PannesSection({
           sujetReasons={sujetReasons}
           onSujetReasonChange={onSujetReasonChange}
         />
-      </PannesModal>
+      </BottomSheetModal>
     </>
   );
 }
