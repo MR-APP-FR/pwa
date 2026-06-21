@@ -12,6 +12,7 @@ import { useProfileStore } from '../../stores/profileStore';
 import { useDemoStore } from '../../stores/demoStore';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
 
 function EditSitesModal({
   isOpen,
@@ -150,7 +151,7 @@ function EditSitesModal({
             filteredGroupes.map(({ groupe, sites }, idx) => (
               <div key={groupe.id} className={idx > 0 ? 'mt-4' : 'mt-1'}>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.PRIMARY + '60' }} />
+                  <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: colors.PRIMARY }} />
                   <span
                     className="text-[10px] font-semibold uppercase tracking-wider"
                     style={{ color: colors.TEXT_SECONDARY }}
@@ -212,14 +213,13 @@ function EditSitesModal({
           >
             Annuler
           </button>
-          <button
+          <PrimaryButton
             onClick={handleClose}
-            className="flex-[1.5] py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors duration-150"
-            style={{ backgroundColor: colors.PRIMARY, color: '#fff' }}
+            className="flex flex-[1.5] items-center justify-center gap-1.5 py-2.5 text-sm"
           >
             <Check size={16} />
             Sauvegarder
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>,
@@ -277,7 +277,10 @@ function AdminSection({ colors }: { colors: Record<string, string> }) {
   const selectedDateLabel = formatDateLong(new Date(`${selectedDateIso}T12:00:00`));
 
   return (
-    <div className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: colors.SETTINGS_SECTION_BG }}>
+    <div
+      className="mx-5 overflow-hidden rounded-2xl"
+      style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+    >
       {/* Employee picker */}
       <div className="px-5 py-4" style={{ borderBottom: `1px solid ${colors.SETTINGS_SEPARATOR}` }}>
         <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
@@ -362,7 +365,7 @@ function AdminSection({ colors }: { colors: Record<string, string> }) {
         <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
           Date simulée
         </p>
-        <p className="text-sm font-medium mb-2 capitalize" style={{ color: colors.TEXT_PRIMARY }}>
+        <p className="text-sm font-medium mb-2" style={{ color: colors.TEXT_PRIMARY }}>
           {selectedDateLabel}
         </p>
         <div className="flex items-center gap-2">
@@ -432,13 +435,16 @@ export default function ProfilPage() {
       >
         {t('settings.profile.title')}
       </p>
-      <div className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: colors.SETTINGS_SECTION_BG }}>
+      <div
+        className="mx-5 overflow-hidden rounded-2xl"
+        style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+      >
         <div className="flex items-center px-5 py-4">
           <div
-            className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
-            style={{ backgroundColor: colors.SETTINGS_ICON_BG }}
+            className="mr-4 flex h-12 w-12 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: colors.PRIMARY_MUTED }}
           >
-            <User size={20} color={colors.PRIMARY} />
+            <User size={20} color={colors.PRIMARY} strokeWidth={2.25} />
           </div>
           <div className="flex-1">
             <p className="text-lg font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
@@ -464,7 +470,10 @@ export default function ProfilPage() {
           {t('common.edit')}
         </button>
       </div>
-      <div className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: colors.SETTINGS_SECTION_BG }}>
+      <div
+        className="mx-5 overflow-hidden rounded-2xl"
+        style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+      >
         {preferredSites.length === 0 ? (
           <div className="px-4 py-3">
             <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>

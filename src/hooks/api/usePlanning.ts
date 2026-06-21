@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
 import { useProfileStore } from '../../stores/profileStore';
 import type { PlanningColleague, PlanningWithColleague } from '../../database/types';
+import { formatSiteName } from '../../lib/formatSiteName';
 
 interface UsePlanningParams {
   year: number;
@@ -51,7 +52,7 @@ function planningMonthTriplet(year: number, month: number): { year: number; mont
 function normalizeSiteName(site: PlanningRowDb['site']): string {
   if (!site) return '';
   const s = Array.isArray(site) ? site[0] : site;
-  return s?.name ?? '';
+  return formatSiteName(s?.name ?? '');
 }
 
 function mapColleagueFromUserRow(row: UserColleagueRow): PlanningColleague {

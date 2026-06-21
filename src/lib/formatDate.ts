@@ -9,59 +9,48 @@ export function toLocalDate(year: number, month: number, day: number): Date {
   return new Date(year, month - 1, day);
 }
 
+/** Format standard : JEUDI 4 JUIN (sans année) */
+export function formatWeekdayDayMonth(date: Date): string {
+  return `${formatWeekday(date)} ${formatDayMonth(date)}`;
+}
+
 export function formatWeekday(date: Date): string {
-  return capitalizeFrench(date.toLocaleDateString(LOCALE, { weekday: 'long' }));
+  return date.toLocaleDateString(LOCALE, { weekday: 'long' }).toUpperCase();
 }
 
 export function formatDayMonth(date: Date): string {
-  return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
+  const day = date.getDate();
+  const month = date.toLocaleDateString(LOCALE, { month: 'long' }).toUpperCase();
+  return `${day} ${month}`;
 }
 
 export function formatDayMonthYear(date: Date): string {
-  return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-export function formatWeekdayDayMonth(date: Date): string {
-  return capitalizeFrench(
-    date.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }),
-  );
+  return formatDayMonth(date);
 }
 
 export function formatDateLong(date: Date): string {
-  return capitalizeFrench(
-    date.toLocaleDateString(LOCALE, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }),
-  );
+  return formatWeekdayDayMonth(date);
 }
 
 export function formatDateTime(date: Date): string {
-  return new Intl.DateTimeFormat(LOCALE, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const timePart = date.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+  return `${formatWeekdayDayMonth(date)} à ${timePart}`;
 }
 
 export function formatMissionDate(year: number, month: number, day: number): string {
-  return formatDayMonthYear(toLocalDate(year, month, day));
+  return formatWeekdayDayMonth(toLocalDate(year, month, day));
 }
 
 export function formatWeekRange(start: Date, end: Date): string {
-  return `${formatDayMonth(start)} au ${formatDayMonthYear(end)}`;
+  return `${formatDayMonth(start)} au ${formatDayMonth(end)}`;
 }
 
 export function formatPlanningWeekRange(start: Date): string {
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
-  return `Semaine du ${formatDayMonth(start)} au ${formatDayMonthYear(end)}`;
+  return `Semaine du ${formatDayMonth(start)} au ${formatDayMonth(end)}`;
 }
 
 export function formatPlanningDayLabel(date: Date): string {
-  return `${formatWeekday(date)} ${formatDayMonth(date)}`;
+  return formatWeekdayDayMonth(date);
 }

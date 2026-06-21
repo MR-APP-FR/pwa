@@ -9,6 +9,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useDemoDate } from '../../hooks/useDemoDate';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 
 function MissionContent() {
   const searchParams = useSearchParams();
@@ -54,7 +55,7 @@ function MissionContent() {
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
         {/* Site */}
         {hasSiteInfo && (
-        <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
+        <div className="card-surface px-5 py-4 space-y-3">
           {site?.adresse && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{site.adresse}</p>}
           {site?.metro && site.metro.length > 0 && (
             <div className="flex justify-between">
@@ -73,8 +74,15 @@ function MissionContent() {
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-center py-2 rounded-lg border text-sm font-semibold mt-1"
-              style={{ borderColor: colors.PRIMARY, color: colors.PRIMARY }}
+              className="mt-1 block py-2.5 text-center text-sm font-semibold"
+              style={{
+                backgroundColor: colors.PRIMARY,
+                backgroundImage: 'none',
+                color: colors.TEXT_INVERSE,
+                borderRadius: RADIUS.sm,
+                minHeight: TOUCH_TARGET,
+                fontFamily: 'var(--font-display)',
+              }}
             >
               {t('screens.planning.go')}
             </a>
@@ -83,7 +91,7 @@ function MissionContent() {
         )}
 
         {/* Role */}
-        <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
+        <div className="card-surface px-5 py-4 space-y-3">
           <div className="flex justify-between">
             <span className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{t('screens.planning.role')}</span>
             <span className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
@@ -93,7 +101,7 @@ function MissionContent() {
         </div>
 
         {/* Colleague */}
-        <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
+        <div className="card-surface px-5 py-4 space-y-3">
           <h3 className="text-base font-bold mb-1" style={{ color: colors.TEXT_PRIMARY }}>Collègue</h3>
           {mission.colleague ? (
             <>
@@ -124,7 +132,7 @@ function MissionContent() {
         </div>
 
         {/* Confirmation */}
-        <div className="rounded-2xl border px-5 py-4 space-y-3" style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}>
+        <div className="card-surface px-5 py-4 space-y-3">
           <h3 className="text-base font-bold mb-1" style={{ color: colors.TEXT_PRIMARY }}>
             {t('screens.planning.confirmationStatus')}
           </h3>
@@ -161,15 +169,23 @@ function MissionContent() {
       <div className="flex gap-3 px-5 py-4 border-t" style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}>
         <button
           onClick={() => router.push(`/opening?id=${mission.id}`)}
-          className="flex-1 py-3 rounded-xl border text-sm font-semibold"
-          style={{ borderColor: colors.BORDER, color: colors.TEXT_PRIMARY }}
+          className="min-h-[44px] flex-1 rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
+          style={{
+            backgroundColor: colors.ACCENT_YELLOW_MUTED,
+            color: colors.ACCENT_ORANGE,
+            fontFamily: 'var(--font-display)',
+          }}
         >
           {t('screens.planning.opening')}
         </button>
         <button
           onClick={() => router.push(`/closing?id=${mission.id}`)}
-          className="flex-1 py-3 rounded-xl border text-sm font-semibold"
-          style={{ borderColor: colors.BORDER, color: colors.TEXT_PRIMARY }}
+          className="min-h-[44px] flex-1 rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
+          style={{
+            backgroundColor: colors.ACCENT_PURPLE_MUTED,
+            color: colors.ACCENT_PURPLE,
+            fontFamily: 'var(--font-display)',
+          }}
         >
           {t('screens.planning.closing')}
         </button>

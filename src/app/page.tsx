@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { AssignmentBanner } from '../components/home/AssignmentBanner';
 import { HomeButton } from '../components/home/HomeButton';
+import { HomeFooter } from '../components/home/HomeFooter';
 import { usePlanning } from '../hooks/api/usePlanning';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../hooks/useTranslation';
@@ -56,7 +57,11 @@ export default function HomePage() {
   const hasTodayMission = todayMission !== null;
 
   return (
-    <div className="flex-1 overflow-y-auto pt-5 pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+      style={{ backgroundColor: colors.BG_SECONDARY }}
+    >
+      <div className="flex min-h-full flex-1 flex-col pt-3">
       <AssignmentBanner
         todayMission={todayMission}
         todayTime={todayTime}
@@ -64,7 +69,7 @@ export default function HomePage() {
         nextDayLabel={nextDayLabel}
       />
 
-      <div className="flex flex-wrap gap-3 px-5 pt-1">
+      <div className="grid grid-cols-2 gap-2.5 px-4 pb-2">
         <HomeButton
           icon="sunny-outline"
           label={t('screens.home.openingButton')}
@@ -106,9 +111,17 @@ export default function HomePage() {
         <HomeButton
           icon="video-outline"
           label={t('screens.home.trainingVideoButton')}
-          onPress={() => {}}
-          disabled
+          onPress={() => router.push('/training')}
         />
+        <HomeButton
+          icon="map-pin-outline"
+          label={t('screens.home.sitesMapButton')}
+          onPress={() => router.push('/sites-map')}
+          fullWidth
+        />
+      </div>
+
+      <HomeFooter />
       </div>
     </div>
   );

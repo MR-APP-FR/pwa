@@ -1,21 +1,26 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { Header } from '../components/layout/Header';
 import { InstallBanner } from '../components/pwa/InstallBanner';
 import { useThemeColors } from '../hooks/useThemeColors';
 
+const FORM_SCROLL_PATHS = new Set(['/opening', '/closing', '/availability']);
+
 function AppShell({ children }: { children: ReactNode }) {
   const { colors } = useThemeColors();
+  const pathname = usePathname();
+  const formScrollLayout = FORM_SCROLL_PATHS.has(pathname);
 
   return (
     <div
-      className="min-h-screen flex flex-col max-w-md mx-auto"
+      className="mx-auto flex min-h-screen max-w-md flex-col"
       style={{ backgroundColor: colors.BG_SECONDARY }}
     >
-      <Header />
-      <main className="flex-1 flex flex-col">{children}</main>
+      {!formScrollLayout && <Header />}
+      <main className="flex flex-1 flex-col">{children}</main>
       <InstallBanner />
     </div>
   );

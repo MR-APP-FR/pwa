@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="25px" height="25px" viewBox="0 0 25 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>arrow</title>
+    <defs>
+        <polygon id="path-1" points="24.007 0 0 0 0 24.007 24.007 24.007"></polygon>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="arrow" transform="translate(12.003500, 12.003500) scale(-1, 1) translate(-12.003500, -12.003500) ">
+            <g id="g1925" transform="translate(12.828000, 7.040000)" stroke="#FFFFFF" stroke-linecap="square" stroke-width="1.53">
+                <polyline id="path1927" points="0.042 0 4.988 4.988 0 9.934"></polyline>
+            </g>
+            <g id="g1929" transform="translate(5.814000, 11.500000)" stroke="#FFFFFF" stroke-linecap="square" stroke-linejoin="round" stroke-width="1.53">
+                <line x1="10.972" y1="0.523" x2="0" y2="0.477" id="path1931"></line>
+            </g>
+            <g id="g1935-Clipped">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <g id="path1937"></g>
+                <g id="g1935" mask="url(#mask-2)">
+                    <g transform="translate(0.937906, 0.937910)" id="g1941">
+                        <g transform="translate(-0.000000, -0.000000)">
+                            <path d="M0,11.0190898 C-0.0248117212,17.1295269 4.90766328,22.1036356 11.0180939,22.1301837 C17.1281422,22.1549962 22.1020893,17.2231292 22.1291943,11.1130898 C22.1415856,8.17819609 20.98767,5.35854857 18.9212009,3.27445104 C16.8547319,1.1903535 14.0449878,0.012528507 11.1100939,0 C4.99965779,-0.0242613008 0.0259981002,4.90866004 0,11.0190898 L0,11.0190898 Z" id="path1943" stroke="#FFFFFF" stroke-width="1.53"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

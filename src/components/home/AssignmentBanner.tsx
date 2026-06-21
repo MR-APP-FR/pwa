@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
+import { HOME_ASSIGNMENT_BG } from '../../constants/colors';
+import { RADIUS } from '../../constants/design';
 import type { PlanningWithColleague } from '../../database/types';
 
 interface AssignmentBannerProps {
@@ -22,52 +24,61 @@ export function AssignmentBanner({
   const { colors } = useThemeColors();
   const { t } = useTranslation();
 
+  const cardBase = {
+    borderRadius: RADIUS.xl,
+    boxShadow: colors.CARD_SHADOW,
+  } as const;
+
   return (
-    <div className="px-5 pb-5">
+    <div className="flex flex-col gap-3 px-4 pb-4">
+      {/* Aujourd'hui */}
       <div
-        className="overflow-hidden rounded-3xl border shadow-sm"
+        className="overflow-hidden"
         style={{
-          backgroundColor: colors.SETTINGS_SECTION_BG,
-          borderColor: colors.BORDER,
+          ...cardBase,
+          backgroundColor: HOME_ASSIGNMENT_BG,
         }}
       >
-        {/* Today */}
         <Link
           href={todayMission ? `/mission?id=${todayMission.id}` : '#'}
-          className="group block no-underline transition-opacity active:opacity-80"
-          style={{ backgroundColor: colors.PRIMARY }}
+          className="group block no-underline transition-opacity active:opacity-90"
         >
-          <div className="flex items-start gap-3 p-5">
+          <div className="flex items-center gap-3 p-4">
             <div
-              className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: colors.TEXT_INVERSE + '18' }}
+              className="flex shrink-0 items-center justify-center"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: RADIUS.sm,
+                backgroundColor: 'rgba(255,255,255,0.22)',
+              }}
             >
-              <MapPin size={20} color={colors.TEXT_INVERSE} strokeWidth={2} />
+              <MapPin size={22} color={colors.TEXT_INVERSE} strokeWidth={2.25} />
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
               <p
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: colors.TEXT_INVERSE + '99' }}
+                className="text-sm font-bold uppercase tracking-wide"
+                style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-display)' }}
               >
                 {t('screens.home.todayAssignment')}
               </p>
               {todayMission ? (
                 <>
                   <p
-                    className="mt-1 text-2xl font-bold leading-tight tracking-tight"
-                    style={{ color: colors.TEXT_INVERSE }}
+                    className="text-2xl font-extrabold leading-tight tracking-tight"
+                    style={{ color: colors.TEXT_INVERSE, fontFamily: 'var(--font-display)' }}
                   >
                     {todayMission.site_name}
                   </p>
                   {todayTime && (
-                    <p className="mt-1 text-sm" style={{ color: colors.TEXT_INVERSE + 'BB' }}>
+                    <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.92)' }}>
                       {todayTime}
                     </p>
                   )}
                 </>
               ) : (
-                <p className="mt-1 text-lg" style={{ color: colors.TEXT_INVERSE + 'CC' }}>
+                <p className="text-lg font-medium" style={{ color: 'rgba(255,255,255,0.92)' }}>
                   {t('screens.home.noAssignmentToday')}
                 </p>
               )}
@@ -75,33 +86,46 @@ export function AssignmentBanner({
 
             {todayMission && (
               <ChevronRight
-                size={20}
-                className="mt-1 shrink-0 opacity-60 transition-transform group-hover:translate-x-0.5"
+                size={22}
+                className="shrink-0 opacity-80"
                 color={colors.TEXT_INVERSE}
+                strokeWidth={2.5}
               />
             )}
           </div>
         </Link>
+      </div>
 
-        <div style={{ backgroundColor: colors.BORDER, height: 1 }} />
-
-        {/* Next */}
+      {/* Prochaine */}
+      <div
+        className="overflow-hidden"
+        style={{
+          ...cardBase,
+          backgroundColor: colors.SETTINGS_SECTION_BG,
+          border: `1px solid ${colors.BORDER}`,
+        }}
+      >
         <Link
           href={nextMission ? `/mission?id=${nextMission.id}` : '#'}
           className="group block no-underline transition-opacity active:opacity-80"
         >
-          <div className="flex items-start gap-3 p-5">
+          <div className="flex items-center gap-3 p-4">
             <div
-              className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: colors.PRIMARY + '10' }}
+              className="flex shrink-0 items-center justify-center"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: RADIUS.sm,
+                backgroundColor: colors.ACCENT_GREEN_MUTED,
+              }}
             >
-              <CalendarDays size={20} color={colors.PRIMARY} strokeWidth={2} />
+              <CalendarDays size={22} color={colors.ACCENT_GREEN} strokeWidth={2.25} />
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
               <p
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: colors.TEXT_SECONDARY }}
+                className="text-sm font-bold uppercase tracking-wide"
+                style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
               >
                 {t('screens.home.nextAssignment')}
               </p>
@@ -109,21 +133,21 @@ export function AssignmentBanner({
                 <>
                   {nextDayLabel && (
                     <p
-                      className="mt-1 text-base font-medium capitalize"
-                      style={{ color: colors.TEXT_SECONDARY }}
+                      className="text-base font-bold uppercase"
+                      style={{ color: colors.ACCENT_BLUE }}
                     >
                       {nextDayLabel}
                     </p>
                   )}
                   <p
-                    className="mt-0.5 text-xl font-bold leading-tight tracking-tight"
-                    style={{ color: colors.TEXT_PRIMARY }}
+                    className="text-xl font-bold leading-tight tracking-tight"
+                    style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
                   >
                     {nextMission.site_name}
                   </p>
                 </>
               ) : (
-                <p className="mt-1 text-base" style={{ color: colors.TEXT_SECONDARY }}>
+                <p className="text-base" style={{ color: colors.TEXT_SECONDARY }}>
                   {t('screens.home.noNextAssignment')}
                 </p>
               )}
@@ -131,9 +155,10 @@ export function AssignmentBanner({
 
             {nextMission && (
               <ChevronRight
-                size={20}
-                className="mt-1 shrink-0 opacity-40 transition-transform group-hover:translate-x-0.5"
+                size={22}
+                className="shrink-0 opacity-40"
                 color={colors.TEXT_SECONDARY}
+                strokeWidth={2.5}
               />
             )}
           </div>

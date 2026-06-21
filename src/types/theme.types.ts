@@ -1,10 +1,31 @@
 export interface ThemeColors extends Record<string, string> {
   PRIMARY: string;
+  PRIMARY_DARK: string;
   PRIMARY_LIGHT: string;
+  PRIMARY_MUTED: string;
+  SECONDARY: string;
+  SECONDARY_LIGHT: string;
+  SECONDARY_MUTED: string;
+  TERTIARY: string;
+  TERTIARY_MUTED: string;
   DANGER: string;
   SUCCESS: string;
   SUCCESS_STRONG: string;
   DANGER_STRONG: string;
+  ACCENT_BLUE: string;
+  ACCENT_BLUE_MUTED: string;
+  ACCENT_ORANGE: string;
+  ACCENT_ORANGE_MUTED: string;
+  ACCENT_RED: string;
+  ACCENT_RED_MUTED: string;
+  ACCENT_GREEN: string;
+  ACCENT_GREEN_MUTED: string;
+  ACCENT_PURPLE: string;
+  ACCENT_PURPLE_MUTED: string;
+  ACCENT_YELLOW: string;
+  ACCENT_YELLOW_MUTED: string;
+  ACCENT_PINK: string;
+  ACCENT_PINK_MUTED: string;
   TAB_ACTIVE: string;
   TAB_INACTIVE: string;
   TAB_BAR_BG: string;
@@ -16,9 +37,11 @@ export interface ThemeColors extends Record<string, string> {
   BG_TERTIARY: string;
   TEXT_PRIMARY: string;
   TEXT_SECONDARY: string;
+  TEXT_MUTED: string;
   TEXT_INVERSE: string;
   SETTINGS_SECTION_BG: string;
   SETTINGS_SEPARATOR: string;
   SETTINGS_ICON_BG: string;
   BORDER: string;
+  CARD_SHADOW: string;
 }

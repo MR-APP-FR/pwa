@@ -3,6 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { RADIUS } from '../../constants/design';
+
+interface PageHeaderStep {
+  current: number;
+  total: number;
+  labels: string[];
+  hints?: string[];
+}
 
 interface PageHeaderProps {
   title: string;
@@ -10,9 +18,22 @@ interface PageHeaderProps {
   detail?: string;
   showBack?: boolean;
   onBack?: () => void;
+  step?: PageHeaderStep;
+  /** sticky par défaut ; static pour FormPinnedPageHeader */
+  pin?: 'sticky' | 'static';
 }
 
-export function PageHeader({ title, subtitle, detail, showBack = false, onBack }: PageHeaderProps) {
+const BACK_SIZE = 44;
+
+export function PageHeader({
+  title,
+  subtitle,
+  detail,
+  showBack = false,
+  onBack,
+  step,
+  pin = 'sticky',
+}: PageHeaderProps) {
   const { colors } = useThemeColors();
   const router = useRouter();
 
@@ -24,49 +45,114 @@ export function PageHeader({ title, subtitle, detail, showBack = false, onBack }
     router.back();
   };
 
+  const stepAccent = colors.PRIMARY;
+  const stepLabel = step ? step.labels[step.current - 1] : undefined;
+  const stepHint = step?.hints?.[step.current - 1];
+
   return (
     <div
-      className="sticky top-0 z-30 px-5 py-4"
+      className={pin === 'sticky' ? 'sticky z-50' : 'relative z-50'}
       style={{
+        top: pin === 'sticky' ? 'env(safe-area-inset-top)' : undefined,
         backgroundColor: colors.HEADER_BG,
         borderBottom: `1px solid ${colors.BORDER}`,
       }}
     >
-      <div className="flex items-start gap-3">
-        {showBack && (
+      <div
+        className={`flex items-center gap-3 px-4 ${step ? 'py-3' : 'py-3'}`}
+        style={{ minHeight: step ? 64 : 56 }}
+      >
+        {showBack ? (
           <button
             type="button"
             onClick={handleBack}
             aria-label="Retour"
-            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-opacity active:opacity-70"
+            className="flex shrink-0 items-center justify-center transition-transform active:scale-95"
             style={{
-              borderColor: colors.BORDER,
-              backgroundColor: colors.BG_SECONDARY,
+              width: BACK_SIZE,
+              height: BACK_SIZE,
+              borderRadius: RADIUS.sm,
+              backgroundColor: colors.PRIMARY_MUTED,
             }}
           >
-            <ChevronLeft size={20} color={colors.TEXT_PRIMARY} strokeWidth={2} />
+            <ChevronLeft size={24} color={colors.PRIMARY} strokeWidth={2.5} />
           </button>
+        ) : (
+          <div className="w-1 shrink-0" />
         )}
 
         <div className="min-w-0 flex-1">
-          <p
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: colors.TEXT_SECONDARY }}
-          >
-            {title}
-          </p>
-          {subtitle && (
+          {subtitle ? (
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span
+                className="self-start px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+                style={{
+                  borderRadius: RADIUS.xs,
+                  backgroundColor: colors.SECONDARY_MUTED,
+                  color: colors.SECONDARY,
+                  boxShadow: `inset 0 0 0 0.5px ${colors.SECONDARY}`,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {title}
+              </span>
+              <p
+                className="min-w-0 text-[17px] font-bold leading-tight"
+                style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
+              >
+                {subtitle}
+                {detail && (
+                  <span className="text-[15px] font-medium" style={{ color: colors.TEXT_SECONDARY }}>
+                    {' '}
+                    · {detail}
+                  </span>
+                )}
+              </p>
+            </div>
+          ) : (
             <p
-              className="mt-0.5 text-xl font-bold leading-tight tracking-tight truncate"
-              style={{ color: colors.TEXT_PRIMARY }}
+              className="text-[18px] font-bold leading-tight"
+              style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
             >
-              {subtitle}
+              {title}
             </p>
           )}
-          {detail && (
-            <p className="mt-0.5 text-sm capitalize" style={{ color: colors.TEXT_SECONDARY }}>
-              {detail}
-            </p>
+
+          {step && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1">
+                {Array.from({ length: step.total }, (_, i) => {
+                  const n = i + 1;
+                  const active = n === step.current;
+                  const done = n < step.current;
+                  const dotColor = done || active ? stepAccent : colors.BORDER;
+                  return (
+                    <span
+                      key={n}
+                      className="rounded-full"
+                      style={{
+                        width: active ? 20 : 7,
+                        height: 7,
+                        backgroundColor: dotColor,
+                        transition: 'width 0.2s ease',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              <p
+                className="min-w-0 text-[13px] leading-snug"
+                style={{ color: colors.TEXT_SECONDARY }}
+              >
+                <span
+                  className="font-bold"
+                  style={{ color: stepAccent, fontFamily: 'var(--font-display)' }}
+                >
+                  {step.current}/{step.total} {stepLabel}
+                </span>
+                {stepHint && <span> · {stepHint}</span>}
+              </p>
+            </div>
           )}
         </div>
       </div>

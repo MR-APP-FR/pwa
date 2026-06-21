@@ -2,7 +2,7 @@ export interface OpeningFormData {
   missionId: number;
   feuilleDuJour: number | null;
   ticketsOuverture: number | null;
-  fondDeCaisse100: boolean;
+  fondDeCaisse100: boolean | null;
   observations: string;
 }
 

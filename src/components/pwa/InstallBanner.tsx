@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { PrimaryButton } from '../common/PrimaryButton';
 
 export function InstallBanner() {
   const { colors } = useThemeColors();
@@ -50,10 +51,11 @@ export function InstallBanner() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 shadow-lg border-t"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t p-4 backdrop-blur-md"
       style={{
-        backgroundColor: colors.SETTINGS_SECTION_BG,
+        backgroundColor: colors.HEADER_BG,
         borderColor: colors.BORDER,
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
       }}
     >
       <div className="max-w-md mx-auto flex items-start gap-3">
@@ -78,13 +80,9 @@ export function InstallBanner() {
         </div>
         <div className="flex gap-2 shrink-0">
           {deferredPrompt && (
-            <button
-              onClick={handleInstall}
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white"
-              style={{ backgroundColor: colors.PRIMARY }}
-            >
+            <PrimaryButton onClick={handleInstall} className="px-4 py-2 text-sm">
               Installer
-            </button>
+            </PrimaryButton>
           )}
           <button
             onClick={handleDismiss}

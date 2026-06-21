@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
 import { useProfileStore } from '../../stores/profileStore';
 import type { User, UserInfo, UserInfoSiteWithDetails } from '../../database/types';
+import { formatSiteName } from '../../lib/formatSiteName';
 
 /**
  * GRE-89.
@@ -131,7 +132,7 @@ function mapUserInfoSiteRow(row: UserInfoSitesQueryRow): UserInfoSiteWithDetails
     user_info_id: row.user_info_id,
     site_id: row.site_id,
     created_at: row.created_at,
-    site_name: site?.name ?? '',
+    site_name: formatSiteName(site?.name ?? ''),
     statut: site?.statut ?? '',
     ville: site?.ville ?? '',
     nb_teneur: site?.nb_teneur ?? 0,

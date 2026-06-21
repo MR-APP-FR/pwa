@@ -8,19 +8,48 @@ import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuest
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
-import { PannesSection } from '../../components/forms/PannesSection';
+import { FormNumberInput } from '../../components/forms/FormNumberInput';
+import { FormSection } from '../../components/forms/FormSection';
+import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
+import { useSujets } from '../../hooks/api/useSujets';
 import type { OpeningFormData } from '../../types/form.types';
 import { useDemoDate } from '../../hooks/useDemoDate';
 import { submitOpeningForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
+import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { RADIUS } from '../../constants/design';
 
-function parseNumber(value: string): number | null {
-  const trimmed = value.replace(',', '.').trim();
-  if (trimmed.length === 0) return null;
-  const n = Number(trimmed);
-  return Number.isNaN(n) ? null : n;
+type OpeningFieldError =
+  | 'feuilleDuJour'
+  | 'ticketsOuverture'
+  | 'fondDeCaisse100'
+  | 'fondDeCaisse100Justification'
+  | 'nettoyageVeille'
+  | 'nettoyageVeilleJustification'
+  | 'carteParkingJustification'
+  | 'musiqueDisneyJustification';
+
+function needsNoJustification(value: boolean | null, justification: string): boolean {
+  return value === false && justification.trim().length === 0;
+}
+
+function buildObservationsWithJustifications(
+  base: string,
+  items: { label: string; value: boolean | null; justification: string }[],
+): string {
+  const parts: string[] = [];
+  const trimmedBase = base.trim();
+  if (trimmedBase.length > 0) parts.push(trimmedBase);
+  for (const { label, value, justification } of items) {
+    if (value === false && justification.trim().length > 0) {
+      parts.push(`${label} (Non) : ${justification.trim()}`);
+    }
+  }
+  return parts.join('\n');
 }
 
 function pad2(n: number): string {
@@ -39,6 +68,7 @@ function OpeningContent() {
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
 
+  const { data: sujets } = useSujets(mission?.site_id);
   const { data: questions } = useSiteDailyInfoQuestions(mission?.site_id);
   const showCarteParking = useMemo(() => questions?.includes('carte_parking') ?? false, [questions]);
   const showMusiqueDisney = useMemo(() => questions?.includes('musique_disney') ?? false, [questions]);
@@ -47,20 +77,74 @@ function OpeningContent() {
     missionId,
     feuilleDuJour: null,
     ticketsOuverture: null,
-    fondDeCaisse100: true,
+    fondDeCaisse100: null,
     observations: '',
   });
 
   const [nettoyageVeille, setNettoyageVeille] = useState<boolean | null>(null);
+  const [fondDeCaisseJustification, setFondDeCaisseJustification] = useState('');
+  const [nettoyageVeilleJustification, setNettoyageVeilleJustification] = useState('');
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
-  const [pannesAutre, setPannesAutre] = useState('');
-  const [pannes, setPannes] = useState('');
+  const [sujetReasons, setSujetReasons] = useState<SujetReasons>({});
   const [carteParking, setCarteParking] = useState<boolean | null>(null);
+  const [carteParkingJustification, setCarteParkingJustification] = useState('');
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
+  const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
 
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldError, setFieldError] = useState<OpeningFieldError | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const isFormValid =
+    form.feuilleDuJour !== null &&
+    form.ticketsOuverture !== null &&
+    form.fondDeCaisse100 !== null &&
+    !needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification) &&
+    nettoyageVeille !== null &&
+    !needsNoJustification(nettoyageVeille, nettoyageVeilleJustification) &&
+    (!showCarteParking ||
+      (carteParking !== null && !needsNoJustification(carteParking, carteParkingJustification))) &&
+    (!showMusiqueDisney ||
+      (musiqueDisney !== null && !needsNoJustification(musiqueDisney, musiqueDisneyJustification)));
+
+  function getFirstMissingField(): OpeningFieldError | null {
+    if (form.feuilleDuJour === null) return 'feuilleDuJour';
+    if (form.ticketsOuverture === null) return 'ticketsOuverture';
+    if (form.fondDeCaisse100 === null) return 'fondDeCaisse100';
+    if (needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification)) {
+      return 'fondDeCaisse100Justification';
+    }
+    if (nettoyageVeille === null) return 'nettoyageVeille';
+    if (needsNoJustification(nettoyageVeille, nettoyageVeilleJustification)) {
+      return 'nettoyageVeilleJustification';
+    }
+    if (showCarteParking && needsNoJustification(carteParking, carteParkingJustification)) {
+      return 'carteParkingJustification';
+    }
+    if (showMusiqueDisney && needsNoJustification(musiqueDisney, musiqueDisneyJustification)) {
+      return 'musiqueDisneyJustification';
+    }
+    return null;
+  }
+
+  function errorMessageForField(field: OpeningFieldError): string {
+    switch (field) {
+      case 'feuilleDuJour':
+        return t('forms.opening.errorFeuilleDuJour');
+      case 'ticketsOuverture':
+        return t('forms.opening.errorTicketsOuverture');
+      case 'fondDeCaisse100':
+        return t('forms.opening.errorFondDeCaisse');
+      case 'fondDeCaisse100Justification':
+      case 'nettoyageVeilleJustification':
+      case 'carteParkingJustification':
+      case 'musiqueDisneyJustification':
+        return t('forms.common.errorNoJustification');
+      case 'nettoyageVeille':
+        return t('forms.opening.errorNettoyageVeille');
+    }
+  }
 
   function handleSubmit() {
     setSubmitError(null);
@@ -73,14 +157,15 @@ function OpeningContent() {
       setSubmitError('Aucun employé sélectionné. Choisis un profil dans le header.');
       return;
     }
-    if (form.feuilleDuJour === null) {
-      setSubmitError('Renseigne le nombre de feuilles de jour.');
+
+    const missing = getFirstMissingField();
+    if (missing) {
+      setFieldError(missing);
+      setSubmitError(errorMessageForField(missing));
       return;
     }
-    if (form.ticketsOuverture === null) {
-      setSubmitError("Renseigne le nombre de tickets à l'ouverture.");
-      return;
-    }
+
+    setFieldError(null);
 
     const fd = new FormData();
     fd.set('siteId', String(mission.site_id));
@@ -89,7 +174,19 @@ function OpeningContent() {
     fd.set('feuillesDeJour', String(form.feuilleDuJour));
     fd.set('ticketsOuverture', String(form.ticketsOuverture));
     fd.set('fondCaisse100', form.fondDeCaisse100 ? '1' : '0');
-    fd.set('observations', form.observations);
+    fd.set(
+      'observations',
+      buildObservationsWithJustifications(form.observations, [
+        { label: t('forms.opening.fondDeCaisse'), value: form.fondDeCaisse100, justification: fondDeCaisseJustification },
+        { label: t('forms.dailyInfo.nettoyageVeille'), value: nettoyageVeille, justification: nettoyageVeilleJustification },
+        ...(showCarteParking
+          ? [{ label: t('forms.dailyInfo.carteParking'), value: carteParking, justification: carteParkingJustification }]
+          : []),
+        ...(showMusiqueDisney
+          ? [{ label: t('forms.dailyInfo.musiqueDisney'), value: musiqueDisney, justification: musiqueDisneyJustification }]
+          : []),
+      ]),
+    );
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
 
@@ -106,8 +203,8 @@ function OpeningContent() {
         date,
         nettoyageVeille,
         panneSujetIds: selectedSujetIds,
-        pannesAutre: pannesAutre.trim().length === 0 ? null : pannesAutre.trim(),
-        pannes: pannes.trim().length === 0 ? null : pannes.trim(),
+        pannesAutre: null,
+        pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
         carteParking: showCarteParking ? carteParking : null,
         musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
       });
@@ -123,188 +220,227 @@ function OpeningContent() {
 
   if (submitted) {
     return (
-      <div
-        className="flex-1 flex flex-col items-center justify-center p-6 gap-3"
-        style={{ backgroundColor: colors.BG_SECONDARY }}
-      >
-        <span className="text-6xl mb-2">&#x2705;</span>
-        <h2 className="text-xl font-bold text-center" style={{ color: colors.TEXT_PRIMARY }}>
-          {t('forms.opening.successTitle')}
-        </h2>
-        <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
-          {t('forms.opening.successDescription')}
-        </p>
-        <button
-          onClick={() => router.back()}
-          className="mt-4 px-6 py-3 rounded-2xl text-base font-bold"
-          style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}
+      <FormScrollLayout>
+        <div
+          className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6"
+          style={{ backgroundColor: colors.BG_SECONDARY }}
         >
-          Retour au planning
-        </button>
-      </div>
+          <span className="text-6xl mb-2">&#x2705;</span>
+          <h2 className="text-xl font-bold text-center" style={{ color: colors.TEXT_PRIMARY }}>
+            {t('forms.opening.successTitle')}
+          </h2>
+          <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
+            {t('forms.opening.successDescription')}
+          </p>
+          <PrimaryButton onClick={() => router.back()} className="mt-4 px-6 py-3 text-base">
+            Retour au planning
+          </PrimaryButton>
+        </div>
+      </FormScrollLayout>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      {mission && (
-        <PageHeader
-          title={t('forms.opening.title')}
-          subtitle={mission.site_name}
-          detail={formatMissionDate(mission.year, mission.month, mission.day)}
-          showBack
-        />
-      )}
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
-        <div
-          className="rounded-2xl border px-5 py-5 space-y-5"
-          style={{ backgroundColor: colors.SETTINGS_SECTION_BG, borderColor: colors.BORDER }}
-        >
-          <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-              {t('forms.opening.feuilleDuJour')}
-            </label>
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="0"
-              onChange={(e) => setForm((f) => ({ ...f, feuilleDuJour: parseNumber(e.target.value) }))}
-              className="w-full px-3 py-2 rounded-lg border text-sm"
-              style={{ color: colors.TEXT_PRIMARY, borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY }}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-              {t('forms.opening.ticketsOuverture')}
-            </label>
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="0"
-              onChange={(e) => setForm((f) => ({ ...f, ticketsOuverture: parseNumber(e.target.value) }))}
-              className="w-full px-3 py-2 rounded-lg border text-sm"
-              style={{ color: colors.TEXT_PRIMARY, borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY }}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-              {t('forms.opening.fondDeCaisse')}
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setForm((f) => ({ ...f, fondDeCaisse100: true }))}
-                className="flex-1 py-2 rounded-lg border text-sm font-semibold"
-                style={{
-                  borderColor: form.fondDeCaisse100 ? colors.PRIMARY : colors.BORDER,
-                  backgroundColor: form.fondDeCaisse100 ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
-                  color: form.fondDeCaisse100 ? colors.PRIMARY : colors.TEXT_PRIMARY,
-                }}
-              >
-                {t('forms.opening.fondDeCaisseYes')}
-              </button>
-              <button
-                onClick={() => setForm((f) => ({ ...f, fondDeCaisse100: false }))}
-                className="flex-1 py-2 rounded-lg border text-sm font-semibold"
-                style={{
-                  borderColor: !form.fondDeCaisse100 ? colors.PRIMARY : colors.BORDER,
-                  backgroundColor: !form.fondDeCaisse100 ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
-                  color: !form.fondDeCaisse100 ? colors.PRIMARY : colors.TEXT_PRIMARY,
-                }}
-              >
-                {t('forms.opening.fondDeCaisseNo')}
-              </button>
-            </div>
-          </div>
-
-          <ConditionalQuestion
-            label={t('forms.dailyInfo.nettoyageVeille')}
-            value={nettoyageVeille}
-            onChange={setNettoyageVeille}
-            yesLabel={t('forms.opening.fondDeCaisseYes')}
-            noLabel={t('forms.opening.fondDeCaisseNo')}
-          />
-
-          <PannesSection
-            siteId={mission?.site_id}
-            selectedSujetIds={selectedSujetIds}
-            onToggleSujet={(id) =>
-              setSelectedSujetIds((prev) =>
-                prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
-              )
+    <FormScrollLayout
+      footer={
+        <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
+          <PrimaryButton
+            onClick={handleSubmit}
+            disabled={pending || !isFormValid}
+            className="w-full py-4 text-base"
+          >
+            {pending ? '...' : t('forms.opening.submit')}
+          </PrimaryButton>
+        </div>
+      }
+    >
+      <div style={{ backgroundColor: colors.BG_SECONDARY }}>
+        <FormPinnedPageHeader>
+          <PageHeader
+            pin="static"
+            title={t('forms.opening.title')}
+            subtitle={mission?.site_name}
+            detail={
+              mission
+                ? formatMissionDate(mission.year, mission.month, mission.day)
+                : undefined
             }
-            pannesAutre={pannesAutre}
-            onPannesAutreChange={setPannesAutre}
-            pannes={pannes}
-            onPannesChange={setPannes}
-            onClearPannes={() => {
-              setSelectedSujetIds([]);
-              setPannesAutre('');
-              setPannes('');
-            }}
+            showBack
           />
+        </FormPinnedPageHeader>
+        <div className="space-y-4 px-5 py-5">
+        <div className="card-surface space-y-5 px-5 py-5">
+          <FormSection title={t('forms.opening.sectionCounts')}>
+            <FormNumberInput
+              label={t('forms.opening.feuilleDuJour')}
+              value={form.feuilleDuJour}
+              onChange={(v) => {
+                setForm((f) => ({ ...f, feuilleDuJour: v }));
+                if (fieldError === 'feuilleDuJour') setFieldError(null);
+              }}
+              unit="count"
+              required
+              error={fieldError === 'feuilleDuJour'}
+              inputMode="numeric"
+            />
+            <FormNumberInput
+              label={t('forms.opening.ticketsOuverture')}
+              value={form.ticketsOuverture}
+              onChange={(v) => {
+                setForm((f) => ({ ...f, ticketsOuverture: v }));
+                if (fieldError === 'ticketsOuverture') setFieldError(null);
+              }}
+              unit="count"
+              required
+              error={fieldError === 'ticketsOuverture'}
+              inputMode="numeric"
+            />
+          </FormSection>
 
-          {showCarteParking && (
+          <FormSection title={t('forms.opening.sectionChecks')}>
             <ConditionalQuestion
-              label={t('forms.dailyInfo.carteParking')}
-              value={carteParking}
-              onChange={setCarteParking}
+              label={t('forms.opening.fondDeCaisse')}
+              value={form.fondDeCaisse100}
+              onChange={(v) => {
+                setForm((f) => ({ ...f, fondDeCaisse100: v }));
+                if (v) setFondDeCaisseJustification('');
+                if (fieldError === 'fondDeCaisse100' || fieldError === 'fondDeCaisse100Justification') {
+                  setFieldError(null);
+                }
+              }}
               yesLabel={t('forms.opening.fondDeCaisseYes')}
               noLabel={t('forms.opening.fondDeCaisseNo')}
+              required
+              error={fieldError === 'fondDeCaisse100'}
+              noJustification={fondDeCaisseJustification}
+              onNoJustificationChange={(v) => {
+                setFondDeCaisseJustification(v);
+                if (fieldError === 'fondDeCaisse100Justification') setFieldError(null);
+              }}
+              noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+              noJustificationError={fieldError === 'fondDeCaisse100Justification'}
             />
-          )}
 
-          {showMusiqueDisney && (
             <ConditionalQuestion
-              label={t('forms.dailyInfo.musiqueDisney')}
-              value={musiqueDisney}
-              onChange={setMusiqueDisney}
+              label={t('forms.dailyInfo.nettoyageVeille')}
+              value={nettoyageVeille}
+              onChange={(v) => {
+                setNettoyageVeille(v);
+                if (v) setNettoyageVeilleJustification('');
+                if (fieldError === 'nettoyageVeille' || fieldError === 'nettoyageVeilleJustification') {
+                  setFieldError(null);
+                }
+              }}
               yesLabel={t('forms.opening.fondDeCaisseYes')}
               noLabel={t('forms.opening.fondDeCaisseNo')}
+              required
+              error={fieldError === 'nettoyageVeille'}
+              noJustification={nettoyageVeilleJustification}
+              onNoJustificationChange={(v) => {
+                setNettoyageVeilleJustification(v);
+                if (fieldError === 'nettoyageVeilleJustification') setFieldError(null);
+              }}
+              noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+              noJustificationError={fieldError === 'nettoyageVeilleJustification'}
             />
-          )}
+          </FormSection>
 
-          <div className="space-y-1">
-            <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-              {t('forms.opening.observations')}
-            </label>
-            <textarea
-              placeholder={t('forms.opening.observationsPlaceholder')}
-              value={form.observations}
-              onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))}
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border text-sm resize-none"
-              style={{ color: colors.TEXT_PRIMARY, borderColor: colors.BORDER, backgroundColor: colors.BG_SECONDARY }}
+          <FormSection title={t('forms.opening.sectionPannes')}>
+            <PannesSection
+              siteId={mission?.site_id}
+              selectedSujetIds={selectedSujetIds}
+              onToggleSujet={(id) =>
+                setSelectedSujetIds((prev) =>
+                  prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                )
+              }
+              sujetReasons={sujetReasons}
+              onSujetReasonChange={(id, reason) =>
+                setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+              }
+              onClearPannes={() => {
+                setSelectedSujetIds([]);
+                setSujetReasons({});
+              }}
             />
-          </div>
+
+            {showCarteParking && (
+              <ConditionalQuestion
+                label={t('forms.dailyInfo.carteParking')}
+                value={carteParking}
+                onChange={(v) => {
+                  setCarteParking(v);
+                  if (v) setCarteParkingJustification('');
+                  if (fieldError === 'carteParkingJustification') setFieldError(null);
+                }}
+                yesLabel={t('forms.opening.fondDeCaisseYes')}
+                noLabel={t('forms.opening.fondDeCaisseNo')}
+                noJustification={carteParkingJustification}
+                onNoJustificationChange={(v) => {
+                  setCarteParkingJustification(v);
+                  if (fieldError === 'carteParkingJustification') setFieldError(null);
+                }}
+                noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+                noJustificationError={fieldError === 'carteParkingJustification'}
+              />
+            )}
+
+            {showMusiqueDisney && (
+              <ConditionalQuestion
+                label={t('forms.dailyInfo.musiqueDisney')}
+                value={musiqueDisney}
+                onChange={(v) => {
+                  setMusiqueDisney(v);
+                  if (v) setMusiqueDisneyJustification('');
+                  if (fieldError === 'musiqueDisneyJustification') setFieldError(null);
+                }}
+                yesLabel={t('forms.opening.fondDeCaisseYes')}
+                noLabel={t('forms.opening.fondDeCaisseNo')}
+                noJustification={musiqueDisneyJustification}
+                onNoJustificationChange={(v) => {
+                  setMusiqueDisneyJustification(v);
+                  if (fieldError === 'musiqueDisneyJustification') setFieldError(null);
+                }}
+                noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+                noJustificationError={fieldError === 'musiqueDisneyJustification'}
+              />
+            )}
+          </FormSection>
+
+          <FormSection
+            title={t('forms.opening.sectionNotes')}
+            optional
+            optionalLabel={t('forms.common.optional')}
+          >
+            <div className="space-y-1.5">
+              <textarea
+                placeholder={t('forms.opening.observationsPlaceholder')}
+                value={form.observations}
+                onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))}
+                rows={3}
+                className="min-h-[80px] w-full resize-none rounded-xl border px-3 py-3 text-base"
+                style={{
+                  color: colors.TEXT_PRIMARY,
+                  borderColor: colors.BORDER,
+                  backgroundColor: colors.BG_SECONDARY,
+                  borderRadius: RADIUS.sm,
+                }}
+              />
+            </div>
+          </FormSection>
         </div>
 
         {submitError && (
           <div
-            className="rounded-xl border px-3 py-2 text-xs"
-            style={{ borderColor: '#EB5757', color: '#EB5757', backgroundColor: '#EB575710' }}
+            className="rounded-xl border px-3 py-2.5 text-sm"
+            style={{ borderColor: colors.DANGER, color: colors.DANGER, backgroundColor: colors.ACCENT_RED_MUTED }}
           >
             {submitError}
           </div>
         )}
+        </div>
       </div>
-
-      <div
-        className="px-5 py-4 border-t"
-        style={{ backgroundColor: colors.BG_SECONDARY, borderColor: colors.BORDER }}
-      >
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={pending}
-          className="w-full py-4 rounded-2xl text-base font-bold disabled:opacity-60"
-          style={{ backgroundColor: colors.PRIMARY, color: colors.TEXT_INVERSE }}
-        >
-          {pending ? '...' : t('forms.opening.submit')}
-        </button>
-      </div>
-    </div>
+    </FormScrollLayout>
   );
 }
 

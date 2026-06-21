@@ -1,6 +1,7 @@
 'use client';
 
 import type { ThemeColors } from '../../types/theme.types';
+import { RADIUS } from '../../constants/design';
 
 interface SegmentedControlProps<T extends string> {
   values: { label: string; value: T }[];
@@ -17,8 +18,8 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <div
-      className="flex rounded-lg overflow-hidden border"
-      style={{ borderColor: colors.BORDER, backgroundColor: colors.BG_TERTIARY }}
+      className="flex p-1"
+      style={{ backgroundColor: colors.BG_TERTIARY, borderRadius: RADIUS.sm }}
     >
       {values.map((item) => {
         const isSelected = item.value === selectedValue;
@@ -26,10 +27,13 @@ export function SegmentedControl<T extends string>({
           <button
             key={item.value}
             onClick={() => onValueChange(item.value)}
-            className="flex-1 py-2 px-3 text-sm font-medium transition-colors"
+            className="min-h-[44px] flex-1 px-3 py-2 text-sm font-semibold transition-all duration-150"
             style={{
-              backgroundColor: isSelected ? colors.PRIMARY : 'transparent',
-              color: isSelected ? colors.TEXT_INVERSE : colors.TEXT_PRIMARY,
+              borderRadius: RADIUS.sm - 2,
+              backgroundColor: isSelected ? colors.SETTINGS_SECTION_BG : 'transparent',
+              color: isSelected ? colors.PRIMARY : colors.TEXT_SECONDARY,
+              boxShadow: isSelected ? colors.CARD_SHADOW : 'none',
+              fontFamily: 'var(--font-display)',
             }}
           >
             {item.label}

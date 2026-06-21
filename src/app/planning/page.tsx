@@ -11,6 +11,7 @@ import type { PlanningWithColleague } from '../../database/types';
 import { useDemoDate } from '../../hooks/useDemoDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
 
 interface WeekDay {
   date: Date;
@@ -89,37 +90,33 @@ export default function PlanningPage() {
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border py-3 text-sm font-semibold transition-opacity active:opacity-70"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
           style={{
-            borderColor: colors.BORDER,
-            backgroundColor: colors.BG_TERTIARY,
+            backgroundColor: colors.SETTINGS_SECTION_BG,
+            boxShadow: colors.CARD_SHADOW,
             color: colors.TEXT_PRIMARY,
           }}
         >
-          <ChevronLeft size={18} strokeWidth={2} />
+          <ChevronLeft size={18} strokeWidth={2.5} />
           {t('screens.planning.previousWeek')}
         </button>
-        <button
-          type="button"
+        <PrimaryButton
           onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl py-3 text-sm font-semibold transition-opacity active:opacity-70"
-          style={{
-            backgroundColor: colors.PRIMARY,
-            color: colors.TEXT_INVERSE,
-          }}
+          className="flex flex-1 items-center justify-center gap-1.5 py-3 text-sm"
         >
           {t('screens.planning.nextWeek')}
-          <ChevronRight size={18} strokeWidth={2} />
-        </button>
+          <ChevronRight size={18} strokeWidth={2.5} />
+        </PrimaryButton>
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
-        {weekDays.map((day) => (
+        {weekDays.map((day, index) => (
           <PlanningDayCard
             key={day.date.toISOString()}
             date={day.date}
             mission={day.mission}
             isToday={day.isToday}
             timeRange={day.timeRange}
+            dayIndex={index}
           />
         ))}
       </div>

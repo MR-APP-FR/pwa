@@ -5,49 +5,86 @@ import Image from 'next/image';
 import { Settings } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
+import { RADIUS } from '../../constants/design';
 
-export function Header() {
+interface HeaderProps {
+  variant?: 'sticky' | 'static';
+}
+
+export function Header({ variant = 'sticky' }: HeaderProps) {
   const { colors } = useThemeColors();
+  const { t } = useTranslation();
 
   return (
     <header
-      className="sticky top-0 z-40"
+      className={variant === 'sticky' ? 'sticky top-0 z-40' : 'relative z-0'}
       style={{
         backgroundColor: colors.HEADER_BG,
-        borderBottom: `1px solid ${colors.BORDER}`,
-        paddingTop: 'max(12px, env(safe-area-inset-top))',
+        paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <div className="relative flex items-center justify-center py-3">
-        <Link href="/" className="flex items-center justify-center no-underline">
-          <Image src="/logo.png" alt="Manège" width={190} height={57} />
+      {/* Bandeau démo en haut — à supprimer en prod ; le bloc logo ci-dessous = design final */}
+      <DemoModeBanner />
+
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div className="w-10 shrink-0" aria-hidden />
+
+        <Link
+          href="/"
+          className="flex min-w-0 flex-1 items-center justify-center no-underline"
+          aria-label="Accueil Les Manèges Ravoire"
+        >
+          <Image
+            src="/logo.png"
+            alt="Les Manèges Ravoire"
+            width={200}
+            height={56}
+            priority
+            className="h-14 w-auto"
+          />
+        </Link>
+
+        <Link
+          href="/profil"
+          className="flex h-10 w-10 shrink-0 items-center justify-center transition-transform active:scale-95"
+          style={{
+            borderRadius: RADIUS.sm,
+            backgroundColor: colors.SECONDARY_MUTED,
+          }}
+          aria-label={t('screens.home.settingsButton')}
+        >
+          <Settings size={20} color={colors.SECONDARY} strokeWidth={2.25} />
         </Link>
       </div>
-      <DemoModeBanner />
     </header>
   );
 }
 
 function DemoModeBanner() {
+  const { colors } = useThemeColors();
   const { t } = useTranslation();
 
   return (
     <div
-      className="flex items-center justify-between gap-2 px-3 py-1.5"
+      className="flex h-7 items-center justify-center gap-2 px-4"
       style={{
-        color: '#FFFFFF',
-        backgroundColor: '#2A2A2A',
+        color: colors.TEXT_INVERSE,
+        backgroundColor: colors.ACCENT_BLUE,
       }}
       aria-label="Mode démo, pas d'authentification réelle"
     >
-      <span className="text-[10px] font-semibold uppercase tracking-wider">Mode démo</span>
+      <span
+        className="text-[9px] font-bold uppercase tracking-widest"
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        Mode démo
+      </span>
+      <span className="opacity-40">·</span>
       <Link
         href="/profil"
-        className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider no-underline transition-opacity active:opacity-70"
-        style={{ color: '#FFFFFF' }}
-        aria-label={t('screens.home.settingsButton')}
+        className="text-[9px] font-bold uppercase tracking-widest no-underline transition-opacity active:opacity-70"
+        style={{ color: colors.TEXT_INVERSE, fontFamily: 'var(--font-display)' }}
       >
-        <Settings size={12} strokeWidth={2.25} />
         {t('screens.home.settingsButton')}
       </Link>
     </div>
