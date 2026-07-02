@@ -49,7 +49,7 @@ export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeBu
         style={{
           width: 36,
           height: 36,
-          borderRadius: RADIUS.sm,
+          borderRadius: RADIUS.full,
           background: iconBg,
         }}
       >

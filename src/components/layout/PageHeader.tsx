@@ -123,7 +123,7 @@ export function PageHeader({
             </div>
           ) : (
             <p
-              className="text-[18px] font-bold leading-tight"
+              className="text-[18px] font-bold uppercase leading-tight"
               style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
             >
               {title}
