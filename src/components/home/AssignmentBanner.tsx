@@ -6,6 +6,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { RADIUS } from '../../constants/design';
+import { GLASS_CARD } from '../../constants/glass';
 import type { PlanningWithColleague } from '../../database/types';
 import type { ThemeColors } from '../../types/theme.types';
 
@@ -38,12 +39,9 @@ function AssignmentCard({
 }: AssignmentCardProps) {
   return (
     <div
-      className="overflow-hidden"
+      className={`${GLASS_CARD.base} relative`}
       style={{
         borderRadius: RADIUS.xl,
-        boxShadow: colors.CARD_SHADOW,
-        backgroundColor: colors.SETTINGS_SECTION_BG,
-        border: `1px solid ${colors.BORDER}`,
       }}
     >
       <Link

@@ -17,6 +17,33 @@
   --shadow-card: 0 2px 8px rgba(44, 40, 37, 0.06);
   --font-display: 'Sora', sans-serif;
   --font-body: 'Inter', sans-serif;
+
+  /* Glass surface — modifier ces tokens pour changer tout le style glass */
+  --glass-gradient-angle: 145deg;
+  --glass-tint-rgb: 255, 255, 255;
+  --glass-tint-opacity-start: 0.42;
+  --glass-tint-opacity-mid: 0.18;
+  --glass-tint-opacity-end: 0.3;
+  --glass-blur: 28px;
+  --glass-saturate: 200%;
+  --glass-border-color: rgba(255, 255, 255, 0.82);
+  --glass-shine-opacity-start: 0.65;
+  --glass-shine-opacity-end: 0.12;
+  --glass-shadow:
+    0 8px 32px rgba(41, 45, 130, 0.1),
+    0 2px 8px rgba(44, 40, 37, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+  --glass-disabled-gradient-angle: 160deg;
+  --glass-disabled-from: rgba(255, 255, 255, 0.45);
+  --glass-disabled-to: rgba(236, 233, 245, 0.65);
+
+  /* Fond ambiant home — nécessaire pour que le blur glass soit visible */
+  --home-bg-base: #ece9f5;
+  --home-blob-1: rgba(41, 45, 130, 0.28);
+  --home-blob-2: rgba(247, 148, 29, 0.22);
+  --home-blob-3: rgba(91, 200, 255, 0.18);
+  --home-blob-4: rgba(224, 74, 71, 0.12);
 }
 
 * {
@@ -66,6 +93,96 @@ textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
+}
+
+.glass-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(
+    var(--glass-gradient-angle),
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-start)) 0%,
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-mid)) 50%,
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-end)) 100%
+  );
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-color);
+  box-shadow: var(--glass-shadow);
+}
+
+button.glass-card {
+  background: linear-gradient(
+    var(--glass-gradient-angle),
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-start)) 0%,
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-mid)) 50%,
+    rgba(var(--glass-tint-rgb), var(--glass-tint-opacity-end)) 100%
+  );
+  border: 1px solid var(--glass-border-color);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, var(--glass-shine-opacity-start)) 0%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, var(--glass-shine-opacity-end)) 100%
+  );
+  z-index: 0;
+}
+
+.glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-ambient-bg {
+  background-color: var(--home-bg-base);
+  background-image:
+    radial-gradient(ellipse 100% 70% at 50% 0%, var(--home-blob-1) 0%, transparent 62%),
+    radial-gradient(ellipse 85% 55% at 8% 2%, var(--home-blob-1) 0%, transparent 58%),
+    radial-gradient(ellipse 70% 50% at 95% 8%, var(--home-blob-2) 0%, transparent 52%),
+    radial-gradient(ellipse 75% 55% at 88% 92%, var(--home-blob-3) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 12% 88%, var(--home-blob-4) 0%, transparent 50%);
+}
+
+/* Variantes — surcharger uniquement les tokens nécessaires */
+.glass-card--solid {
+  --glass-tint-opacity-start: 0.72;
+  --glass-tint-opacity-mid: 0.55;
+  --glass-tint-opacity-end: 0.62;
+  --glass-blur: 16px;
+  --glass-border-color: rgba(255, 255, 255, 0.9);
+  --glass-shine-opacity-start: 0.5;
+}
+
+.glass-card--subtle {
+  --glass-tint-opacity-start: 0.28;
+  --glass-tint-opacity-mid: 0.1;
+  --glass-tint-opacity-end: 0.2;
+  --glass-blur: 36px;
+  --glass-border-color: rgba(255, 255, 255, 0.65);
+  --glass-shine-opacity-start: 0.75;
+}
+
+.glass-card--disabled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 2;
+  background: linear-gradient(
+    var(--glass-disabled-gradient-angle),
+    var(--glass-disabled-from) 0%,
+    var(--glass-disabled-to) 100%
+  );
 }
 
 .leaflet-container {

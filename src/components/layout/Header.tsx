@@ -18,10 +18,7 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
   return (
     <header
       className={variant === 'sticky' ? 'sticky top-0 z-40' : 'relative z-0'}
-      style={{
-        backgroundColor: colors.HEADER_BG,
-        paddingTop: 'env(safe-area-inset-top)',
-      }}
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Bandeau démo en haut — à supprimer en prod ; le bloc logo ci-dessous = design final */}
       <DemoModeBanner />
@@ -41,6 +38,7 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
             height={56}
             priority
             className="h-14 w-auto"
+            style={{ width: 'auto' }}
           />
         </Link>
 

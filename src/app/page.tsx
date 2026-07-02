@@ -6,13 +6,11 @@ import { AssignmentBanner } from '../components/home/AssignmentBanner';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
 import { usePlanning } from '../hooks/api/usePlanning';
-import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDemoDate } from '../hooks/useDemoDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
 
 export default function HomePage() {
-  const { colors } = useThemeColors();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -55,10 +53,7 @@ export default function HomePage() {
   const hasTodayMission = todayMission !== null;
 
   return (
-    <div
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto"
-      style={{ backgroundColor: colors.BG_SECONDARY }}
-    >
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="flex min-h-full flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
       <AssignmentBanner
         todayMission={todayMission}

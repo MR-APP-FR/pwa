@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { Header } from '../components/layout/Header';
 import { InstallBanner } from '../components/pwa/InstallBanner';
+import { GLASS_CARD } from '../constants/glass';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const FORM_SCROLL_PATHS = new Set(['/opening', '/closing', '/availability']);
@@ -13,11 +14,12 @@ function AppShell({ children }: { children: ReactNode }) {
   const { colors } = useThemeColors();
   const pathname = usePathname();
   const formScrollLayout = FORM_SCROLL_PATHS.has(pathname);
+  const isHome = pathname === '/';
 
   return (
     <div
-      className="mx-auto flex min-h-screen max-w-md flex-col"
-      style={{ backgroundColor: colors.BG_SECONDARY }}
+      className={`mx-auto flex min-h-screen max-w-md flex-col${isHome ? ` ${GLASS_CARD.homeAmbientBg}` : ''}`}
+      style={isHome ? undefined : { backgroundColor: colors.BG_SECONDARY }}
     >
       {!formScrollLayout && <Header />}
       <main className="flex flex-1 flex-col">{children}</main>

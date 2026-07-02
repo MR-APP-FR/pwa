@@ -11,6 +11,7 @@ export function HomeFooter() {
         width={120}
         height={48}
         className="h-12 w-auto opacity-90"
+        style={{ width: 'auto' }}
       />
     </footer>
   );
