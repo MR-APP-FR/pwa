@@ -28,14 +28,12 @@ export default function TrainingPage() {
           {t('screens.training.subtitle')}
         </p>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {TRAINING_THEMES.map((theme) => (
             <TrainingThemeCard
               key={theme.id}
-              icon={theme.icon}
+              emoji={theme.emoji}
               labelKey={theme.labelKey}
-              color={theme.color}
-              muted={theme.muted}
               colSpan={theme.colSpan}
               disabled
             />
