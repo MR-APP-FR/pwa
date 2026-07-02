@@ -43,7 +43,7 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Date invalide.' };
   if (feuillesDeJour.length === 0) return { error: 'Feuilles de jour manquantes.' };
   if (ticketsOuvertureRaw === null || !Number.isFinite(ticketsOuverture)) {
-    return { error: "Nombre de tickets d'ouverture manquant." };
+    return { error: "Nombre de tickets d'ouverture manquant" };
   }
 
   return { siteId, userId, date, feuillesDeJour, ticketsOuverture, fondCaisse100, observations };

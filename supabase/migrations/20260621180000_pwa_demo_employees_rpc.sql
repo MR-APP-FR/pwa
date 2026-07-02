@@ -15,7 +15,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT u.id, u.login, u.email, u.fullname, u.actif
-  FROM public."user" u
+  FROM public"user" u
   WHERE COALESCE(u.actif, true) = true
   ORDER BY u.fullname NULLS LAST;
 $$;

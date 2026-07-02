@@ -16,6 +16,8 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   detail?: string;
+  subtitleColor?: string;
+  detailColor?: string;
   showBack?: boolean;
   onBack?: () => void;
   step?: PageHeaderStep;
@@ -29,6 +31,8 @@ export function PageHeader({
   title,
   subtitle,
   detail,
+  subtitleColor,
+  detailColor,
   showBack = false,
   onBack,
   step,
@@ -83,7 +87,10 @@ export function PageHeader({
 
         <div className="min-w-0 flex-1">
           {subtitle ? (
-            <div className="flex min-w-0 flex-col gap-0.5">
+            <div
+              className={`flex min-w-0 flex-col ${showBack ? '' : 'gap-0.5'}`}
+              style={showBack ? { height: BACK_SIZE } : undefined}
+            >
               <span
                 className="self-start px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
                 style={{
@@ -96,18 +103,23 @@ export function PageHeader({
               >
                 {title}
               </span>
-              <p
-                className="min-w-0 text-[17px] font-bold leading-tight"
-                style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
-              >
-                {subtitle}
-                {detail && (
-                  <span className="text-[15px] font-medium" style={{ color: colors.TEXT_SECONDARY }}>
-                    {' '}
-                    · {detail}
-                  </span>
-                )}
-              </p>
+              <div className={showBack ? 'flex min-h-0 flex-1 items-end' : undefined}>
+                <p
+                  className={`min-w-0 font-bold uppercase ${showBack ? 'text-[17px] leading-none' : 'text-[17px] leading-tight'}`}
+                  style={{
+                    color: subtitleColor ?? colors.TEXT_PRIMARY,
+                    fontFamily: 'var(--font-display)',
+                  }}
+                >
+                  {subtitle}
+                  {detail && (
+                    <span style={{ color: detailColor ?? colors.TEXT_SECONDARY }}>
+                      {' '}
+                      · {detail}
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
           ) : (
             <p

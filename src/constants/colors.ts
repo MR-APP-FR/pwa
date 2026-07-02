@@ -22,6 +22,24 @@ export const LOGO = {
   pinkMuted: '#FCE8F2',
 } as const;
 
+/** Angle commun des dégradés d'icônes d'accueil (bas-gauche → haut-droite) */
+const HOME_ICON_GRADIENT_ANGLE = '45deg';
+
+function homeIconGradient(from: string, to: string) {
+  return `linear-gradient(${HOME_ICON_GRADIENT_ANGLE}, ${from} 0%, ${to} 100%)`;
+}
+
+/** Paires de couleurs pour les dégradés des boutons d'accueil */
+export const HOME_BUTTON_ICON_GRADIENTS = {
+  green: homeIconGradient('#6EEB7A', '#22A832'),
+  red: homeIconGradient('#FF6B63', '#C62828'),
+  blue: homeIconGradient('#5BC8FF', '#1A2878'),
+  purple: homeIconGradient('#C060E0', '#6B1F9E'),
+  messages: homeIconGradient('#D030F0', '#60E0FF'),
+  mustard: homeIconGradient('#FFE14D', '#E88A10'),
+  violet: homeIconGradient('#FF5CAD', '#A80A5C'),
+} as const;
+
 export const NEUTRALS = {
   white: '#FFFFFF',
   bg: '#F7F6F4',
@@ -89,13 +107,13 @@ export const HOME_ASSIGNMENT_BG = '#292D82';
 
 /** Fond des icônes des boutons d'accueil */
 export const HOME_BUTTON_ICON_BG: Record<string, string> = {
-  'sunny-outline': '#ED7723',
-  'moon-outline': '#E1313C',
-  'calendar-outline': '#1F9ED1',
-  'hand-left-outline': '#37AB38',
-  'messages-outline': '#991C86',
-  'video-outline': '#FAB12F',
-  'map-pin-outline': '#E71380',
+  'sunny-outline': HOME_BUTTON_ICON_GRADIENTS.green,
+  'moon-outline': HOME_BUTTON_ICON_GRADIENTS.red,
+  'calendar-outline': HOME_BUTTON_ICON_GRADIENTS.blue,
+  'hand-left-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
+  'messages-outline': HOME_BUTTON_ICON_GRADIENTS.messages,
+  'video-outline': HOME_BUTTON_ICON_GRADIENTS.mustard,
+  'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.violet,
 };
 
 /** Couleurs tournantes pour les cartes planning */

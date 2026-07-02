@@ -16,7 +16,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { today, weekYear, weekMonth, nextWeekStart, nextWeekEnd, mockTimeRanges } = useDemoDate();
+  const { today, weekYear, weekMonth, nextWeekStart, nextWeekEnd } = useDemoDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const missions = planningData?.planning ?? [];
 
@@ -35,8 +35,6 @@ export default function HomePage() {
       ) ?? null,
     [sortedMissions, today],
   );
-
-  const todayTime = todayMission ? (mockTimeRanges[todayMission.site_id] ?? null) : null;
 
   const nextMission = useMemo(
     () =>
@@ -61,15 +59,14 @@ export default function HomePage() {
       className="flex min-h-0 flex-1 flex-col overflow-y-auto"
       style={{ backgroundColor: colors.BG_SECONDARY }}
     >
-      <div className="flex min-h-full flex-1 flex-col pt-3">
+      <div className="flex min-h-full flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
       <AssignmentBanner
         todayMission={todayMission}
-        todayTime={todayTime}
         nextMission={nextMission}
         nextDayLabel={nextDayLabel}
       />
 
-      <div className="grid grid-cols-2 gap-2.5 px-4 pb-2">
+      <div className="grid grid-cols-2 gap-2.5">
         <HomeButton
           icon="sunny-outline"
           label={t('screens.home.openingButton')}

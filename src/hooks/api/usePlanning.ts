@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
 import { useProfileStore } from '../../stores/profileStore';
-import type { PlanningColleague, PlanningWithColleague } from '../../database/types';
+import type { PlanningColleague, PlanningSiteDetails, PlanningWithColleague } from '../../database/types';
 import { formatSiteName } from '../../lib/formatSiteName';
 
 interface UsePlanningParams {
@@ -21,7 +21,24 @@ interface PlanningRowDb {
   double_id: number | null;
   user_confirmed: boolean | null;
   double_confirmed: boolean | null;
-  site: { name: string | null } | { name: string | null }[] | null;
+  site:
+    | {
+        name: string | null;
+        adresse: string | null;
+        metro: string | null;
+        indication: string | null;
+        latitude: number | null;
+        longitude: number | null;
+      }
+    | {
+        name: string | null;
+        adresse: string | null;
+        metro: string | null;
+        indication: string | null;
+        latitude: number | null;
+        longitude: number | null;
+      }[]
+    | null;
 }
 
 interface UserColleagueRow {
@@ -49,10 +66,20 @@ function planningMonthTriplet(year: number, month: number): { year: number; mont
   return [prev, { year, month }, next];
 }
 
-function normalizeSiteName(site: PlanningRowDb['site']): string {
-  if (!site) return '';
+function normalizeSite(site: PlanningRowDb['site']): { name: string; details: PlanningSiteDetails | null } {
+  if (!site) return { name: '', details: null };
   const s = Array.isArray(site) ? site[0] : site;
-  return formatSiteName(s?.name ?? '');
+  if (!s) return { name: '', details: null };
+  return {
+    name: formatSiteName(s.name ?? ''),
+    details: {
+      adresse: s.adresse ?? null,
+      metro: s.metro ?? null,
+      indication: s.indication ?? null,
+      latitude: s.latitude ?? null,
+      longitude: s.longitude ?? null,
+    },
+  };
 }
 
 function mapColleagueFromUserRow(row: UserColleagueRow): PlanningColleague {
@@ -78,13 +105,16 @@ function toPlanningWithColleague(
   const colleague =
     colleagueUserId != null ? (colleagues.get(colleagueUserId) ?? null) : null;
 
+  const { name: site_name, details: site_details } = normalizeSite(row.site);
+
   return {
     id: row.id,
     year: row.year,
     month: row.month,
     day: row.day,
     site_id: row.site_id,
-    site_name: normalizeSiteName(row.site),
+    site_name,
+    site_details,
     user_id: row.user_id ?? 0,
     double_id: row.double_id,
     user_confirmed: row.user_confirmed ?? false,
@@ -107,7 +137,7 @@ async function fetchPlanningForUser(
       const { data, error } = await supabase
         .from('planning')
         .select(
-          'id, year, month, day, site_id, user_id, double_id, user_confirmed, double_confirmed, site:site_id(name)',
+          'id, year, month, day, site_id, user_id, double_id, user_confirmed, double_confirmed, site:site_id(name, adresse, metro, indication, latitude, longitude)',
         )
         .or(`user_id.eq.${userId},double_id.eq.${userId}`)
         .eq('year', y)

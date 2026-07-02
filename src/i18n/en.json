@@ -21,13 +21,13 @@
     "sitesMap": {
       "title": "Points of sale map",
       "loading": "Loading map…",
-      "empty": "No carousel with GPS coordinates yet.",
+      "empty": "No carousel with GPS coordinates yet",
       "openInMaps": "Open in Maps",
       "siteCount": "%{count} carousel(s) shown"
     },
     "training": {
       "title": "Training video",
-      "subtitle": "Choose a topic to watch the corresponding video.",
+      "subtitle": "Choose a topic to watch the corresponding video",
       "themes": {
         "opening": "Opening",
         "revenue": "Revenue optimization",
@@ -48,7 +48,7 @@
       "previousWeek": "Previous week",
       "nextWeek": "Next week",
       "hour": "9:00 AM",
-      "go": "Go",
+      "go": "Go there?",
       "opening": "Opening",
       "closing": "Closing",
       "details": "Details",
@@ -58,10 +58,13 @@
       "confirmed": "Confirmed",
       "pending": "Pending",
       "role": "Role",
-      "principal": "Principal",
-      "double": "Double",
+      "colleague": "Colleague",
+      "status": "Status",
+      "principal": "Lead seller",
+      "double": "Double seller",
       "accessInfo": "Access information",
       "metro": "Metro",
+      "address": "Address",
       "phone": "Phone",
       "confirmationStatus": "Confirmation status",
       "yourConfirmation": "Your confirmation",
@@ -109,7 +112,7 @@
   "availability": {
     "title": "Availability",
     "subtitle": "Week of {start} to {end}",
-    "description": "Let us know your availability for next week.",
+    "description": "Let us know your availability for next week",
     "available": "Available",
     "notAvailable": "Not available",
     "note": "Note (optional)",
@@ -117,16 +120,16 @@
     "unavailableReasonPlaceholder": "Why unavailable?",
     "send": "Send my availability",
     "sent": "Availability sent!",
-    "sentDescription": "Your manager will be notified."
+    "sentDescription": "Your manager will be notified"
   },
   "forms": {
     "common": {
       "placeholderAmount": "Enter amount",
       "placeholderCount": "Enter number",
       "optional": "Optional",
-      "errorRequired": "Fill in this field to continue.",
+      "errorRequired": "Fill in this field to continue",
       "noJustificationPlaceholder": "Explain why…",
-      "errorNoJustification": "Please justify your \"No\" answer."
+      "errorNoJustification": "Please justify your \"No\" answer"
     },
     "opening": {
       "title": "Opening",
@@ -142,12 +145,12 @@
       "observations": "Additional notes",
       "observationsPlaceholder": "Add a note…",
       "submit": "Confirm opening",
-      "errorFeuilleDuJour": "Enter the number of day sheets.",
-      "errorTicketsOuverture": "Enter the number of tickets at opening.",
-      "errorFondDeCaisse": "Indicate whether the cash float is 100€.",
-      "errorNettoyageVeille": "Indicate whether yesterday's cleaning was done.",
+      "errorFeuilleDuJour": "Enter the number of day sheets",
+      "errorTicketsOuverture": "Enter the number of tickets at opening",
+      "errorFondDeCaisse": "Indicate whether the cash float is 100€",
+      "errorNettoyageVeille": "Indicate whether yesterday's cleaning was done",
       "successTitle": "Opening saved",
-      "successDescription": "Your opening information has been saved."
+      "successDescription": "Your opening information has been saved"
     },
     "closing": {
       "title": "Closing",
@@ -165,14 +168,14 @@
       "payeDuJour": "Pay of the day",
       "payeManquanteRecuperee": "Missing pay recovered today",
       "payeDuDouble": "Pay of the double",
-      "payeManquanteHelp": "Amount of missing pay recovered from customers today (change shortage or missed ticket).",
-      "payeDuDoubleHelp": "Amount collected twice during the day (customer paid for the same ride twice).",
+      "payeManquanteHelp": "Amount of missing pay recovered from customers today (change shortage or missed ticket)",
+      "payeDuDoubleHelp": "Amount collected twice during the day (customer paid for the same ride twice)",
       "pointCaisse13h": "Till check 1pm-2pm",
       "pointCaisse20h": "Till check 8pm-8:35pm",
       "observations": "Additional notes",
       "observationsPlaceholder": "Add a note…",
       "telecollectePhoto": "Tele-collection receipt photo",
-      "errorPhoto": "Add a tele-collection photo to submit.",
+      "errorPhoto": "Add a tele-collection photo to submit",
       "addPhoto": "Add a photo",
       "changePhoto": "Change photo",
       "removePhoto": "Remove photo",
@@ -187,9 +190,9 @@
       "step2Hint": "Pay, breakdowns, photo",
       "continue": "Continue",
       "back": "Back",
-      "step1Error": "Enter total takings to continue.",
+      "step1Error": "Enter total takings to continue",
       "successTitle": "Closing saved",
-      "successDescription": "Your closing information has been saved."
+      "successDescription": "Your closing information has been saved"
     },
     "dailyInfo": {
       "nettoyageVeille": "Was yesterday's cleaning done?",
@@ -199,10 +202,10 @@
       "pannesModalSelectionTitle": "Select breakdowns",
       "pannesModalDone": "Done",
       "pannesClear": "Clear all",
-      "pannesSujetsHelp": "For each item, indicate whether it has a problem.",
+      "pannesSujetsHelp": "For each item, indicate whether it has a problem",
       "pannesSujetReasonPlaceholder": "Why? (optional)",
       "pannesSujetCreateLabel": "Add an item",
-      "pannesSujetsEmpty": "No items configured for this site. Add one below.",
+      "pannesSujetsEmpty": "No items configured for this site. Add one below",
       "pannesSujetCreatePlaceholder": "Name of the item to add…",
       "pannesSujetCreate": "Add",
       "pannesAutre": "Other / misc",

@@ -129,7 +129,7 @@ function EditSitesModal({
             <Search size={16} color={colors.TEXT_SECONDARY} className="mr-2 flex-shrink-0" />
             <input
               type="text"
-              placeholder="Rechercher un site..."
+              placeholder="Rechercher un site.."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent text-sm outline-none"

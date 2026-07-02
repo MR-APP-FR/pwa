@@ -19,8 +19,17 @@ export interface PlanningColleague {
   couleur: string | null;
 }
 
+export interface PlanningSiteDetails {
+  adresse: string | null;
+  metro: string | null;
+  indication: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 export interface PlanningWithColleague extends Planning {
   site_name: string;
+  site_details: PlanningSiteDetails | null;
   role: 'principal' | 'double';
   colleague: PlanningColleague | null;
 }

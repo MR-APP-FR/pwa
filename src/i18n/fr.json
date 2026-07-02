@@ -12,8 +12,8 @@
       "closingButton": "Fermeture",
       "planningButton": "Planning",
       "availabilityButton": "Disponibilités",
-      "messagesButton": "Messages Information",
-      "trainingVideoButton": "Vidéo Formation",
+      "messagesButton": "Messages",
+      "trainingVideoButton": "Vidéo",
       "sitesMapButton": "Carte des points de vente",
       "settingsButton": "Paramètres",
       "comingSoon": "Bientôt"
@@ -21,13 +21,13 @@
     "sitesMap": {
       "title": "Carte des points de vente",
       "loading": "Chargement de la carte…",
-      "empty": "Aucun manège avec coordonnées GPS pour l'instant.",
+      "empty": "Aucun manège avec coordonnées GPS pour l'instant",
       "openInMaps": "Ouvrir dans Maps",
       "siteCount": "%{count} manège(s) affiché(s)"
     },
     "training": {
       "title": "Vidéo Formation",
-      "subtitle": "Choisissez un thème pour accéder à la vidéo correspondante.",
+      "subtitle": "Choisissez un thème pour accéder à la vidéo correspondante",
       "themes": {
         "opening": "Ouverture",
         "revenue": "Optimisation CA",
@@ -48,7 +48,7 @@
       "previousWeek": "Semaine précédente",
       "nextWeek": "Semaine suivante",
       "hour": "9h00",
-      "go": "Aller",
+      "go": "Y aller ?",
       "opening": "Ouverture",
       "closing": "Fermeture",
       "details": "Détails",
@@ -58,10 +58,13 @@
       "confirmed": "Confirmé",
       "pending": "En attente",
       "role": "Rôle",
-      "principal": "Principal",
-      "double": "Doublon",
+      "colleague": "Collègue",
+      "status": "Statut",
+      "principal": "Vendeur principal",
+      "double": "Vendeur double",
       "accessInfo": "Indications d'accès",
       "metro": "Métro",
+      "address": "Adresse",
       "phone": "Téléphone",
       "confirmationStatus": "Statut de confirmation",
       "yourConfirmation": "Votre confirmation",
@@ -77,7 +80,7 @@
       "title": "Paramètres"
     },
     "mission": {
-      "title": "Mission"
+      "title": "Affectation"
     }
   },
   "settings": {
@@ -109,7 +112,7 @@
   "availability": {
     "title": "Disponibilités",
     "subtitle": "Semaine du {start} au {end}",
-    "description": "Indiquez vos disponibilités pour la semaine prochaine.",
+    "description": "Indiquez vos disponibilités pour la semaine prochaine",
     "available": "Disponible",
     "notAvailable": "Indisponible",
     "note": "Note (optionnel)",
@@ -117,16 +120,16 @@
     "unavailableReasonPlaceholder": "Pour quelle raison ?",
     "send": "Envoyer mes disponibilités",
     "sent": "Disponibilités envoyées !",
-    "sentDescription": "Votre responsable en sera informé."
+    "sentDescription": "Votre responsable en sera informé"
   },
   "forms": {
     "common": {
       "placeholderAmount": "Saisir le montant",
       "placeholderCount": "Saisir le nombre",
       "optional": "Optionnel",
-      "errorRequired": "Renseigne ce champ pour continuer.",
+      "errorRequired": "Renseigne ce champ pour continuer",
       "noJustificationPlaceholder": "Précisez la raison…",
-      "errorNoJustification": "Justifiez votre réponse « Non »."
+      "errorNoJustification": "Justifiez votre réponse « Non »"
     },
     "opening": {
       "title": "Ouverture",
@@ -142,12 +145,12 @@
       "observations": "Observations éventuelles",
       "observationsPlaceholder": "Ajouter une remarque…",
       "submit": "Valider l'ouverture",
-      "errorFeuilleDuJour": "Renseigne le nombre de feuilles de jour.",
-      "errorTicketsOuverture": "Renseigne le nombre de tickets à l'ouverture.",
-      "errorFondDeCaisse": "Indique si le fond de caisse est bien de 100 €.",
-      "errorNettoyageVeille": "Indique si le nettoyage de la veille a été effectué.",
+      "errorFeuilleDuJour": "Renseigne le nombre de feuilles de jour",
+      "errorTicketsOuverture": "Renseigne le nombre de tickets à l'ouverture",
+      "errorFondDeCaisse": "Indique si le fond de caisse est bien de 100 €",
+      "errorNettoyageVeille": "Indique si le nettoyage de la veille a été effectué",
       "successTitle": "Ouverture enregistrée",
-      "successDescription": "Vos informations d'ouverture ont été enregistrées."
+      "successDescription": "Vos informations d'ouverture ont été enregistrées"
     },
     "closing": {
       "title": "Fermeture",
@@ -165,14 +168,14 @@
       "payeDuJour": "Payé du jour",
       "payeManquanteRecuperee": "Payé manquante récupérée ce jour",
       "payeDuDouble": "Payé du double",
-      "payeManquanteHelp": "Montant du payé manquant récupéré auprès des clients ce jour (rattrapage d'un défaut de monnaie ou d'un ticket non encaissé).",
-      "payeDuDoubleHelp": "Montant encaissé en double sur la journée (client ayant payé deux fois le même tour).",
+      "payeManquanteHelp": "Montant du payé manquant récupéré auprès des clients ce jour (rattrapage d'un défaut de monnaie ou d'un ticket non encaissé)",
+      "payeDuDoubleHelp": "Montant encaissé en double sur la journée (client ayant payé deux fois le même tour)",
       "pointCaisse13h": "Point caisse 13h-14h",
       "pointCaisse20h": "Point caisse 20h-20h35",
       "observations": "Observations éventuelles",
       "observationsPlaceholder": "Ajouter une remarque…",
       "telecollectePhoto": "Photo de la télécollecte",
-      "errorPhoto": "Ajoute une photo de télécollecte pour valider.",
+      "errorPhoto": "Ajoute une photo de télécollecte pour valider",
       "addPhoto": "Ajouter une photo",
       "changePhoto": "Changer la photo",
       "removePhoto": "Supprimer la photo",
@@ -187,9 +190,9 @@
       "step2Hint": "Paie, pannes, photo",
       "continue": "Continuer",
       "back": "Retour",
-      "step1Error": "Renseigne la recette totale pour continuer.",
+      "step1Error": "Renseigne la recette totale pour continuer",
       "successTitle": "Fermeture enregistrée",
-      "successDescription": "Vos informations de fermeture ont été enregistrées."
+      "successDescription": "Vos informations de fermeture ont été enregistrées"
     },
     "dailyInfo": {
       "nettoyageVeille": "Nettoyage de la veille effectué ?",
@@ -199,10 +202,10 @@
       "pannesModalSelectionTitle": "Sélection des pannes",
       "pannesModalDone": "Terminer",
       "pannesClear": "Tout effacer",
-      "pannesSujetsHelp": "Indiquez pour chaque sujet s'il présente un problème.",
+      "pannesSujetsHelp": "Indiquez pour chaque sujet s'il présente un problème",
       "pannesSujetReasonPlaceholder": "Pourquoi ? (optionnel)",
       "pannesSujetCreateLabel": "Ajouter un sujet",
-      "pannesSujetsEmpty": "Aucun sujet déclaré pour ce site. Crée-le ci-dessous.",
+      "pannesSujetsEmpty": "Aucun sujet déclaré pour ce site. Crée-le ci-dessous",
       "pannesSujetCreatePlaceholder": "Nom du sujet à ajouter…",
       "pannesSujetCreate": "Ajouter",
       "pannesAutre": "Autre / divers",
