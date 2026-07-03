@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { HOME_BUTTON_ICON_BG } from '../../constants/colors';
-import { glassCardClass } from '../../constants/glass';
 import { RADIUS } from '../../constants/design';
 
 const ICON_MAP: Record<string, string> = {
@@ -34,11 +33,14 @@ export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeBu
       onClick={onPress}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`${glassCardClass({ disabled })} flex min-h-[96px] flex-col items-center justify-center gap-2 p-3 transition-all duration-150 ${
+      className={`relative flex min-h-[96px] flex-col items-center justify-center gap-2 overflow-hidden p-3 transition-all duration-150 ${
         disabled ? 'cursor-not-allowed' : 'active:scale-[0.98]'
       } ${fullWidth ? 'col-span-2' : ''}`}
       style={{
+        backgroundColor: colors.SETTINGS_SECTION_BG,
         borderRadius: RADIUS.md,
+        boxShadow: colors.CARD_SHADOW,
+        border: `1px solid ${colors.BORDER}`,
         minHeight: 96,
       }}
     >
@@ -71,6 +73,18 @@ export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeBu
       >
         {label}
       </span>
+
+      {disabled && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            borderRadius: RADIUS.md,
+            background:
+              'linear-gradient(160deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.28) 100%)',
+          }}
+        />
+      )}
     </button>
   );
 }

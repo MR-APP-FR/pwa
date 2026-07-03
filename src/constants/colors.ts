@@ -34,10 +34,10 @@ export const HOME_BUTTON_ICON_GRADIENTS = {
   green: homeIconGradient('#6EEB7A', '#22A832'),
   red: homeIconGradient('#FF6B63', '#C62828'),
   blue: homeIconGradient('#5BC8FF', '#1A2878'),
+  yellow: homeIconGradient('#FFE14D', '#E8B020'),
   purple: homeIconGradient('#C060E0', '#6B1F9E'),
-  messages: homeIconGradient('#D030F0', '#60E0FF'),
-  mustard: homeIconGradient('#FFE14D', '#E88A10'),
-  violet: homeIconGradient('#FF5CAD', '#A80A5C'),
+  gray: homeIconGradient('#C8C5C0', '#6E6A66'),
+  pink: homeIconGradient('#FF7EB3', '#D94F8C'),
 } as const;
 
 export const NEUTRALS = {
@@ -110,10 +110,10 @@ export const HOME_BUTTON_ICON_BG: Record<string, string> = {
   'sunny-outline': HOME_BUTTON_ICON_GRADIENTS.green,
   'moon-outline': HOME_BUTTON_ICON_GRADIENTS.red,
   'calendar-outline': HOME_BUTTON_ICON_GRADIENTS.blue,
-  'hand-left-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
-  'messages-outline': HOME_BUTTON_ICON_GRADIENTS.messages,
-  'video-outline': HOME_BUTTON_ICON_GRADIENTS.mustard,
-  'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.violet,
+  'hand-left-outline': HOME_BUTTON_ICON_GRADIENTS.yellow,
+  'messages-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
+  'video-outline': HOME_BUTTON_ICON_GRADIENTS.gray,
+  'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.pink,
 };
 
 /** Couleurs tournantes pour les cartes planning */
