@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { MOCK_SITES, MOCK_GROUPES } from '../../database/mock/sites.mock';
 import { createClient } from '../../lib/supabase/client';
 import type { Groupe, Site } from '../../database/types';
 import { formatSiteName } from '../../lib/formatSiteName';
@@ -9,8 +8,6 @@ import { formatSiteName } from '../../lib/formatSiteName';
 function withFormattedSiteNames(sites: Site[]): Site[] {
   return sites.map((site) => ({ ...site, name: formatSiteName(site.name) }));
 }
-
-const MOCK_DATA = { sites: withFormattedSiteNames(MOCK_SITES), groupes: MOCK_GROUPES };
 
 async function fetchSites(): Promise<{ sites: Site[]; groupes: Groupe[] }> {
   const supabase = createClient();
@@ -26,27 +23,22 @@ async function fetchSites(): Promise<{ sites: Site[]; groupes: Groupe[] }> {
   ]);
 
   if (sitesRes.error) {
-    console.warn(`useSites site fetch failed: ${sitesRes.error.message}`);
-    return MOCK_DATA;
+    throw new Error(`useSites site fetch failed: ${sitesRes.error.message}`);
+  }
+  if (groupesRes.error) {
+    throw new Error(`useSites groupe fetch failed: ${groupesRes.error.message}`);
   }
 
-  const sites = withFormattedSiteNames((sitesRes.data ?? []) as Site[]);
-  if (sites.length === 0) {
-    return MOCK_DATA;
-  }
-
-  const groupes = groupesRes.error
-    ? MOCK_GROUPES
-    : ((groupesRes.data ?? []) as Groupe[]);
-
-  return { sites, groupes };
+  return {
+    sites: withFormattedSiteNames((sitesRes.data ?? []) as Site[]),
+    groupes: (groupesRes.data ?? []) as Groupe[],
+  };
 }
 
 export function useSites() {
   return useQuery({
     queryKey: ['sites'],
     queryFn: fetchSites,
-    initialData: MOCK_DATA,
     staleTime: 5 * 60 * 1000,
   });
 }

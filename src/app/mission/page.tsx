@@ -4,25 +4,37 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useMemo } from 'react';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useSites } from '../../hooks/api/useSites';
+import { useMissionForms } from '../../hooks/api/useMissionForms';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useDemoDate } from '../../hooks/useDemoDate';
+import { useAppDate } from '../../hooks/useAppDate';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import { HOME_BUTTON_ICON_GRADIENTS } from '../../constants/colors';
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
 
 function MissionContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { today, weekYear, weekMonth } = useDemoDate();
+  const { today, weekYear, weekMonth } = useAppDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: sitesData } = useSites();
 
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
+
+  const missionDateIso = mission
+    ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`
+    : undefined;
+  const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso);
+  const hasOpening = formsStatus?.hasOpening ?? false;
+  const hasClosing = formsStatus?.hasClosing ?? false;
 
   const sortedMissions = useMemo(
     () => [...(planningData?.planning ?? [])].sort((a, b) => a.day - b.day),
@@ -203,25 +215,27 @@ function MissionContent() {
             onClick={() => router.push(`/opening?id=${mission.id}`)}
             className="min-h-[44px] flex-1 py-3 text-sm font-bold uppercase tracking-wide transition-all active:scale-[0.98]"
             style={{
-              backgroundImage: HOME_BUTTON_ICON_GRADIENTS.green,
+              backgroundImage: hasOpening ? 'none' : HOME_BUTTON_ICON_GRADIENTS.green,
+              backgroundColor: hasOpening ? colors.SUCCESS : undefined,
               color: colors.TEXT_INVERSE,
               borderRadius: RADIUS.sm,
               fontFamily: 'var(--font-display)',
             }}
           >
-            {t('screens.planning.opening')}
+            {hasOpening ? `✓ ${t('screens.planning.openingDone')}` : t('screens.planning.opening')}
           </button>
           <button
             onClick={() => router.push(`/closing?id=${mission.id}`)}
             className="min-h-[44px] flex-1 py-3 text-sm font-bold uppercase tracking-wide transition-all active:scale-[0.98]"
             style={{
-              backgroundImage: HOME_BUTTON_ICON_GRADIENTS.red,
+              backgroundImage: hasClosing ? 'none' : HOME_BUTTON_ICON_GRADIENTS.red,
+              backgroundColor: hasClosing ? colors.SUCCESS : undefined,
               color: colors.TEXT_INVERSE,
               borderRadius: RADIUS.sm,
               fontFamily: 'var(--font-display)',
             }}
           >
-            {t('screens.planning.closing')}
+            {hasClosing ? `✓ ${t('screens.planning.closingDone')}` : t('screens.planning.closing')}
           </button>
         </div>
       )}

@@ -4,11 +4,7 @@ import { cookies } from 'next/headers';
 /**
  * Supabase cookie-bound server client (Server Components, Route Handlers,
  * Server Actions). Calque sur admin-desktop-app/lib/supabase/server.ts.
- *
- * Cf. GRE-86. L'auth réelle (middleware + redirection /login, GRE-88) est
- * différée ; ce client est livré pour pouvoir consommer Supabase en lecture
- * server-side dès maintenant (ex. fetch initial du profil sélectionné par
- * GRE-87 dans un futur Server Component).
+ * Session rafraîchie par `src/middleware.ts` / `lib/supabase/middleware.ts`.
  */
 export async function createClient() {
   const cookieStore = await cookies();

@@ -2,6 +2,16 @@
   "app": {
     "name": "Manège"
   },
+  "auth": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "passwordHint": "Mot de passe initial = ton username (login)",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…",
+    "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion…",
+    "loginError": "Email ou mot de passe incorrect."
+  },
   "screens": {
     "home": {
       "todayAssignment": "Affectation du jour",
@@ -51,6 +61,8 @@
       "go": "Y aller ?",
       "opening": "Ouverture",
       "closing": "Fermeture",
+      "openingDone": "Ouverture faite",
+      "closingDone": "Fermeture faite",
       "details": "Détails",
       "reportIncident": "Signaler un incident",
       "solo": "Seul(e)",
@@ -129,7 +141,12 @@
       "optional": "Optionnel",
       "errorRequired": "Renseigne ce champ pour continuer",
       "noJustificationPlaceholder": "Précisez la raison…",
-      "errorNoJustification": "Justifiez votre réponse « Non »"
+      "errorNoJustification": "Justifiez votre réponse « Non »",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "removePhoto": "Supprimer la photo",
+      "photoNettoyage": "Photo du nettoyage (optionnel)",
+      "errorOffline": "Tu es hors ligne. Reconnecte-toi pour envoyer le formulaire."
     },
     "opening": {
       "title": "Ouverture",
@@ -157,7 +174,7 @@
       "sectionRecettes": "Recettes",
       "sectionComptages": "Comptages",
       "sectionPointsCaisse": "Points caisse",
-      "sectionPaie": "Payé du jour",
+      "sectionPaie": "Rémunération",
       "sectionPannes": "Pannes",
       "sectionNotes": "Remarques & photo",
       "recetteTotale": "Recette totale du jour",
@@ -165,11 +182,12 @@
       "nombreEnfants": "Nombre d'enfants",
       "ticketsOuverture": "Nombre de tickets à l'ouverture",
       "ticketsFermeture": "Nombre de tickets à la fermeture",
-      "payeDuJour": "Payé du jour",
+      "payeDuJour": "Rémunération du jour",
+      "payeDuJourHelp": "Montant de la rémunération de l'employé sur place ce jour",
       "payeManquanteRecuperee": "Payé manquante récupérée ce jour",
-      "payeDuDouble": "Payé du double",
+      "payeDuDouble": "Rémunération du double",
       "payeManquanteHelp": "Montant du payé manquant récupéré auprès des clients ce jour (rattrapage d'un défaut de monnaie ou d'un ticket non encaissé)",
-      "payeDuDoubleHelp": "Montant encaissé en double sur la journée (client ayant payé deux fois le même tour)",
+      "payeDuDoubleHelp": "Montant de la rémunération du collègue / partenaire sur place",
       "pointCaisse13h": "Point caisse 13h-14h",
       "pointCaisse20h": "Point caisse 20h-20h35",
       "observations": "Observations éventuelles",
@@ -179,6 +197,11 @@
       "addPhoto": "Ajouter une photo",
       "changePhoto": "Changer la photo",
       "removePhoto": "Supprimer la photo",
+      "envelopeTitle": "Contrôle enveloppe",
+      "envelopeConfirm": "Avez-vous bien mis dans l'enveloppe %{cash} € et %{card} € de CB ?",
+      "envelopeAnomaly": "Attention : le montant espèces calculé est négatif (%{cash} €). Vérifiez la recette, la CB et les rémunérations.",
+      "envelopeCheckbox": "Oui, j'ai bien mis ces montants dans l'enveloppe",
+      "envelopeError": "Confirmez le dépôt dans l'enveloppe pour valider",
       "submit": "Valider la fermeture",
       "step1Label": "Chiffres",
       "step2Label": "Finalisation",

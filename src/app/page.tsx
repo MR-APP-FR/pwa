@@ -7,14 +7,14 @@ import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
 import { usePlanning } from '../hooks/api/usePlanning';
 import { useTranslation } from '../hooks/useTranslation';
-import { useDemoDate } from '../hooks/useDemoDate';
+import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
 
 export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { today, weekYear, weekMonth, nextWeekStart, nextWeekEnd } = useDemoDate();
+  const { today, weekYear, weekMonth, nextWeekStart, nextWeekEnd } = useAppDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const missions = planningData?.planning ?? [];
 

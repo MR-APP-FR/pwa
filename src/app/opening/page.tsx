@@ -2,20 +2,23 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo, Suspense, useTransition } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
+import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { FormNumberInput } from '../../components/forms/FormNumberInput';
 import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import { useSujets } from '../../hooks/api/useSujets';
 import type { OpeningFormData } from '../../types/form.types';
-import { useDemoDate } from '../../hooks/useDemoDate';
+import { useAppDate } from '../../hooks/useAppDate';
 import { submitOpeningForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
+import { isBrowserOffline } from '../../lib/offline';
 import { formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -59,9 +62,10 @@ function pad2(n: number): string {
 function OpeningContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { weekYear, weekMonth } = useDemoDate();
+  const { weekYear, weekMonth } = useAppDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: currentUser } = useCurrentUser();
 
@@ -82,6 +86,7 @@ function OpeningContent() {
   });
 
   const [nettoyageVeille, setNettoyageVeille] = useState<boolean | null>(null);
+  const [nettoyagePhoto, setNettoyagePhoto] = useState<CapturedPhoto | null>(null);
   const [fondDeCaisseJustification, setFondDeCaisseJustification] = useState('');
   const [nettoyageVeilleJustification, setNettoyageVeilleJustification] = useState('');
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
@@ -154,7 +159,11 @@ function OpeningContent() {
       return;
     }
     if (!currentUser?.user) {
-      setSubmitError('Aucun employé sélectionné. Choisis un profil dans le header.');
+      setSubmitError('Session invalide. Reconnecte-toi.');
+      return;
+    }
+    if (isBrowserOffline()) {
+      setSubmitError(t('forms.common.errorOffline'));
       return;
     }
 
@@ -169,7 +178,6 @@ function OpeningContent() {
 
     const fd = new FormData();
     fd.set('siteId', String(mission.site_id));
-    fd.set('userId', String(currentUser.user.id));
     fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
     fd.set('feuillesDeJour', String(form.feuilleDuJour));
     fd.set('ticketsOuverture', String(form.ticketsOuverture));
@@ -199,7 +207,6 @@ function OpeningContent() {
 
       const dailyResult = await submitDailyInfo({
         siteId: mission.site_id,
-        userId: currentUser.user.id,
         date,
         nettoyageVeille,
         panneSujetIds: selectedSujetIds,
@@ -207,6 +214,9 @@ function OpeningContent() {
         pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
         carteParking: showCarteParking ? carteParking : null,
         musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
+        nettoyagePhoto: nettoyagePhoto?.file ?? null,
+        nettoyagePhotoSource: nettoyagePhoto?.source ?? null,
+        nettoyagePhotoCapturedAtMs: nettoyagePhoto?.capturedAtMs ?? null,
       });
 
       if (!dailyResult.ok) {
@@ -214,6 +224,7 @@ function OpeningContent() {
         return;
       }
 
+      queryClient.invalidateQueries({ queryKey: ['missionForms'] });
       setSubmitted(true);
     });
   }
@@ -342,6 +353,11 @@ function OpeningContent() {
               }}
               noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
               noJustificationError={fieldError === 'nettoyageVeilleJustification'}
+            />
+            <PhotoCaptureField
+              label={t('forms.common.photoNettoyage')}
+              value={nettoyagePhoto}
+              onChange={setNettoyagePhoto}
             />
           </FormSection>
 

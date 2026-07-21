@@ -1,20 +1,16 @@
 'use server';
 
-import { createClient } from '../supabase/server';
+import { requireEmployeeSession } from '../auth/employee';
+import type { PhotoSource } from '../../database/types';
+
+const NETTOYAGE_PHOTO_BUCKET = 'telecollecte-photos';
 
 /**
- * GRE-57 — server actions pour la page info-jour.
+ * Actions info-jour :
+ * - `createSujet` : crée un sujet (manège) manquant pour un site
+ * - `submitDailyInfo` : insert `daily_info` (+ photo nettoyage optionnelle)
  *
- * - `createSujet` : insère un nouveau sujet (manège) pour un site quand
- *   l'employé en signale un absent. Aligné sur la table `sujets` admin.
- * - `submitDailyInfo` : insère une ligne dans `daily_info`. Le trigger
- *   `create_intervention_from_panne` (GRE-128) crée automatiquement la
- *   ligne `intervention` côté admin si `pannes_sujet_ids`, `pannes_autre`
- *   ou `pannes` non vides.
- *
- * Mode démo : `userId` est passé par le client (profile switcher GRE-87).
- * Quand l'auth réelle (GRE-54) sera livrée, le `user_id` sera dérivé de
- * la session via `current_employee_id()`.
+ * `user_id` dérivé de la session via `current_employee_id()`.
  */
 
 export type CreateSujetResult =
@@ -33,7 +29,11 @@ export async function createSujet(
     return { ok: false, error: 'Le nom du sujet est requis.' };
   }
 
-  const supabase = await createClient();
+  const session = await requireEmployeeSession();
+  if (!session.ok) {
+    return { ok: false, error: session.error };
+  }
+  const supabase = session.supabase;
 
   const existing = await supabase
     .from('sujets')
@@ -47,18 +47,7 @@ export async function createSujet(
   }
 
   if (existing.data) {
-    if (!existing.data.state) {
-      const reactivated = await supabase
-        .from('sujets')
-        .update({ state: true })
-        .eq('id', existing.data.id)
-        .select('id, name, site_id')
-        .single();
-      if (reactivated.error) {
-        return { ok: false, error: `Reactivation sujet a échoué : ${reactivated.error.message}` };
-      }
-      return { ok: true, ...reactivated.data };
-    }
+    // UPDATE sujets = admin only (RLS §4) — on réutilise la ligne même inactive.
     return {
       ok: true,
       id: existing.data.id,
@@ -85,7 +74,6 @@ export type SubmitDailyInfoResult =
 
 interface SubmitDailyInfoInput {
   siteId: number;
-  userId: number;
   /** Format ISO date YYYY-MM-DD — date de la mission */
   date: string;
   nettoyageVeille: boolean | null;
@@ -94,6 +82,10 @@ interface SubmitDailyInfoInput {
   pannes: string | null;
   carteParking: boolean | null;
   musiqueDisney: boolean | null;
+  /** Photo optionnelle du nettoyage veille (cf. étape 2 du cadrage prod). */
+  nettoyagePhoto?: File | null;
+  nettoyagePhotoSource?: PhotoSource | null;
+  nettoyagePhotoCapturedAtMs?: number | null;
 }
 
 export async function submitDailyInfo(
@@ -102,20 +94,49 @@ export async function submitDailyInfo(
   if (!Number.isFinite(input.siteId) || input.siteId <= 0) {
     return { ok: false, error: 'Site invalide.' };
   }
-  if (!Number.isFinite(input.userId) || input.userId <= 0) {
-    return { ok: false, error: 'Utilisateur invalide.' };
-  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
     return { ok: false, error: 'Date invalide.' };
   }
 
-  const supabase = await createClient();
+  const session = await requireEmployeeSession();
+  if (!session.ok) {
+    return { ok: false, error: session.error };
+  }
+  const { userId, supabase } = session;
+
+  let photoNettoyageUrl: string | null = null;
+  let photoSource: PhotoSource | null = null;
+  let photoCapturedAt: string | null = null;
+
+  const photo = input.nettoyagePhoto;
+  if (photo instanceof File && photo.size > 0) {
+    const ext = photo.name.includes('.') ? photo.name.split('.').pop() : 'jpg';
+    const objectPath = `nettoyage/${input.date}/site-${input.siteId}/user-${userId}/${Date.now()}.${ext}`;
+
+    const upload = await supabase.storage.from(NETTOYAGE_PHOTO_BUCKET).upload(objectPath, photo, {
+      cacheControl: '3600',
+      contentType: photo.type || 'image/jpeg',
+      upsert: false,
+    });
+    if (upload.error) {
+      return { ok: false, error: `Upload photo nettoyage échoué : ${upload.error.message}` };
+    }
+
+    photoNettoyageUrl = supabase.storage
+      .from(NETTOYAGE_PHOTO_BUCKET)
+      .getPublicUrl(upload.data.path).data.publicUrl;
+    photoSource = input.nettoyagePhotoSource ?? 'phototheque';
+    photoCapturedAt =
+      input.nettoyagePhotoCapturedAtMs != null
+        ? new Date(input.nettoyagePhotoCapturedAtMs).toISOString()
+        : null;
+  }
 
   const { data, error } = await supabase
     .from('daily_info')
     .insert({
       site_id: input.siteId,
-      user_id: input.userId,
+      user_id: userId,
       date: input.date,
       nettoyage_veille: input.nettoyageVeille,
       pannes_sujet_ids: input.panneSujetIds,
@@ -123,6 +144,9 @@ export async function submitDailyInfo(
       pannes: input.pannes,
       carte_parking: input.carteParking,
       musique_disney: input.musiqueDisney,
+      photo_nettoyage_url: photoNettoyageUrl,
+      photo_source: photoSource,
+      photo_captured_at: photoCapturedAt,
     })
     .select('id')
     .single();

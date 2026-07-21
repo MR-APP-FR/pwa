@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, useTransition, Suspense } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatPlanningDayLabel, formatWeekRange } from '../../lib/formatDate';
@@ -11,6 +11,10 @@ import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHead
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { YesNoToggle } from '../../components/common/YesNoToggle';
 import { RADIUS } from '../../constants/design';
+import { useAvailability } from '../../hooks/api/useAvailability';
+import { useCurrentUser } from '../../hooks/api/useCurrentUser';
+import { isBrowserOffline } from '../../lib/offline';
+import { submitAvailability } from './actions';
 
 interface DayAvailability {
   available: boolean;
@@ -25,6 +29,15 @@ function buildWeekDays(startDate: Date): Date[] {
   });
 }
 
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** Date locale -> YYYY-MM-DD (cohérent avec l'affichage du jour). */
+function toIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
 function AvailabilityContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -36,11 +49,56 @@ function AvailabilityContent() {
   const start = startDate ? new Date(startDate) : new Date();
   const end = endDate ? new Date(endDate) : new Date();
   const weekDays = buildWeekDays(start);
+  const weekIso = weekDays.map(toIsoDate);
+
+  const { data: currentUser } = useCurrentUser();
+  const { data: existing } = useAvailability(weekIso[0] ?? '', weekIso[6] ?? '');
 
   const [availability, setAvailability] = useState<DayAvailability[]>(
     weekDays.map(() => ({ available: true, note: '' })),
   );
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  // Préremplit avec les disponibilités déjà enregistrées (statut des jours).
+  useEffect(() => {
+    if (!existing || existing.length === 0) return;
+    const byDate = new Map(existing.map((r) => [r.date, r]));
+    setAvailability((prev) =>
+      prev.map((day, i) => {
+        const row = byDate.get(weekIso[i] ?? '');
+        return row ? { available: row.available, note: row.note ?? '' } : day;
+      }),
+    );
+    // weekIso dérive des searchParams (stables pour un rendu donné).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existing]);
+
+  const handleSend = () => {
+    setSubmitError(null);
+    if (!currentUser?.user) {
+      setSubmitError('Session invalide. Reconnecte-toi.');
+      return;
+    }
+    if (isBrowserOffline()) {
+      setSubmitError(t('forms.common.errorOffline'));
+      return;
+    }
+    const days = weekDays.map((date, i) => ({
+      date: toIsoDate(date),
+      available: availability[i]?.available ?? true,
+      note: availability[i]?.note ?? null,
+    }));
+    startTransition(async () => {
+      const result = await submitAvailability(days);
+      if (!result.ok) {
+        setSubmitError(result.error);
+        return;
+      }
+      setSubmitted(true);
+    });
+  };
 
   const setDayAvailable = (index: number, available: boolean) => {
     setAvailability((prev) =>
@@ -82,9 +140,18 @@ function AvailabilityContent() {
   return (
     <FormScrollLayout
       footer={
-        <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
-          <PrimaryButton onClick={() => setSubmitted(true)} className="w-full py-4 text-base">
-            {t('availability.send')}
+        <div className="px-5 py-4 space-y-2" style={{ backgroundColor: colors.BG_SECONDARY }}>
+          {submitError && (
+            <p className="text-sm text-center" style={{ color: colors.ACCENT_RED }}>
+              {submitError}
+            </p>
+          )}
+          <PrimaryButton
+            onClick={handleSend}
+            disabled={pending}
+            className="w-full py-4 text-base"
+          >
+            {pending ? 'Envoi…' : t('availability.send')}
           </PrimaryButton>
         </div>
       }

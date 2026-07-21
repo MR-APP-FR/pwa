@@ -20,9 +20,6 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
       className={variant === 'sticky' ? 'sticky top-0 z-40' : 'relative z-0'}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {/* Bandeau démo en haut — à supprimer en prod ; le bloc logo ci-dessous = design final */}
-      <DemoModeBanner />
-
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="w-10 shrink-0" aria-hidden />
 
@@ -55,36 +52,5 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
         </Link>
       </div>
     </header>
-  );
-}
-
-function DemoModeBanner() {
-  const { colors } = useThemeColors();
-  const { t } = useTranslation();
-
-  return (
-    <div
-      className="flex h-7 items-center justify-center gap-2 px-4"
-      style={{
-        color: colors.TEXT_INVERSE,
-        backgroundColor: colors.ACCENT_BLUE,
-      }}
-      aria-label="Mode démo, pas d'authentification réelle"
-    >
-      <span
-        className="text-[9px] font-bold uppercase tracking-widest"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        Mode démo
-      </span>
-      <span className="opacity-40">·</span>
-      <Link
-        href="/profil"
-        className="text-[9px] font-bold uppercase tracking-widest no-underline transition-opacity active:opacity-70"
-        style={{ color: colors.TEXT_INVERSE, fontFamily: 'var(--font-display)' }}
-      >
-        {t('screens.home.settingsButton')}
-      </Link>
-    </div>
   );
 }

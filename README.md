@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Manège — PWA employés
 
-## Getting Started
+Application Progressive Web App pour les employés terrain (planning, ouverture,
+fermeture, disponibilités). Données persistées sur Supabase ; lecture admin dans
+`admin-desktop-app`.
 
-First, run the development server:
+Projet Supabase : [ooirydwzxltdtvlyhqar](https://app.supabase.com/project/ooirydwzxltdtvlyhqar)  
+Cadrage prod : [`docs/CADRAGE-PROD-PWA.md`](docs/CADRAGE-PROD-PWA.md)
+
+## Prérequis
+
+- Node 20+
+- Variables dans `.env` (voir `.env.example`) :
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY` — **uniquement** pour le script de provisioning Auth
+    (jamais dans Vercel / le client)
+
+## Démarrage
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvre [http://localhost:3000](http://localhost:3000). Sans session → redirect `/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Authentification (phase test)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Champ | Valeur |
+|-------|--------|
+| Email | `public.user.email` (aligné avec `auth.users`) |
+| Mot de passe | le **login** métier (`public.user.login`) |
 
-## Learn More
+Exemple smoke : `cpoitier@laposte.net` / `celia_poitier`
 
-To learn more about Next.js, take a look at the following resources:
+Provisionner / synchroniser les comptes Auth :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# nécessite SUPABASE_SERVICE_ROLE_KEY dans .env
+npm run provision:auth-users
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> TODO produit : forcer le changement de mot de passe à la 1ʳᵉ connexion
+> (hors scope tests terrain).
 
-## Deploy on Vercel
+## Parcours de test manuel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Login → redirect `/`
+2. Planning : missions de l’employé uniquement
+3. Mission → Ouverture → submit → badge « ✓ faite » + lignes `opening_form` / `daily_info`
+4. Fermeture + photo + case enveloppe → `closing_form` + photo bucket `telecollecte-photos`
+5. Disponibilités semaine → upsert + préremplissage au retour
+6. Logout → `/login` ; accès `/` sans session → redirect login
+7. Admin : day-board ouverture (chip info-jour) ; planning (grille dispos / teneur grisé)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Hors ligne : les submits de formulaires sont **bloqués** avec un message clair
+(pas de file Background Sync pour l’instant).
+
+## Déploiement Vercel
+
+Projet Vercel `pwa` — env Production / Preview / Development :
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+**Ne jamais** définir `SUPABASE_SERVICE_ROLE_KEY` sur Vercel.
+
+## Migrations
+
+```bash
+supabase --workdir . migration list --linked
+```
+
+Migrations GRE récentes : disponibilités, idempotence formulaires, RLS stricte
+(`supabase/migrations/202607221*`).

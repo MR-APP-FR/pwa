@@ -2,6 +2,16 @@
   "app": {
     "name": "Manège"
   },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Initial password = your username (login)",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "loginError": "Incorrect email or password."
+  },
   "screens": {
     "home": {
       "todayAssignment": "Today's assignment",
@@ -51,6 +61,8 @@
       "go": "Go there?",
       "opening": "Opening",
       "closing": "Closing",
+      "openingDone": "Opening done",
+      "closingDone": "Closing done",
       "details": "Details",
       "reportIncident": "Report incident",
       "solo": "Solo",
@@ -129,7 +141,12 @@
       "optional": "Optional",
       "errorRequired": "Fill in this field to continue",
       "noJustificationPlaceholder": "Explain why…",
-      "errorNoJustification": "Please justify your \"No\" answer"
+      "errorNoJustification": "Please justify your \"No\" answer",
+      "addPhoto": "Add a photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "photoNettoyage": "Cleaning photo (optional)",
+      "errorOffline": "You are offline. Reconnect to submit the form."
     },
     "opening": {
       "title": "Opening",
@@ -157,7 +174,7 @@
       "sectionRecettes": "Takings",
       "sectionComptages": "Counts",
       "sectionPointsCaisse": "Till checks",
-      "sectionPaie": "Pay of the day",
+      "sectionPaie": "Staff pay",
       "sectionPannes": "Breakdowns",
       "sectionNotes": "Notes & photo",
       "recetteTotale": "Total takings of the day",
@@ -165,11 +182,12 @@
       "nombreEnfants": "Number of children",
       "ticketsOuverture": "Number of tickets at opening",
       "ticketsFermeture": "Number of tickets at closing",
-      "payeDuJour": "Pay of the day",
+      "payeDuJour": "Employee pay",
+      "payeDuJourHelp": "Pay amount for the employee on site today",
       "payeManquanteRecuperee": "Missing pay recovered today",
-      "payeDuDouble": "Pay of the double",
+      "payeDuDouble": "Partner pay",
       "payeManquanteHelp": "Amount of missing pay recovered from customers today (change shortage or missed ticket)",
-      "payeDuDoubleHelp": "Amount collected twice during the day (customer paid for the same ride twice)",
+      "payeDuDoubleHelp": "Pay amount for the colleague / partner on site",
       "pointCaisse13h": "Till check 1pm-2pm",
       "pointCaisse20h": "Till check 8pm-8:35pm",
       "observations": "Additional notes",
@@ -179,6 +197,11 @@
       "addPhoto": "Add a photo",
       "changePhoto": "Change photo",
       "removePhoto": "Remove photo",
+      "envelopeTitle": "Envelope check",
+      "envelopeConfirm": "Have you put %{cash} € cash and %{card} € in card receipts into the envelope?",
+      "envelopeAnomaly": "Warning: the calculated cash amount is negative (%{cash} €). Check takings, card payments and staff pay.",
+      "envelopeCheckbox": "Yes, I have put these amounts into the envelope",
+      "envelopeError": "Confirm the envelope deposit to submit",
       "submit": "Confirm closing",
       "step1Label": "Figures",
       "step2Label": "Wrap-up",

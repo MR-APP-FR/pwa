@@ -2,19 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
-import { useProfileStore } from '../../stores/profileStore';
 import type { User, UserInfo, UserInfoSiteWithDetails } from '../../database/types';
 import { formatSiteName } from '../../lib/formatSiteName';
 
 /**
- * GRE-89.
- *
- * Mode démo : lit le `selectedUserId` du profile switcher (GRE-87) et fetch
- * `public.user` + `public.user_info` + `public.user_info_sites` (joint avec
- * `public.site`) via Supabase. Plus de retour `MOCK_CURRENT_USER` codé en dur.
- *
- * Quand l'auth réelle sera livrée (GRE-88, GRE-90), ce hook lira `auth.getUser()`
- * et résoudra l'employé via le helper SQL `current_employee_id()` (cf. GRE-112).
+ * Lit la session Auth, résout l'employé via `current_employee_id()`,
+ * puis charge `public.user` + `user_info` + sites préférés.
  */
 
 interface CurrentUserData {
@@ -40,26 +33,29 @@ interface UserInfoSitesQueryRow {
 }
 
 export function useCurrentUser() {
-  const selectedUserId = useProfileStore((s) => s.selectedUserId);
-
   return useQuery<CurrentUserData | null>({
-    queryKey: ['currentUser', selectedUserId],
-    enabled: selectedUserId !== null,
+    queryKey: ['currentUser'],
     queryFn: async () => {
-      if (selectedUserId === null) return null;
       const supabase = createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return null;
+
+      const { data: employeeId, error: empError } = await supabase.rpc('current_employee_id');
+      if (empError) {
+        throw new Error(`useCurrentUser employee resolve failed: ${empError.message}`);
+      }
+      const userId = typeof employeeId === 'number' ? employeeId : Number(employeeId);
+      if (!Number.isFinite(userId) || userId <= 0) return null;
 
       const [userRes, userInfoRes] = await Promise.all([
         supabase
           .from('user')
           .select('id, login, email, registered, fullname, role, actif')
-          .eq('id', selectedUserId)
+          .eq('id', userId)
           .maybeSingle(),
-        supabase
-          .from('user_info')
-          .select('*')
-          .eq('user_id', selectedUserId)
-          .maybeSingle(),
+        supabase.from('user_info').select('*').eq('user_id', userId).maybeSingle(),
       ]);
 
       if (userRes.error) {

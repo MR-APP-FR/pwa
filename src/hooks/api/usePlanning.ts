@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
-import { useProfileStore } from '../../stores/profileStore';
+import { useCurrentUser } from './useCurrentUser';
 import type { PlanningColleague, PlanningSiteDetails, PlanningWithColleague } from '../../database/types';
 import { formatSiteName } from '../../lib/formatSiteName';
 
@@ -96,10 +96,10 @@ function mapColleagueFromUserRow(row: UserColleagueRow): PlanningColleague {
 
 function toPlanningWithColleague(
   row: PlanningRowDb,
-  selectedUserId: number,
+  employeeId: number,
   colleagues: Map<number, PlanningColleague>,
 ): PlanningWithColleague {
-  const isPrincipal = row.user_id === selectedUserId;
+  const isPrincipal = row.user_id === employeeId;
   const role: 'principal' | 'double' = isPrincipal ? 'principal' : 'double';
   const colleagueUserId = isPrincipal ? row.double_id : row.user_id;
   const colleague =
@@ -185,16 +185,17 @@ async function fetchPlanningForUser(
 }
 
 export function usePlanning(params: UsePlanningParams) {
-  const selectedUserId = useProfileStore((s) => s.selectedUserId);
+  const { data: currentUser } = useCurrentUser();
+  const employeeId = currentUser?.user.id ?? null;
 
   return useQuery({
-    queryKey: ['planning', selectedUserId, params.year, params.month],
-    enabled: selectedUserId !== null,
+    queryKey: ['planning', employeeId, params.year, params.month],
+    enabled: employeeId !== null,
     queryFn: async () => {
-      if (selectedUserId === null) {
+      if (employeeId === null) {
         return { planning: [] as PlanningWithColleague[] };
       }
-      const planning = await fetchPlanningForUser(selectedUserId, params.year, params.month);
+      const planning = await fetchPlanningForUser(employeeId, params.year, params.month);
       return { planning };
     },
     staleTime: 60 * 1000,

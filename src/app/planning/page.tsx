@@ -8,7 +8,7 @@ import { usePlanning } from '../../hooks/api/usePlanning';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
-import { useDemoDate } from '../../hooks/useDemoDate';
+import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
@@ -54,7 +54,7 @@ export default function PlanningPage() {
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { today, weekStart: baseWeekStart, mockTimeRangesFull } = useDemoDate();
+  const { today, weekStart: baseWeekStart, siteTimeRangesFull } = useAppDate();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const viewedWeekStart = useMemo(() => {
@@ -70,8 +70,8 @@ export default function PlanningPage() {
   const missions = planningData?.planning ?? [];
 
   const weekDays = useMemo(
-    () => getWeekDays(viewedWeekStart, missions, today, mockTimeRangesFull),
-    [viewedWeekStart, missions, today, mockTimeRangesFull],
+    () => getWeekDays(viewedWeekStart, missions, today, siteTimeRangesFull),
+    [viewedWeekStart, missions, today, siteTimeRangesFull],
   );
 
   const weekSubtitle = t('screens.planning.planningWeekTitle', {

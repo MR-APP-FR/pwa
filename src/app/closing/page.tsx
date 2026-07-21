@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useRef, Suspense, useTransition } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -12,9 +13,10 @@ import { PannesSection, buildPannesDetail, type SujetReasons } from '../../compo
 import { useSujets } from '../../hooks/api/useSujets';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
-import { useDemoDate } from '../../hooks/useDemoDate';
+import { useAppDate } from '../../hooks/useAppDate';
 import { submitClosingForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
+import { isBrowserOffline } from '../../lib/offline';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -26,19 +28,27 @@ function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+function formatEurAmount(n: number): string {
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
 type ClosingFieldKey = keyof ClosingFormData;
 
-const ALL_SECTIONS: {
+type ClosingSectionField = {
+  key: ClosingFieldKey;
+  labelKey: string;
+  unit?: 'eur' | 'count';
+  required?: boolean;
+  inputMode?: 'decimal' | 'numeric';
+  helpKey?: string;
+};
+
+type ClosingSection = {
   titleKey: string;
-  fields: {
-    key: ClosingFieldKey;
-    labelKey: string;
-    unit?: 'eur' | 'count';
-    required?: boolean;
-    inputMode?: 'decimal' | 'numeric';
-    helpKey?: string;
-  }[];
-}[] = [
+  fields: ClosingSectionField[];
+};
+
+const EARLY_SECTIONS: ClosingSection[] = [
   {
     titleKey: 'forms.closing.sectionRecettes',
     fields: [
@@ -61,17 +71,34 @@ const ALL_SECTIONS: {
       { key: 'pointCaisse20h', labelKey: 'forms.closing.pointCaisse20h', unit: 'eur' },
     ],
   },
-  {
-    titleKey: 'forms.closing.sectionPaie',
-    fields: [
-      { key: 'payeDuJour', labelKey: 'forms.closing.payeDuJour', unit: 'eur' },
-      { key: 'payeManquanteRecuperee', labelKey: 'forms.closing.payeManquanteRecuperee', unit: 'eur', helpKey: 'forms.closing.payeManquanteHelp' },
-      { key: 'payeDuDouble', labelKey: 'forms.closing.payeDuDouble', unit: 'eur', helpKey: 'forms.closing.payeDuDoubleHelp' },
-    ],
-  },
 ];
 
-const ALL_NUMERIC_FIELDS = ALL_SECTIONS.flatMap((s) => s.fields);
+/** Section Paie en fin de formulaire (avant notes / photo / submit). */
+const PAIE_SECTION: ClosingSection = {
+  titleKey: 'forms.closing.sectionPaie',
+  fields: [
+    {
+      key: 'payeManquanteRecuperee',
+      labelKey: 'forms.closing.payeManquanteRecuperee',
+      unit: 'eur',
+      helpKey: 'forms.closing.payeManquanteHelp',
+    },
+    {
+      key: 'payeDuJour',
+      labelKey: 'forms.closing.payeDuJour',
+      unit: 'eur',
+      helpKey: 'forms.closing.payeDuJourHelp',
+    },
+    {
+      key: 'payeDuDouble',
+      labelKey: 'forms.closing.payeDuDouble',
+      unit: 'eur',
+      helpKey: 'forms.closing.payeDuDoubleHelp',
+    },
+  ],
+};
+
+const ALL_NUMERIC_FIELDS = [...EARLY_SECTIONS, PAIE_SECTION].flatMap((s) => s.fields);
 
 const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   missionId: null,
@@ -94,9 +121,10 @@ const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
 function ClosingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { weekYear, weekMonth } = useDemoDate();
+  const { weekYear, weekMonth } = useAppDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: currentUser } = useCurrentUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,13 +159,60 @@ function ClosingContent() {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<ClosingFieldKey | 'photo' | null>(null);
+  const [envelopeConfirmed, setEnvelopeConfirmed] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const formValid = form.recetteTotale !== null && photoFile !== null && form.telecollectePhotoSource !== null;
+  // X = espèces enveloppe ; Y = CB enveloppe (null → 0). Pas stockés en base.
+  // Sorties espèces : CB + rémunérations + payé manquante récupérée.
+  const enveloppeEspeces =
+    (form.recetteTotale ?? 0) -
+    (form.carteBleue ?? 0) -
+    (form.payeDuJour ?? 0) -
+    (form.payeDuDouble ?? 0) -
+    (form.payeManquanteRecuperee ?? 0);
+  const enveloppeCb = form.carteBleue ?? 0;
+  const enveloppeAnomaly = enveloppeEspeces < 0;
+
+  const formValid =
+    form.recetteTotale !== null &&
+    photoFile !== null &&
+    form.telecollectePhotoSource !== null &&
+    envelopeConfirmed;
 
   function updateNumericField(key: ClosingFieldKey, value: number | null) {
     setForm((f) => ({ ...f, [key]: value }));
     if (fieldError === key) setFieldError(null);
+    if (
+      key === 'recetteTotale' ||
+      key === 'carteBleue' ||
+      key === 'payeDuJour' ||
+      key === 'payeDuDouble' ||
+      key === 'payeManquanteRecuperee'
+    ) {
+      setEnvelopeConfirmed(false);
+    }
+  }
+
+  function renderNumericSection(section: ClosingSection) {
+    return (
+      <FormSection key={section.titleKey} title={t(section.titleKey)}>
+        <div className="flex flex-col gap-4">
+          {section.fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
+            <FormNumberInput
+              key={key}
+              label={t(labelKey)}
+              value={form[key] as number | null}
+              onChange={(v) => updateNumericField(key, v)}
+              unit={unit}
+              required={required}
+              error={fieldError === key}
+              inputMode={inputMode ?? 'decimal'}
+              helpText={helpKey ? t(helpKey) : undefined}
+            />
+          ))}
+        </div>
+      </FormSection>
+    );
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,7 +249,11 @@ function ClosingContent() {
       return;
     }
     if (!currentUser?.user) {
-      setSubmitError('Aucun employé sélectionné. Choisis un profil dans le header.');
+      setSubmitError('Session invalide. Reconnecte-toi.');
+      return;
+    }
+    if (isBrowserOffline()) {
+      setSubmitError(t('forms.common.errorOffline'));
       return;
     }
     if (form.recetteTotale === null) {
@@ -187,12 +266,15 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.errorPhoto'));
       return;
     }
+    if (!envelopeConfirmed) {
+      setSubmitError(t('forms.closing.envelopeError'));
+      return;
+    }
 
     setFieldError(null);
 
     const fd = new FormData();
     fd.set('siteId', String(mission.site_id));
-    fd.set('userId', String(currentUser.user.id));
     fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
 
     for (const { key } of ALL_NUMERIC_FIELDS) {
@@ -221,7 +303,6 @@ function ClosingContent() {
       if (hasPannes) {
         const dailyResult = await submitDailyInfo({
           siteId: mission.site_id,
-          userId: currentUser.user.id,
           date,
           nettoyageVeille: null,
           panneSujetIds: selectedSujetIds,
@@ -236,6 +317,7 @@ function ClosingContent() {
         }
       }
 
+      queryClient.invalidateQueries({ queryKey: ['missionForms'] });
       setSubmitted(true);
     });
   }
@@ -292,25 +374,7 @@ function ClosingContent() {
         </FormPinnedPageHeader>
         <div className="px-4 py-3">
           <div className="card-surface space-y-4 px-4 py-4">
-            {ALL_SECTIONS.map((section) => (
-              <FormSection key={section.titleKey} title={t(section.titleKey)}>
-                <div className="flex flex-col gap-4">
-                  {section.fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
-                    <FormNumberInput
-                      key={key}
-                      label={t(labelKey)}
-                      value={form[key] as number | null}
-                      onChange={(v) => updateNumericField(key, v)}
-                      unit={unit}
-                      required={required}
-                      error={fieldError === key}
-                      inputMode={inputMode ?? 'decimal'}
-                      helpText={helpKey ? t(helpKey) : undefined}
-                    />
-                  ))}
-                </div>
-              </FormSection>
-            ))}
+            {EARLY_SECTIONS.map(renderNumericSection)}
 
             <FormSection title={t('forms.closing.sectionPannes')}>
               <PannesSection
@@ -331,6 +395,8 @@ function ClosingContent() {
                 }}
               />
             </FormSection>
+
+            {renderNumericSection(PAIE_SECTION)}
 
             <FormSection
               title={t('forms.closing.sectionNotes')}
@@ -452,6 +518,47 @@ function ClosingContent() {
                     {t('forms.closing.addPhoto')}
                   </button>
                 )}
+              </div>
+            </FormSection>
+
+            <FormSection title={t('forms.closing.envelopeTitle')}>
+              <div className="flex flex-col gap-3">
+                {enveloppeAnomaly && (
+                  <div
+                    className="rounded-xl border px-3 py-2.5 text-sm font-semibold"
+                    style={{
+                      borderColor: colors.DANGER,
+                      color: colors.DANGER,
+                      backgroundColor: colors.ACCENT_RED_MUTED,
+                    }}
+                    role="alert"
+                  >
+                    {t('forms.closing.envelopeAnomaly', {
+                      cash: formatEurAmount(enveloppeEspeces),
+                    })}
+                  </div>
+                )}
+                <p className="text-sm leading-relaxed" style={{ color: colors.TEXT_PRIMARY }}>
+                  {t('forms.closing.envelopeConfirm', {
+                    cash: formatEurAmount(enveloppeEspeces),
+                    card: formatEurAmount(enveloppeCb),
+                  })}
+                </p>
+                <label className="flex min-h-[44px] items-start gap-3 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={envelopeConfirmed}
+                    onChange={(e) => {
+                      setEnvelopeConfirmed(e.target.checked);
+                      if (e.target.checked) setSubmitError(null);
+                    }}
+                    className="mt-1 size-5 shrink-0"
+                    style={{ accentColor: colors.PRIMARY }}
+                  />
+                  <span style={{ color: colors.TEXT_PRIMARY }}>
+                    {t('forms.closing.envelopeCheckbox')}
+                  </span>
+                </label>
               </div>
             </FormSection>
           </div>

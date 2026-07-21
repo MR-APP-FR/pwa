@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useDemoStore } from '../stores/demoStore';
-import { MOCK_TIME_RANGES, MOCK_TIME_RANGES_FULL } from '../constants/mock';
+import { SITE_TIME_RANGES, SITE_TIME_RANGES_FULL } from '../constants/siteHours';
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -13,12 +12,10 @@ function getMonday(d: Date): Date {
   return date;
 }
 
-export function useDemoDate() {
-  const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
-
+/** Date / bornes de semaine utilisées par l'accueil, le planning et les missions. */
+export function useAppDate() {
   return useMemo(() => {
-    const today = overrideDateIso ? new Date(overrideDateIso + 'T12:00:00') : new Date();
-
+    const today = new Date();
     const weekStart = getMonday(today);
 
     const nextWeekStart = new Date(weekStart);
@@ -34,8 +31,8 @@ export function useDemoDate() {
       weekStart,
       nextWeekStart,
       nextWeekEnd,
-      mockTimeRanges: MOCK_TIME_RANGES,
-      mockTimeRangesFull: MOCK_TIME_RANGES_FULL,
+      siteTimeRanges: SITE_TIME_RANGES,
+      siteTimeRangesFull: SITE_TIME_RANGES_FULL,
     };
-  }, [overrideDateIso]);
+  }, []);
 }

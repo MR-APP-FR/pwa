@@ -8,11 +8,24 @@ import { InstallBanner } from '../components/pwa/InstallBanner';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const FORM_SCROLL_PATHS = new Set(['/opening', '/closing', '/availability']);
+const BARE_PATHS = new Set(['/login']);
 
 function AppShell({ children }: { children: ReactNode }) {
   const { colors } = useThemeColors();
   const pathname = usePathname();
   const formScrollLayout = FORM_SCROLL_PATHS.has(pathname);
+  const bare = BARE_PATHS.has(pathname);
+
+  if (bare) {
+    return (
+      <div
+        className="mx-auto flex min-h-screen max-w-md flex-col"
+        style={{ backgroundColor: colors.BG_SECONDARY }}
+      >
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div

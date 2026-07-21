@@ -2,18 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { User, X, Search, MapPin, Check, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { User, X, Search, MapPin, Check, LogOut } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSites } from '../../hooks/api/useSites';
-import { useEmployees } from '../../hooks/api/useEmployees';
-import { useProfileStore } from '../../stores/profileStore';
-import { useDemoStore } from '../../stores/demoStore';
-import { formatDateLong } from '../../lib/formatDate';
+import { createClient } from '../../lib/supabase/client';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
-import { BottomSheetModal } from '../../components/common/BottomSheetModal';
 
 function EditSitesModal({
   isOpen,
@@ -228,237 +225,14 @@ function EditSitesModal({
   );
 }
 
-function EmployeePickerModal({
-  isOpen,
-  onClose,
-  colors,
-  employees,
-  isLoading,
-  isError,
-  error,
-  onRetry,
-  selectedUserId,
-  onSelect,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  colors: Record<string, string>;
-  employees: ReturnType<typeof useEmployees>['data'];
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-  onRetry: () => void;
-  selectedUserId: number | null;
-  onSelect: (id: number) => void;
-}) {
-  return (
-    <BottomSheetModal
-      isOpen={isOpen}
-      onClose={onClose}
-      colors={colors}
-      title="Profil employé"
-      titleId="employee-picker-title"
-      closeAriaLabel="Fermer"
-      doneLabel="Terminé"
-    >
-      {({ close }) => (
-        <>
-          <p className="mb-3 text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-            Mode démo · choisir un employé
-          </p>
-          {isLoading ? (
-            <div className="py-6 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-              Chargement…
-            </div>
-          ) : isError ? (
-            <div className="flex flex-col items-center gap-3 py-6 text-center">
-              <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
-                Impossible de charger les employés.
-              </p>
-              {error?.message && (
-                <p className="text-xs px-2" style={{ color: colors.TEXT_SECONDARY }}>
-                  {error.message}
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={onRetry}
-                className="rounded-xl border px-4 py-2 text-sm font-medium"
-                style={{ borderColor: colors.BORDER, color: colors.TEXT_PRIMARY }}
-              >
-                Réessayer
-              </button>
-            </div>
-          ) : !employees || employees.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-6">
-              <User size={36} color={colors.TEXT_SECONDARY + '40'} />
-              <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-                Aucun employé trouvé
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {employees.map((emp) => {
-                const selected = emp.id === selectedUserId;
-                return (
-                  <button
-                    key={emp.id}
-                    type="button"
-                    onClick={() => {
-                      onSelect(emp.id);
-                      close();
-                    }}
-                    className="card-surface flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-opacity active:opacity-80"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="truncate text-sm font-bold leading-snug"
-                        style={{
-                          color: selected ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY,
-                          fontFamily: 'var(--font-display)',
-                        }}
-                      >
-                        {emp.fullname ?? emp.login}
-                      </p>
-                      <p className="truncate text-xs" style={{ color: colors.TEXT_SECONDARY }}>
-                        #{emp.id} · {emp.email}
-                      </p>
-                    </div>
-                    {selected && <Check size={18} color={colors.SUCCESS_STRONG} strokeWidth={2.5} />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-    </BottomSheetModal>
-  );
-}
-
-function AdminSection({ colors }: { colors: Record<string, string> }) {
-  const { data: employees, isLoading, isError, error, refetch, isFetching } = useEmployees();
-  const selectedUserId = useProfileStore((s) => s.selectedUserId);
-  const setSelectedUserId = useProfileStore((s) => s.setSelectedUserId);
-  const overrideDateIso = useDemoStore((s) => s.overrideDateIso);
-  const setOverrideDateIso = useDemoStore((s) => s.setOverrideDateIso);
-
-  const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (employeeModalOpen) {
-      void refetch();
-    }
-  }, [employeeModalOpen, refetch]);
-
-  useEffect(() => {
-    if (!employees || employees.length === 0) return;
-    if (selectedUserId !== null && employees.some((e) => e.id === selectedUserId)) return;
-    setSelectedUserId(employees[0].id);
-  }, [employees, selectedUserId, setSelectedUserId]);
-
-  const selectedEmployee = useMemo(
-    () => employees?.find((e) => e.id === selectedUserId) ?? null,
-    [employees, selectedUserId],
-  );
-
-  const todayIso = new Date().toISOString().split('T')[0];
-  const selectedDateIso = overrideDateIso ?? todayIso;
-  const selectedDateLabel = formatDateLong(new Date(`${selectedDateIso}T12:00:00`));
-
-  return (
-    <div
-      className="mx-5 overflow-hidden rounded-2xl"
-      style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
-    >
-      {/* Employee picker */}
-      <div className="px-5 py-4" style={{ borderBottom: `1px solid ${colors.SETTINGS_SEPARATOR}` }}>
-        <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
-          Profil employé
-        </p>
-        <button
-          type="button"
-          onClick={() => setEmployeeModalOpen(true)}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm"
-          style={{
-            borderColor: colors.BORDER,
-            backgroundColor: colors.BG_SECONDARY,
-            color: colors.TEXT_PRIMARY,
-          }}
-        >
-          <span className="truncate font-medium">
-            {isLoading ? 'Chargement…' : (selectedEmployee?.fullname ?? selectedEmployee?.login ?? 'Choisir…')}
-          </span>
-          <ChevronDown size={16} color={colors.TEXT_SECONDARY} />
-        </button>
-      </div>
-
-      <EmployeePickerModal
-        isOpen={employeeModalOpen}
-        onClose={() => setEmployeeModalOpen(false)}
-        colors={colors}
-        employees={employees}
-        isLoading={isLoading || isFetching}
-        isError={isError}
-        error={error}
-        onRetry={() => void refetch()}
-        selectedUserId={selectedUserId}
-        onSelect={setSelectedUserId}
-      />
-
-      {/* Date picker */}
-      <div className="px-5 py-4">
-        <p className="text-xs font-medium mb-2" style={{ color: colors.TEXT_SECONDARY }}>
-          Date simulée
-        </p>
-        <p className="text-sm font-medium mb-2" style={{ color: colors.TEXT_PRIMARY }}>
-          {selectedDateLabel}
-        </p>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            lang="fr-FR"
-            value={selectedDateIso}
-            onChange={(e) => setOverrideDateIso(e.target.value || null)}
-            className="flex-1 px-3 py-2.5 rounded-lg border text-sm"
-            style={{
-              borderColor: colors.BORDER,
-              backgroundColor: colors.BG_SECONDARY,
-              color: colors.TEXT_PRIMARY,
-              colorScheme: 'light',
-            }}
-          />
-          {overrideDateIso && (
-            <button
-              type="button"
-              onClick={() => setOverrideDateIso(null)}
-              className="px-3 py-2.5 rounded-lg border text-xs font-semibold"
-              style={{
-                borderColor: colors.BORDER,
-                backgroundColor: colors.BG_SECONDARY,
-                color: colors.TEXT_SECONDARY,
-              }}
-            >
-              Aujourd'hui
-            </button>
-          )}
-        </div>
-        {overrideDateIso && (
-          <p className="text-xs mt-1.5" style={{ color: colors.PRIMARY }}>
-            ⚠ Date simulée active — l&apos;app affiche le {selectedDateLabel}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function ProfilPage() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const router = useRouter();
   const { data: currentUserData, isLoading: isUserLoading } = useCurrentUser();
   const preferredSites = currentUserData?.sites ?? [];
   const [isEditSitesOpen, setIsEditSitesOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const fullname = useMemo(() => {
     if (currentUserData?.user?.fullname) return currentUserData.user.fullname;
@@ -471,10 +245,17 @@ export default function ProfilPage() {
   const telephone = currentUserData?.userInfo?.telephone ?? '';
   const ville = currentUserData?.userInfo?.reste_tout_lhiver_sur ?? '';
 
+  async function handleSignOut() {
+    setSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace('/login');
+    router.refresh();
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-y-auto pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
       <PageHeader title={t('screens.profil.title')} />
-      {/* Profile */}
       <p
         className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
         style={{ color: colors.TEXT_SECONDARY }}
@@ -503,7 +284,6 @@ export default function ProfilPage() {
         </div>
       </div>
 
-      {/* Preferred Sites */}
       <div className="flex items-center justify-between px-5 pt-7 pb-2">
         <p className="text-sm uppercase" style={{ color: colors.TEXT_SECONDARY }}>
           {t('settings.profile.preferredSitesTitle')}
@@ -546,14 +326,23 @@ export default function ProfilPage() {
         )}
       </div>
 
-      {/* Admin (demo) */}
-      <p
-        className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
-        style={{ color: colors.TEXT_SECONDARY }}
-      >
-        Admin · Mode démo
-      </p>
-      <AdminSection colors={colors} />
+      <div className="mx-5 mt-8">
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          disabled={signingOut}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-opacity active:opacity-80"
+          style={{
+            borderColor: colors.BORDER,
+            backgroundColor: colors.SETTINGS_SECTION_BG,
+            color: colors.DANGER_STRONG ?? '#EB5757',
+            boxShadow: colors.CARD_SHADOW,
+          }}
+        >
+          <LogOut size={16} />
+          {signingOut ? t('auth.signingOut') : t('auth.signOut')}
+        </button>
+      </div>
 
       <EditSitesModal
         isOpen={isEditSitesOpen}
