@@ -387,6 +387,7 @@ Scope réduit livré pour démarrer les tests terrain (pas de feature produit no
 | **Offline formulaires** : bloquer submit + message i18n (pas de Background Sync) | ✅ |
 | **README** réel (login, provision, parcours test, Vercel) | ✅ |
 | **Env Vercel** `pwa` : `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (alignés local ; pas de service_role) | ✅ |
+| **photo_source** : contrainte DB élargie à `camera_live` (+ legacy `photo_live`) / `phototheque` | ✅ `20260722150000` |
 | **Service worker** | ⚠️ dette : `next-pwa` en dep mais non used ; `public/sw.js` manuel network-first (`manege-v2`). Ne pas refactorer tant qu'aucun bug cache bloquant. |
 | Retirer `console.*` / CI | ❌ hors scope tests terrain |
 
