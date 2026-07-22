@@ -63,7 +63,7 @@ export function PageHeader({
       }}
     >
       <div
-        className={`flex items-center gap-3 px-4 ${step ? 'py-3' : 'py-3'}`}
+        className={`flex gap-3 px-4 py-3 ${subtitle && showBack ? 'items-start' : 'items-center'}`}
         style={{ minHeight: step ? 64 : 56 }}
       >
         {showBack ? (
@@ -87,10 +87,7 @@ export function PageHeader({
 
         <div className="min-w-0 flex-1">
           {subtitle ? (
-            <div
-              className={`flex min-w-0 flex-col ${showBack ? '' : 'gap-0.5'}`}
-              style={showBack ? { height: BACK_SIZE } : undefined}
-            >
+            <div className="flex min-w-0 flex-col gap-0.5">
               <span
                 className="self-start px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
                 style={{
@@ -103,23 +100,26 @@ export function PageHeader({
               >
                 {title}
               </span>
-              <div className={showBack ? 'flex min-h-0 flex-1 items-end' : undefined}>
+              <p
+                className="min-w-0 break-words text-[17px] font-bold uppercase leading-tight"
+                style={{
+                  color: subtitleColor ?? colors.TEXT_PRIMARY,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {subtitle}
+              </p>
+              {detail && (
                 <p
-                  className={`min-w-0 font-bold uppercase ${showBack ? 'text-[17px] leading-none' : 'text-[17px] leading-tight'}`}
+                  className="min-w-0 break-words text-[15px] font-bold uppercase leading-tight"
                   style={{
-                    color: subtitleColor ?? colors.TEXT_PRIMARY,
+                    color: detailColor ?? colors.TEXT_SECONDARY,
                     fontFamily: 'var(--font-display)',
                   }}
                 >
-                  {subtitle}
-                  {detail && (
-                    <span style={{ color: detailColor ?? colors.TEXT_SECONDARY }}>
-                      {' '}
-                      · {detail}
-                    </span>
-                  )}
+                  {detail}
                 </p>
-              </div>
+              )}
             </div>
           ) : (
             <p

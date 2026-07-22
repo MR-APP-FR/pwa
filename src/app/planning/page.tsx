@@ -86,26 +86,26 @@ export default function PlanningPage() {
         showBack
         onBack={() => router.push('/')}
       />
-      <div className="flex gap-3 px-5 py-3">
+      <div className="flex gap-2 px-5 py-3">
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
+          className="flex flex-1 items-center justify-center gap-1 rounded-2xl px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
             backgroundColor: colors.SETTINGS_SECTION_BG,
             boxShadow: colors.CARD_SHADOW,
             color: colors.TEXT_PRIMARY,
           }}
         >
-          <ChevronLeft size={18} strokeWidth={2.5} />
+          <ChevronLeft size={16} strokeWidth={2.5} className="shrink-0" />
           {t('screens.planning.previousWeek')}
         </button>
         <PrimaryButton
           onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="flex flex-1 items-center justify-center gap-1.5 py-3 text-sm"
+          className="flex flex-1 items-center justify-center gap-1 px-2 py-2.5 text-xs whitespace-nowrap"
         >
           {t('screens.planning.nextWeek')}
-          <ChevronRight size={18} strokeWidth={2.5} />
+          <ChevronRight size={16} strokeWidth={2.5} className="shrink-0" />
         </PrimaryButton>
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
