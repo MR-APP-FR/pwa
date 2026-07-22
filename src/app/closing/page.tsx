@@ -17,6 +17,7 @@ import { useAppDate } from '../../hooks/useAppDate';
 import { submitClosingForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
+import { compressImageFile } from '../../lib/compressImageFile';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -215,25 +216,27 @@ function ClosingContent() {
     );
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
-      setFieldError(null);
-      setForm((f) => {
-        if (f.telecollectePhotoUri?.startsWith('blob:')) {
-          URL.revokeObjectURL(f.telecollectePhotoUri);
-        }
-        const url = URL.createObjectURL(file);
-        return {
-          ...f,
-          telecollectePhotoUri: url,
-          telecollectePhotoSource: 'phototheque',
-          telecollectePhotoCapturedAtMs: file.lastModified,
-        };
-      });
-    }
     e.target.value = '';
+    if (!file) return;
+
+    const capturedAtMs = file.lastModified;
+    const compressed = await compressImageFile(file);
+    setPhotoFile(compressed);
+    setFieldError(null);
+    setForm((f) => {
+      if (f.telecollectePhotoUri?.startsWith('blob:')) {
+        URL.revokeObjectURL(f.telecollectePhotoUri);
+      }
+      const url = URL.createObjectURL(compressed);
+      return {
+        ...f,
+        telecollectePhotoUri: url,
+        telecollectePhotoSource: 'phototheque',
+        telecollectePhotoCapturedAtMs: capturedAtMs,
+      };
+    });
   };
 
   const photoDateLabel =
@@ -294,31 +297,35 @@ function ClosingContent() {
     const hasPannes = selectedSujetIds.length > 0;
 
     startTransition(async () => {
-      const result = await submitClosingForm(fd);
-      if (!result.ok) {
-        setSubmitError(result.error);
-        return;
-      }
-
-      if (hasPannes) {
-        const dailyResult = await submitDailyInfo({
-          siteId: mission.site_id,
-          date,
-          nettoyageVeille: null,
-          panneSujetIds: selectedSujetIds,
-          pannesAutre: null,
-          pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
-          carteParking: null,
-          musiqueDisney: null,
-        });
-        if (!dailyResult.ok) {
-          setSubmitError(dailyResult.error);
+      try {
+        const result = await submitClosingForm(fd);
+        if (!result.ok) {
+          setSubmitError(result.error);
           return;
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: ['missionForms'] });
-      setSubmitted(true);
+        if (hasPannes) {
+          const dailyResult = await submitDailyInfo({
+            siteId: mission.site_id,
+            date,
+            nettoyageVeille: null,
+            panneSujetIds: selectedSujetIds,
+            pannesAutre: null,
+            pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
+            carteParking: null,
+            musiqueDisney: null,
+          });
+          if (!dailyResult.ok) {
+            setSubmitError(dailyResult.error);
+            return;
+          }
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['missionForms'] });
+        setSubmitted(true);
+      } catch {
+        setSubmitError(t('forms.common.errorSubmit'));
+      }
     });
   }
 

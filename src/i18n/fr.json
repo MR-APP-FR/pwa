@@ -146,7 +146,8 @@
       "changePhoto": "Changer la photo",
       "removePhoto": "Supprimer la photo",
       "photoNettoyage": "Photo du nettoyage (optionnel)",
-      "errorOffline": "Tu es hors ligne. Reconnecte-toi pour envoyer le formulaire."
+      "errorOffline": "Tu es hors ligne. Reconnecte-toi pour envoyer le formulaire.",
+      "errorSubmit": "Envoi impossible. Réessaie."
     },
     "opening": {
       "title": "Ouverture",

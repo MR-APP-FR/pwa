@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDateTime } from '../../lib/formatDate';
+import { compressImageFile } from '../../lib/compressImageFile';
 import { RADIUS } from '../../constants/design';
 import type { PhotoSource } from '../../database/types';
 
@@ -32,6 +33,7 @@ export function PhotoCaptureField({ label, required = false, value, onChange }: 
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
 
   // Gère le cycle de vie de l'object URL pour l'aperçu.
   useEffect(() => {
@@ -44,12 +46,19 @@ export function PhotoCaptureField({ label, required = false, value, onChange }: 
     return () => URL.revokeObjectURL(url);
   }, [value]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onChange({ file, source: 'phototheque', capturedAtMs: file.lastModified });
-    }
     e.target.value = '';
+    if (!file) return;
+
+    const capturedAtMs = file.lastModified;
+    setCompressing(true);
+    try {
+      const compressed = await compressImageFile(file);
+      onChange({ file: compressed, source: 'phototheque', capturedAtMs });
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const capturedLabel = value ? formatDateTime(new Date(value.capturedAtMs)) : null;
@@ -89,11 +98,13 @@ export function PhotoCaptureField({ label, required = false, value, onChange }: 
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
+                disabled={compressing}
                 className="min-h-[44px] rounded-lg border py-2 text-xs font-semibold"
                 style={{
                   borderColor: colors.PRIMARY,
                   backgroundColor: colors.PRIMARY + '15',
                   color: colors.PRIMARY,
+                  opacity: compressing ? 0.6 : 1,
                 }}
               >
                 {t('forms.common.changePhoto')}
@@ -101,6 +112,7 @@ export function PhotoCaptureField({ label, required = false, value, onChange }: 
               <button
                 type="button"
                 onClick={() => onChange(null)}
+                disabled={compressing}
                 className="min-h-[44px] rounded-lg border py-2 text-xs font-semibold"
                 style={{ borderColor: colors.BORDER, color: colors.TEXT_SECONDARY }}
               >
@@ -121,15 +133,17 @@ export function PhotoCaptureField({ label, required = false, value, onChange }: 
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          disabled={compressing}
           className="min-h-[44px] w-full rounded-lg border py-2.5 text-sm font-semibold"
           style={{
             borderColor: colors.PRIMARY,
             backgroundColor: colors.PRIMARY + '15',
             color: colors.PRIMARY,
             borderRadius: RADIUS.sm,
+            opacity: compressing ? 0.6 : 1,
           }}
         >
-          {t('forms.common.addPhoto')}
+          {compressing ? '...' : t('forms.common.addPhoto')}
         </button>
       )}
     </div>

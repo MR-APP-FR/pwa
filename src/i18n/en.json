@@ -146,7 +146,8 @@
       "changePhoto": "Change photo",
       "removePhoto": "Remove photo",
       "photoNettoyage": "Cleaning photo (optional)",
-      "errorOffline": "You are offline. Reconnect to submit the form."
+      "errorOffline": "You are offline. Reconnect to submit the form.",
+      "errorSubmit": "Could not submit. Please try again."
     },
     "opening": {
       "title": "Opening",

@@ -199,33 +199,37 @@ function OpeningContent() {
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
 
     startTransition(async () => {
-      const result = await submitOpeningForm(fd);
-      if (!result.ok) {
-        setSubmitError(result.error);
-        return;
+      try {
+        const result = await submitOpeningForm(fd);
+        if (!result.ok) {
+          setSubmitError(result.error);
+          return;
+        }
+
+        const dailyResult = await submitDailyInfo({
+          siteId: mission.site_id,
+          date,
+          nettoyageVeille,
+          panneSujetIds: selectedSujetIds,
+          pannesAutre: null,
+          pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
+          carteParking: showCarteParking ? carteParking : null,
+          musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
+          nettoyagePhoto: nettoyagePhoto?.file ?? null,
+          nettoyagePhotoSource: nettoyagePhoto?.source ?? null,
+          nettoyagePhotoCapturedAtMs: nettoyagePhoto?.capturedAtMs ?? null,
+        });
+
+        if (!dailyResult.ok) {
+          setSubmitError(dailyResult.error);
+          return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['missionForms'] });
+        setSubmitted(true);
+      } catch {
+        setSubmitError(t('forms.common.errorSubmit'));
       }
-
-      const dailyResult = await submitDailyInfo({
-        siteId: mission.site_id,
-        date,
-        nettoyageVeille,
-        panneSujetIds: selectedSujetIds,
-        pannesAutre: null,
-        pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
-        carteParking: showCarteParking ? carteParking : null,
-        musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
-        nettoyagePhoto: nettoyagePhoto?.file ?? null,
-        nettoyagePhotoSource: nettoyagePhoto?.source ?? null,
-        nettoyagePhotoCapturedAtMs: nettoyagePhoto?.capturedAtMs ?? null,
-      });
-
-      if (!dailyResult.ok) {
-        setSubmitError(dailyResult.error);
-        return;
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['missionForms'] });
-      setSubmitted(true);
     });
   }
 
