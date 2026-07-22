@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { RADIUS } from '../../constants/design';
@@ -24,6 +25,49 @@ interface AssignmentCardProps {
   emptyMessage: string;
   icon: LucideIcon;
   colors: ThemeColors;
+}
+
+/** Réduit text-xl → text-base si le titre passe sur 2+ lignes. */
+function AssignmentTitle({
+  color,
+  children,
+}: {
+  color: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [compact, setCompact] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const measure = () => {
+      // Toujours mesurer en taille « xl » pour éviter compact ↔ normal en boucle.
+      const prev = el.style.fontSize;
+      el.style.fontSize = '1.25rem';
+      const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+      const singleLine = Number.isFinite(lineHeight) && lineHeight > 0 ? lineHeight : 20;
+      const wraps = el.scrollHeight > singleLine * 1.4;
+      el.style.fontSize = prev;
+      setCompact(wraps);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [children]);
+
+  return (
+    <p
+      ref={ref}
+      className={`font-bold uppercase leading-tight tracking-tight ${compact ? 'text-base' : 'text-xl'}`}
+      style={{ color, fontFamily: 'var(--font-display)' }}
+    >
+      {children}
+    </p>
+  );
 }
 
 function AssignmentCard({
@@ -71,13 +115,10 @@ function AssignmentCard({
               {label}
             </p>
             {mission ? (
-              <p
-                className="text-xl font-bold uppercase leading-tight tracking-tight"
-                style={{ color: accentColor, fontFamily: 'var(--font-display)' }}
-              >
+              <AssignmentTitle color={accentColor}>
                 {mission.site_name}
                 {dateLabel && ` · ${dateLabel}`}
-              </p>
+              </AssignmentTitle>
             ) : (
               <p className="text-base" style={{ color: colors.TEXT_SECONDARY }}>
                 {emptyMessage}
