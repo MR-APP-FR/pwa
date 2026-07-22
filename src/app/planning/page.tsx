@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -11,7 +10,7 @@ import type { PlanningWithColleague } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 
 interface WeekDay {
   date: Date;
@@ -86,27 +85,36 @@ export default function PlanningPage() {
         showBack
         onBack={() => router.push('/')}
       />
-      <div className="flex gap-2 px-5 py-3">
+      <div className="flex gap-2 px-4 py-3">
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="flex flex-1 items-center justify-center gap-1 rounded-2xl px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+          className="min-w-0 flex-1 overflow-hidden px-1.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
+            minHeight: TOUCH_TARGET,
+            borderRadius: RADIUS.sm,
             backgroundColor: colors.SETTINGS_SECTION_BG,
             boxShadow: colors.CARD_SHADOW,
             color: colors.TEXT_PRIMARY,
+            fontFamily: 'var(--font-display)',
           }}
         >
-          <ChevronLeft size={16} strokeWidth={2.5} className="shrink-0" />
           {t('screens.planning.previousWeek')}
         </button>
-        <PrimaryButton
+        <button
+          type="button"
           onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="flex flex-1 items-center justify-center gap-1 px-2 py-2.5 text-xs whitespace-nowrap"
+          className="min-w-0 flex-1 overflow-hidden px-1.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+          style={{
+            minHeight: TOUCH_TARGET,
+            borderRadius: RADIUS.sm,
+            backgroundColor: colors.PRIMARY,
+            color: colors.TEXT_INVERSE,
+            fontFamily: 'var(--font-display)',
+          }}
         >
           {t('screens.planning.nextWeek')}
-          <ChevronRight size={16} strokeWidth={2.5} className="shrink-0" />
-        </PrimaryButton>
+        </button>
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
         {weekDays.map((day, index) => (
