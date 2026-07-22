@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -85,35 +86,39 @@ export default function PlanningPage() {
         showBack
         onBack={() => router.push('/')}
       />
-      <div className="flex gap-2 px-4 py-3">
+      <div className="grid w-full grid-cols-2 gap-2 px-4 py-3">
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="min-w-0 flex-1 overflow-hidden px-1.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+          className="inline-flex w-full items-center justify-center gap-1 px-2 text-[13px] font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
             minHeight: TOUCH_TARGET,
             borderRadius: RADIUS.sm,
             backgroundColor: colors.SETTINGS_SECTION_BG,
             boxShadow: colors.CARD_SHADOW,
             color: colors.TEXT_PRIMARY,
-            fontFamily: 'var(--font-display)',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 600,
           }}
         >
+          <ChevronLeft size={16} strokeWidth={2.5} className="shrink-0" />
           {t('screens.planning.previousWeek')}
         </button>
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="min-w-0 flex-1 overflow-hidden px-1.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+          className="inline-flex w-full items-center justify-center gap-1 px-2 text-[13px] font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
             minHeight: TOUCH_TARGET,
             borderRadius: RADIUS.sm,
             backgroundColor: colors.PRIMARY,
             color: colors.TEXT_INVERSE,
-            fontFamily: 'var(--font-display)',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 600,
           }}
         >
           {t('screens.planning.nextWeek')}
+          <ChevronRight size={16} strokeWidth={2.5} className="shrink-0" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
