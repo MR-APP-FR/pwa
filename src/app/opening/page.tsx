@@ -273,6 +273,7 @@ function OpeningContent() {
         <FormPinnedPageHeader>
           <PageHeader
             pin="static"
+            accent="green"
             title={t('forms.opening.title')}
             subtitle={mission?.site_name}
             detail={

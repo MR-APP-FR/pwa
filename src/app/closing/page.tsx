@@ -369,6 +369,7 @@ function ClosingContent() {
         <FormPinnedPageHeader>
           <PageHeader
             pin="static"
+            accent="red"
             title={t('forms.closing.title')}
             subtitle={mission?.site_name}
             detail={

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import L from 'leaflet';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { RADIUS } from '../../constants/design';
 import { useSites } from '../../hooks/api/useSites';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -89,19 +90,35 @@ export default function SitesMapView() {
                 <p className="text-sm font-bold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
                   {site.name}
                 </p>
-                {site.ville && (
+                {(site.adresse || site.ville) && (
                   <p className="text-xs leading-snug" style={{ color: colors.TEXT_SECONDARY }}>
-                    {site.ville}
+                    {site.adresse || site.ville}
                   </p>
                 )}
                 <a
                   href={`https://maps.google.com/?q=${site.latitude},${site.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-xs font-semibold underline"
-                  style={{ color: colors.PRIMARY }}
+                  className="mt-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold uppercase tracking-wide"
+                  style={{
+                    backgroundColor: colors.PRIMARY,
+                    color: colors.TEXT_INVERSE,
+                    borderRadius: RADIUS.sm,
+                  }}
                 >
-                  {t('screens.sitesMap.openInMaps')}
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                  </svg>
+                  {t('screens.planning.go')}
                 </a>
               </div>
             </Popup>
