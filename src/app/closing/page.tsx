@@ -79,12 +79,6 @@ const PAIE_SECTION: ClosingSection = {
   titleKey: 'forms.closing.sectionPaie',
   fields: [
     {
-      key: 'payeManquanteRecuperee',
-      labelKey: 'forms.closing.payeManquanteRecuperee',
-      unit: 'eur',
-      helpKey: 'forms.closing.payeManquanteHelp',
-    },
-    {
       key: 'payeDuJour',
       labelKey: 'forms.closing.payeDuJour',
       unit: 'eur',
@@ -95,6 +89,12 @@ const PAIE_SECTION: ClosingSection = {
       labelKey: 'forms.closing.payeDuDouble',
       unit: 'eur',
       helpKey: 'forms.closing.payeDuDoubleHelp',
+    },
+    {
+      key: 'payeManquanteRecuperee',
+      labelKey: 'forms.closing.payeManquanteRecuperee',
+      unit: 'eur',
+      helpKey: 'forms.closing.payeManquanteHelp',
     },
   ],
 };

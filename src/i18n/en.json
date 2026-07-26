@@ -205,7 +205,7 @@
       "envelopeTitle": "Envelope check",
       "envelopeConfirm": "Have you put %{cash} € cash and %{card} € in card receipts into the envelope?",
       "envelopeAnomaly": "Warning: the calculated cash amount is negative (%{cash} €). Check takings, card payments and staff pay.",
-      "envelopeCheckbox": "Yes, I have put these amounts into the envelope",
+      "envelopeCheckbox": "Yes, I verified 👍",
       "envelopeError": "Confirm the envelope deposit to submit",
       "submit": "Confirm closing",
       "step1Label": "Figures",

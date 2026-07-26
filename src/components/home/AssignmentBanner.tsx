@@ -110,7 +110,7 @@ function AssignmentCard({
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <p
               className="text-sm font-bold uppercase tracking-wide"
-              style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+              style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
             >
               {label}
             </p>

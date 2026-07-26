@@ -205,7 +205,7 @@
       "envelopeTitle": "Contrôle enveloppe",
       "envelopeConfirm": "Avez-vous bien mis dans l'enveloppe %{cash} € et %{card} € de CB ?",
       "envelopeAnomaly": "Attention : le montant espèces calculé est négatif (%{cash} €). Vérifiez la recette, la CB et les rémunérations.",
-      "envelopeCheckbox": "Oui, j'ai bien mis ces montants dans l'enveloppe",
+      "envelopeCheckbox": "Oui j'ai vérifié 👍",
       "envelopeError": "Confirmez le dépôt dans l'enveloppe pour valider",
       "submit": "Valider la fermeture",
       "step1Label": "Chiffres",
