@@ -11,6 +11,7 @@ import { useSites } from '../../hooks/api/useSites';
 import { createClient } from '../../lib/supabase/client';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
 
 function EditSitesModal({
   isOpen,
@@ -325,6 +326,8 @@ export default function ProfilPage() {
           ))
         )}
       </div>
+
+      <DevToolsPanel colors={colors} />
 
       <div className="mx-5 mt-8">
         <button

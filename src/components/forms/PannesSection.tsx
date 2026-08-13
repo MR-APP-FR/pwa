@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -19,6 +19,8 @@ interface PannesSectionProps {
   onToggleSujet: (id: number) => void;
   sujetReasons: SujetReasons;
   onSujetReasonChange: (id: number, reason: string) => void;
+  pannesAutre: string;
+  onPannesAutreChange: (value: string) => void;
   onClearPannes: () => void;
 }
 
@@ -45,7 +47,7 @@ function PannesSelectionContent({
   onToggleSujet,
   sujetReasons,
   onSujetReasonChange,
-}: Omit<PannesSectionProps, 'onClearPannes'>) {
+}: Omit<PannesSectionProps, 'onClearPannes' | 'pannesAutre' | 'onPannesAutreChange'>) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -191,6 +193,8 @@ export function PannesSection({
   onToggleSujet,
   sujetReasons,
   onSujetReasonChange,
+  pannesAutre,
+  onPannesAutreChange,
   onClearPannes,
 }: PannesSectionProps) {
   const { colors } = useThemeColors();
@@ -199,7 +203,9 @@ export function PannesSection({
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  const hasPannes = selectedSujetIds.length > 0;
+  const trimmedAutre = pannesAutre.trim();
+  const hasSujets = selectedSujetIds.length > 0;
+  const hasPannes = hasSujets || trimmedAutre.length > 0;
 
   const summaryItems = selectedSujetIds
     .map((id) => {
@@ -208,13 +214,13 @@ export function PannesSection({
       if (!name) return null;
       return {
         id,
-        label: reason ? `${name} — ${reason}` : name,
+        label: reason ? `${name} : ${reason}` : name,
       };
     })
     .filter((item): item is { id: number; label: string } => Boolean(item));
 
   const summaryFallback =
-    hasPannes && summaryItems.length === 0
+    hasSujets && summaryItems.length === 0
       ? t('forms.dailyInfo.pannesSummaryCount').replace('{{count}}', String(selectedSujetIds.length))
       : null;
 
@@ -228,51 +234,79 @@ export function PannesSection({
 
   return (
     <>
-      <div className="space-y-2">
-        {hasPannes ? (
-          <ul className="list-none space-y-1.5">
-            {summaryItems.map((item) => (
-              <li
-                key={item.id}
-                className="text-base font-bold leading-snug"
-                style={{
-                  color: colors.ACCENT_ORANGE,
-                  fontFamily: 'var(--font-display)',
-                }}
-              >
-                {item.label}
-              </li>
-            ))}
-            {summaryFallback && (
-              <li
-                className="text-base font-bold leading-snug"
-                style={{
-                  color: colors.ACCENT_ORANGE,
-                  fontFamily: 'var(--font-display)',
-                }}
-              >
-                {summaryFallback}
-              </li>
-            )}
-          </ul>
-        ) : (
-          <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('forms.dailyInfo.pannesNone')}
+      <div className="space-y-3">
+        <div className="space-y-2">
+          {hasSujets ? (
+            <ul className="list-none space-y-1.5">
+              {summaryItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="text-base font-bold leading-snug"
+                  style={{
+                    color: colors.ACCENT_ORANGE,
+                    fontFamily: 'var(--font-display)',
+                  }}
+                >
+                  {item.label}
+                </li>
+              ))}
+              {summaryFallback && (
+                <li
+                  className="text-base font-bold leading-snug"
+                  style={{
+                    color: colors.ACCENT_ORANGE,
+                    fontFamily: 'var(--font-display)',
+                  }}
+                >
+                  {summaryFallback}
+                </li>
+              )}
+            </ul>
+          ) : (
+            <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('forms.dailyInfo.pannesNone')}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={openModal}
+            className="w-full rounded-xl border py-2.5 text-sm font-semibold"
+            style={{
+              borderColor: hasSujets ? colors.PRIMARY : colors.BORDER,
+              backgroundColor: hasSujets ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
+              color: hasSujets ? colors.PRIMARY : colors.TEXT_PRIMARY,
+              borderRadius: RADIUS.sm,
+            }}
+          >
+            {hasSujets ? t('common.edit') : t('forms.dailyInfo.pannesReportButton')}
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <p
+            className="text-sm font-bold"
+            style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
+          >
+            {t('forms.dailyInfo.pannesAutre')}
           </p>
-        )}
-        <button
-          type="button"
-          onClick={openModal}
-          className="w-full rounded-xl border py-2.5 text-sm font-semibold"
-          style={{
-            borderColor: hasPannes ? colors.PRIMARY : colors.BORDER,
-            backgroundColor: hasPannes ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
-            color: hasPannes ? colors.PRIMARY : colors.TEXT_PRIMARY,
-            borderRadius: RADIUS.sm,
-          }}
-        >
-          {hasPannes ? t('common.edit') : t('forms.dailyInfo.pannesReportButton')}
-        </button>
+          <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+            {t('forms.dailyInfo.pannesAutreHelp')}
+          </p>
+          <textarea
+            value={pannesAutre}
+            onChange={(e) => onPannesAutreChange(e.target.value)}
+            placeholder={t('forms.dailyInfo.pannesAutrePlaceholder')}
+            rows={3}
+            className="w-full resize-none rounded-xl border px-3 py-2.5 text-sm"
+            style={{
+              color: colors.TEXT_PRIMARY,
+              borderColor: trimmedAutre.length > 0 ? colors.PRIMARY : colors.BORDER,
+              backgroundColor: colors.BG_SECONDARY,
+              borderRadius: RADIUS.sm,
+            }}
+          />
+        </div>
+
         {hasPannes && (
           <button
             type="button"

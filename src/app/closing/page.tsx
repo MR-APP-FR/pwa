@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useRef, Suspense, useTransition } from 'react';
+import { useState, useRef, useEffect, Suspense, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
@@ -11,6 +11,10 @@ import { FormNumberInput } from '../../components/forms/FormNumberInput';
 import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import { useSujets } from '../../hooks/api/useSujets';
+import {
+  useSiteClosingChecklist,
+  type ClosingChecklistItemKey,
+} from '../../hooks/api/useSiteClosingChecklist';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
 import { useAppDate } from '../../hooks/useAppDate';
@@ -19,6 +23,7 @@ import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
 import { compressImageFile } from '../../lib/compressImageFile';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
+import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
@@ -113,6 +118,7 @@ const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   payeDuDouble: 'payeDouble',
   pointCaisse13h: 'pointCaisse13h',
   pointCaisse20h: 'pointCaisse20h',
+  avisGoogleCount: null,
   observations: 'observations',
   telecollectePhotoUri: null,
   telecollectePhotoSource: null,
@@ -134,6 +140,7 @@ function ClosingContent() {
   const mission = planningData?.planning.find((m) => m.id === missionId);
 
   const { data: sujets } = useSujets(mission?.site_id);
+  const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
 
   const [form, setForm] = useState<ClosingFormData>({
     missionId,
@@ -147,14 +154,17 @@ function ClosingContent() {
     payeDuDouble: null,
     pointCaisse13h: null,
     pointCaisse20h: null,
+    avisGoogleCount: null,
     observations: '',
     telecollectePhotoUri: null,
     telecollectePhotoSource: null,
     telecollectePhotoCapturedAtMs: null,
   });
 
+  const [checklist, setChecklist] = useState<Partial<Record<ClosingChecklistItemKey, boolean>>>({});
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
   const [sujetReasons, setSujetReasons] = useState<SujetReasons>({});
+  const [pannesAutre, setPannesAutre] = useState('');
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -174,11 +184,27 @@ function ClosingContent() {
   const enveloppeCb = form.carteBleue ?? 0;
   const enveloppeAnomaly = enveloppeEspeces < 0;
 
+  const missionDateIso = mission ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}` : null;
+  const closingDeadline = missionDateIso ? closingDeadlineParisFromDateIso(missionDateIso) : null;
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!closingDeadline || now >= closingDeadline) return;
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, [closingDeadline, now]);
+
+  const isBeforeClosingDeadline = closingDeadline !== null && now < closingDeadline;
+  const remainingMinutes = isBeforeClosingDeadline
+    ? Math.max(1, Math.ceil((closingDeadline!.getTime() - now.getTime()) / 60_000))
+    : 0;
+
   const formValid =
     form.recetteTotale !== null &&
     photoFile !== null &&
     form.telecollectePhotoSource !== null &&
-    envelopeConfirmed;
+    envelopeConfirmed &&
+    !isBeforeClosingDeadline;
 
   function updateNumericField(key: ClosingFieldKey, value: number | null) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -273,6 +299,10 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.envelopeError'));
       return;
     }
+    if (isBeforeClosingDeadline) {
+      setSubmitError(t('forms.closing.deadlineBlocked'));
+      return;
+    }
 
     setFieldError(null);
 
@@ -287,6 +317,8 @@ function ClosingContent() {
       fd.set(dataKey, value === null || value === undefined ? '' : String(value));
     }
     fd.set('observations', form.observations);
+    fd.set('avisGoogleCount', form.avisGoogleCount === null ? '' : String(form.avisGoogleCount));
+    fd.set('checklist', JSON.stringify(checklist));
     fd.set('photo', photoFile);
     fd.set('photoSource', form.telecollectePhotoSource);
     if (form.telecollectePhotoCapturedAtMs != null) {
@@ -294,7 +326,7 @@ function ClosingContent() {
     }
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
-    const hasPannes = selectedSujetIds.length > 0;
+    const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
 
     startTransition(async () => {
       try {
@@ -310,7 +342,7 @@ function ClosingContent() {
             date,
             nettoyageVeille: null,
             panneSujetIds: selectedSujetIds,
-            pannesAutre: null,
+            pannesAutre: pannesAutre.trim() || null,
             pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
             carteParking: null,
             musiqueDisney: null,
@@ -381,6 +413,19 @@ function ClosingContent() {
           />
         </FormPinnedPageHeader>
         <div className="px-4 py-3">
+          {isBeforeClosingDeadline && (
+            <div
+              className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: colors.ACCENT_YELLOW,
+                color: colors.ACCENT_YELLOW,
+                backgroundColor: colors.ACCENT_YELLOW_MUTED,
+              }}
+              role="status"
+            >
+              {t('forms.closing.deadlineCountdown', { minutes: String(remainingMinutes) })}
+            </div>
+          )}
           <div className="card-surface space-y-4 px-4 py-4">
             {EARLY_SECTIONS.map(renderNumericSection)}
 
@@ -397,14 +442,54 @@ function ClosingContent() {
                 onSujetReasonChange={(id, reason) =>
                   setSujetReasons((prev) => ({ ...prev, [id]: reason }))
                 }
+                pannesAutre={pannesAutre}
+                onPannesAutreChange={setPannesAutre}
                 onClearPannes={() => {
                   setSelectedSujetIds([]);
                   setSujetReasons({});
+                  setPannesAutre('');
                 }}
               />
             </FormSection>
 
             {renderNumericSection(PAIE_SECTION)}
+
+            {closingChecklistItems && closingChecklistItems.length > 0 && (
+              <FormSection title={t('forms.closing.sectionChecklist')}>
+                <div className="flex flex-col gap-2.5">
+                  {closingChecklistItems.map((item) => (
+                    <label
+                      key={item}
+                      className="flex min-h-[44px] items-center gap-3 text-sm font-medium"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checklist[item] ?? false}
+                        onChange={(e) =>
+                          setChecklist((prev) => ({ ...prev, [item]: e.target.checked }))
+                        }
+                        className="size-5 shrink-0"
+                        style={{ accentColor: colors.PRIMARY }}
+                      />
+                      <span style={{ color: colors.TEXT_PRIMARY }}>
+                        {t(`forms.closing.checklistItems.${item}`)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </FormSection>
+            )}
+
+            <FormSection title={t('forms.closing.sectionAvisGoogle')}>
+              <FormNumberInput
+                label={t('forms.closing.avisGoogleCount')}
+                value={form.avisGoogleCount}
+                onChange={(v) => setForm((f) => ({ ...f, avisGoogleCount: v }))}
+                unit="count"
+                inputMode="numeric"
+                helpText={t('forms.closing.avisGoogleHelp')}
+              />
+            </FormSection>
 
             <FormSection
               title={t('forms.closing.sectionNotes')}

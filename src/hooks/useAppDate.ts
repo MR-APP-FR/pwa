@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { SITE_TIME_RANGES, SITE_TIME_RANGES_FULL } from '../constants/siteHours';
+import { getDevDateOverride } from '../lib/dev/dateOverrideClient';
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -15,7 +16,7 @@ function getMonday(d: Date): Date {
 /** Date / bornes de semaine utilisées par l'accueil, le planning et les missions. */
 export function useAppDate() {
   return useMemo(() => {
-    const today = new Date();
+    const today = getDevDateOverride() ?? new Date();
     const weekStart = getMonday(today);
 
     const nextWeekStart = new Date(weekStart);

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { HOME_BUTTON_ICON_BG } from '../../constants/colors';
 import { RADIUS } from '../../constants/design';
+import { NotificationBadge } from '../common/NotificationBadge';
 
 const ICON_MAP: Record<string, string> = {
   'sunny-outline': '/p_check.svg',
@@ -13,6 +14,7 @@ const ICON_MAP: Record<string, string> = {
   'messages-outline': '/p_info.svg',
   'video-outline': '/p_play.svg',
   'map-pin-outline': '/p_marker.svg',
+  'suggestion-outline': '/p_info.svg',
 };
 
 interface HomeButtonProps {
@@ -21,9 +23,10 @@ interface HomeButtonProps {
   onPress: () => void;
   disabled?: boolean;
   fullWidth?: boolean;
+  badgeCount?: number;
 }
 
-export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeButtonProps) {
+export function HomeButton({ icon, label, onPress, disabled, fullWidth, badgeCount }: HomeButtonProps) {
   const { colors } = useThemeColors();
   const iconSrc = ICON_MAP[icon] ?? ICON_MAP['calendar-outline'];
   const iconBg = HOME_BUTTON_ICON_BG[icon] ?? HOME_BUTTON_ICON_BG['calendar-outline'];
@@ -33,7 +36,7 @@ export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeBu
       onClick={onPress}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`relative flex min-h-[96px] flex-col items-center justify-center gap-2 overflow-hidden p-3 transition-all duration-150 ${
+      className={`relative z-10 flex min-h-[96px] flex-col items-center justify-center gap-2 overflow-visible p-3 transition-all duration-150 ${
         disabled ? 'cursor-not-allowed' : 'active:scale-[0.98]'
       } ${fullWidth ? 'col-span-2' : ''}`}
       style={{
@@ -85,6 +88,8 @@ export function HomeButton({ icon, label, onPress, disabled, fullWidth }: HomeBu
           }}
         />
       )}
+
+      {!disabled && <NotificationBadge count={badgeCount ?? 0} />}
     </button>
   );
 }

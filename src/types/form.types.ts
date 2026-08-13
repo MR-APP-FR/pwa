@@ -18,6 +18,7 @@ export interface ClosingFormData {
   payeDuDouble: number | null;
   pointCaisse13h: number | null;
   pointCaisse20h: number | null;
+  avisGoogleCount: number | null;
   observations: string;
   telecollectePhotoUri: string | null;
   /** Provenance de la photo (cf. closing_form.photo_source). */

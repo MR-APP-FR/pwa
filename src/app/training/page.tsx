@@ -35,7 +35,7 @@ export default function TrainingPage() {
               emoji={theme.emoji}
               labelKey={theme.labelKey}
               colSpan={theme.colSpan}
-              disabled
+              onPress={() => router.push(`/training/${theme.id}`)}
             />
           ))}
         </div>

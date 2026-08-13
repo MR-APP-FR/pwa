@@ -26,7 +26,7 @@ export default function GlobalError({
         }}
       >
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
-          Manège — erreur
+          Manège : erreur
         </h1>
         <p style={{ margin: 0, color: '#6e6a66', maxWidth: 320 }}>
           L&apos;application a rencontré un problème. Réessaie ou recharge la page.

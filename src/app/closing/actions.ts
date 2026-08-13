@@ -2,6 +2,8 @@
 
 import { requireEmployeeSession } from '../../lib/auth/employee';
 import type { PhotoSource } from '../../database/types';
+import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
+import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
 
 /**
  * Submit fermeture : upload photo télécollecte puis upsert `closing_form`.
@@ -32,6 +34,20 @@ function isPhotoSource(value: unknown): value is PhotoSource {
   return value === 'camera_live' || value === 'phototheque';
 }
 
+function parseChecklist(formData: FormData): Record<string, boolean> {
+  const raw = formData.get('checklist');
+  if (typeof raw !== 'string' || raw.length === 0) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, boolean>;
+    }
+  } catch {
+    // ignore JSON invalide → checklist vide
+  }
+  return {};
+}
+
 export async function submitClosingForm(formData: FormData): Promise<SubmitClosingResult> {
   const siteId = Number(formData.get('siteId'));
   const date = String(formData.get('date') ?? '');
@@ -48,6 +64,16 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   }
   if (!isPhotoSource(photoSourceRaw)) {
     return { ok: false, error: 'Source de la photo invalide.' };
+  }
+
+  // Blocage horaire 20h05 Europe/Paris — garde serveur, ne pas se fier au seul client.
+  const deadline = closingDeadlineParisFromDateIso(date);
+  const effectiveNow = (await getDevOverrideNow()) ?? new Date();
+  if (deadline && effectiveNow < deadline) {
+    return {
+      ok: false,
+      error: 'La fermeture ne peut être validée qu\'à partir de 20h05.',
+    };
   }
 
   const session = await requireEmployeeSession();
@@ -97,6 +123,8 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         photo_url: publicUrl,
         photo_source: photoSourceRaw,
         photo_captured_at: photoCapturedAtIso,
+        checklist: parseChecklist(formData),
+        avis_google_count: nullableNumber(formData, 'avisGoogleCount') ?? 0,
       },
       { onConflict: 'site_id,date,user_id' },
     )

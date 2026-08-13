@@ -1,0 +1,249 @@
+{
+  "opening": {
+    "title": "Ouverture",
+    "sections": [
+      {
+        "items": [
+          { "type": "point", "number": 1, "text": "Toujours arriver au manège à 9h50. Être ponctuel." },
+          { "type": "point", "number": 2, "text": "Toujours commencer par allumer le manège, pour être prêt à servir les clients. On lance un tour pour être certain que le manège fonctionne bien." },
+          {
+            "type": "point",
+            "number": 3,
+            "text": "Remplir la feuille de jour + remplir l'enveloppe.",
+            "subItems": [
+              "Attention aux erreurs de dates (bien vérifier avec son portable).",
+              "Écrire lisiblement (pas trop petit, éviter les ratures, etc).",
+              "Compter le stock de feuilles de jours / enveloppes restant (sans compter celle du jour).",
+              "Bien vérifier le nombre de tickets exactes."
+            ]
+          },
+          { "type": "point", "number": 4, "text": "Vérification fond de caisse. 100€ en pièces de 2€, 1€ et 50c." }
+        ]
+      },
+      {
+        "items": [
+          {
+            "type": "warning",
+            "text": "Toujours être très soigneux avec le matériel. Tout se fait à 2 doigts. Rien ne se prend à pleine main. Si on force à un moment donné c'est qu'on s'y prend mal et qu'on va casser."
+          }
+        ]
+      }
+    ]
+  },
+
+  "revenue": {
+    "title": "Optimisation CA",
+    "sections": [
+      {
+        "items": [
+          {
+            "type": "point",
+            "number": 1,
+            "text": "Toujours accueillir les clients avec politesse (Bonjour + Merci + À bientôt). Être avenant : toujours avoir un grand sourire + aller vers le client."
+          },
+          {
+            "type": "point",
+            "number": 2,
+            "text": "Le plus important : proposer la formule supplémentaire quoi qu'il arrive. Proposer à chaque client !",
+            "subItems": [
+              "S'appuyer sur 3 arguments : tarif dégressif, valable dans tous nos autres manèges, valable sans limite de temps.",
+              "Connaître les formules prix par cœur.",
+              "Chacun doit trouver sa technique de vente avec laquelle il est à l'aise. Avoir des formules d'accroches qui font mouche.",
+              "Ne pas insister la fois de trop."
+            ]
+          },
+          { "type": "point", "number": 3, "text": "Ramasser pendant que le manège tourne, même s'il n'y a qu'un enfant c'est plus ludique." },
+          {
+            "type": "point",
+            "number": 4,
+            "text": "Quand il y a du monde, ne pas hésiter à sonner pour démarrer au plus vite et gagner du temps entre chaque tour. Et dès que le manège s'arrête, tout faire pour qu'il reparte au plus vite.",
+            "subItems": [
+              "Encaisser les clients pendant que le manège tourne.",
+              "Si un enfant hésite pendant 3 min entre deux sujets alors que le manège est plein de monde, lui dire gentiment d'attendre sur le côté pendant que le manège tourne pour qu'il ait bien le temps de choisir."
+            ]
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "type": "warning",
+            "text": "Se rappeler de l'histoire de la pompe à essence : un pompiste gentil à 3km, un autre méchant à 2km de l'autre côté, tout le monde fait 1km de plus pour aller chez le gentil qui met un petit coup sur le pare-brise ! Il y a toujours plein de manèges aux alentours, si on est mal sympathique les clients nous le rendront et iront ailleurs."
+          },
+          {
+            "type": "warning",
+            "text": "Si une cliente mécontente vient se plaindre de n'importe quel grief (manège qui démarre trop vite, ou quoi que ce soit d'autre) ne pas discuter avec elle, ne pas laisser le ton monter. Tout de suite commencer par s'excuser et lui donner raison pour faire retomber la pression. Se dire que c'est un client qu'on ne reverra plus jamais donc ça ne sert à rien de savoir qui a raison et qui a tort."
+          },
+          {
+            "type": "text",
+            "text": "Si un client se plaint des tarifs, du temps du tour, ou de n'importe quoi d'autre, toujours l'aborder avec respect et compréhension. Se dire que s'il se plaint à vous, il peut tout aussi se plaindre à la direction du centre ou à la mairie. S'il insiste, ne pas hésiter à lui donner notre numéro de téléphone."
+          }
+        ]
+      }
+    ]
+  },
+
+  "issues": {
+    "title": "Pannes, accidents et problèmes",
+    "sections": [
+      {
+        "items": [
+          {
+            "type": "point",
+            "number": 1,
+            "text": "Petit accident : toujours donner un ticket à l'enfant qui est tombé sur le cul pendant que le manège tournait ou qui a eu peur et qu'on a dû descendre avant la fin. Se rappeler qu'un enfant qui s'en va en pleurant ne reviendra sûrement jamais, alors qu'un enfant qui s'en va avec un ticket gratuit reviendra quasi systématiquement."
+          },
+          {
+            "type": "point",
+            "number": 2,
+            "text": "Accident plus grave : arrêter le manège et nous appeler directement (si un des frères ne répond pas, sans attendre appeler les autres ou le bureau). Bien prendre le nom et le numéro de tél des parents sur la feuille de jour avec l'heure de l'accident."
+          },
+          {
+            "type": "point",
+            "number": 3,
+            "text": "Petite panne : un élévateur qui ne monte pas ou une lumière cassée, etc. Nous prévenir sur l'application ou appeler le bureau."
+          },
+          {
+            "type": "point",
+            "number": 4,
+            "text": "Panne importante : essayer de nous joindre par tous les moyens possibles et nous relancer toutes les heures au besoin, jusqu'à ce que la panne soit réglée et que le manège puisse refonctionner normalement."
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "type": "warning",
+            "text": "Si une personne est suspecte aux alentours : dans les centres commerciaux, bip d'urgence qui préviennent les vigiles. Dans les parcs et jardins, prévenir les gardiens ou la police. Si urgence, nous appeler pour nous avertir qu'on fasse le nécessaire."
+          }
+        ]
+      }
+    ]
+  },
+
+  "forbidden": {
+    "title": "Interdits",
+    "sections": [
+      {
+        "items": [
+          { "type": "point", "number": 1, "text": "Ne jamais prendre la pause déjeuner avant 13h (sauf BDV Rond et les doubles). Réduire la pause déjeuner pendant les jours de fortes affluences (WE, jours fériés, mercredis et vacances scolaires)." },
+          {
+            "type": "point",
+            "number": 2,
+            "text": "Toujours avoir une tenue vestimentaire correcte. Ne pas oublier que c'est un lieu de travail.",
+            "subItems": [
+              "Pas de jogging, pas de casquette, pas de sabots, etc.",
+              "Pas de maillot religieux ou de pays en guerre (Israël, Palestine, Ukraine, Russie, etc).",
+              "Pas de maillot de football (en particulier PSG et Marseille).",
+              "Pas trop décolleté ou trop court."
+            ]
+          },
+          {
+            "type": "point",
+            "number": 3,
+            "text": "Téléphone et lecture interdits pendant que le manège tourne. Hormis le fait que ce soit commercialement une catastrophe, si un accident se produit nous ne sommes plus assurés et l'employé est pénalement responsable."
+          },
+          { "type": "point", "number": 4, "text": "Ne pas laisser trop d'argent dans la caisse les gros jours, les mettre dans l'enveloppe cachée." },
+          { "type": "point", "number": 5, "text": "Pas de copain ou copine qui viennent discuter à la caisse du manège. Et encore moins dans la caisse : devant les clients c'est une catastrophe et si un contrôleur passe, ça peut nous coûter très cher." },
+          {
+            "type": "point",
+            "number": 6,
+            "text": "Ne pas dessiner sur la caisse, on le verra à la caméra et on arrêtera directement avec cette personne. Et surtout pas de signes religieux : la religion n'a aucun rapport avec le travail. Même si ça part d'un bon sentiment, respectez vos collègues d'autres confessions."
+          }
+        ]
+      }
+    ]
+  },
+
+  "payments": {
+    "title": "CB et chèques",
+    "sections": [
+      {
+        "heading": "CB",
+        "items": [
+          { "type": "point", "number": 1, "text": "Minimum 12€." },
+          { "type": "point", "number": 2, "text": "Ne surtout pas oublier d'appuyer 2 fois sur le 0 après le montant de la transaction sinon ça fait 12 centimes !" },
+          { "type": "point", "number": 3, "text": "Ne jamais garder le ticket client (1er ticket qui sort) sous aucun prétexte, si le client n'en veut pas le jeter à la poubelle directement. Garder le 2nd ticket qui sort avec marqué commerçant." },
+          { "type": "point", "number": 4, "text": "Ne pas se fier au total télécollecte qui peut être faux, mais additionner ses tickets un par un." },
+          { "type": "point", "number": 5, "text": "Quoi qu'il se passe, sortir une télécollecte avant de partir. Même si 0€ de CB (télécollecte forcée), même si une télécollecte automatique est sortie 15 minutes avant et qu'il n'y a pas eu de clients entre temps, etc. Quoi qu'il arrive, la dernière chose de la journée à faire avant de fermer l'enveloppe et fermer la caisse c'est une télécollecte." },
+          { "type": "point", "number": 6, "text": "Quand il y a des traces d'encre sur les tickets CB, c'est que le rouleau de papier est presque vide → le changer. Si on ne sait pas le faire, donner 2 tickets gratuits au commerçant voisin pour qu'il nous montre comment faire, comme ça on saura le faire pour la prochaine fois." },
+          { "type": "point", "number": 7, "text": "En cas de souci ou de panne, regarder au dos de la feuille de fonctionnement pour un redémarrage ou demander au voisin s'il sait ce qui se passe. Sinon, nous appeler." },
+          { "type": "point", "number": 8, "text": "Toujours déchirer le ticket proprement. Pour cela, bien le prendre à la base et le tirer en le rapprochant de la machine afin que le petit morceau de métal le découpe correctement." },
+          { "type": "point", "number": 9, "text": "Les tickets CB et télécollectes sont des documents comptables. On doit pouvoir les présenter aux impôts si besoin. Il ne faut donc jamais écrire au stylo dessus. Au besoin, sortez un petit morceau de papier libre du TPE pour écrire vos notes dessus." }
+        ]
+      },
+      {
+        "heading": "Chèques",
+        "items": [
+          { "type": "point", "number": 1, "text": "Minimum 12€." },
+          { "type": "point", "number": 2, "text": "Bien vérifier que le chèque soit signé. Ne pas oublier de noter le lieu et la date." },
+          { "type": "point", "number": 3, "text": "Se fier à la feuille de fonctionnement plastifiée pour l'ordre (Sema, Sam Lion ou Belle Histoire selon la société qui encaisse le chèque)." },
+          { "type": "point", "number": 4, "text": "Demander la carte d'identité du client, vérifier que c'est bien sa carte d'identité et vérifier que c'est le même nom que sur le chèque." }
+        ]
+      }
+    ]
+  },
+
+  "cleaning": {
+    "title": "Nettoyage",
+    "sections": [
+      {
+        "items": [
+          { "type": "point", "number": 1, "text": "Tous les jours à l'ouverture et un dernier coup le soir avant de partir." },
+          { "type": "point", "number": 2, "text": "Si on ne sait pas où se trouve l'eau, les produits d'entretien, où vider le seau d'eau sale : demander sur les groupes ou au bureau." },
+          { "type": "point", "number": 3, "text": "En cas de client, stopper le nettoyage : le client passe bien évidemment avant le ménage. Toujours le chiffre d'affaires avant le ménage !" },
+          { "type": "point", "number": 4, "text": "S'il n'y a pas de clients à la fermeture, mettre un petit coup avant de partir. Mais s'il y a du monde, ne surtout pas anticiper la fermeture du manège pour nettoyer !" }
+        ]
+      }
+    ]
+  },
+
+  "closing": {
+    "title": "Fermeture",
+    "sections": [
+      {
+        "items": [
+          { "type": "point", "number": 1, "text": "Ne jamais commencer à compter avant 20h00 (ou l'heure du jour). Ne jamais sortir sa télécollecte avant 20h05 (ou 5 minutes après l'heure du jour). Dans les parcs, se fier aux gardiens (chaque minute compte)." },
+          { "type": "point", "number": 2, "text": "Être discret en faisant sa recette, regarder qu'il n'y ait personne qui vous regarde." },
+          { "type": "point", "number": 3, "text": "Ne jamais parler de son chiffre de la journée à qui que ce soit. Si nous apprenons que quelqu'un parle des chiffres ou de quoi que ce soit du travail (commerçant du tour, copains, cousines, famille, qui que ce soit), alors nous stopperons instantanément de travailler ensemble." },
+          {
+            "type": "point",
+            "number": 4,
+            "text": "Le fond de caisse :",
+            "subItems": [
+              "Laisser en priorité des pièces 0,50€ + 1€ + 2€.",
+              "Laisser un maximum de pièces ; si on n'a pas assez de pièces pour arriver à 100€, compléter avec les plus petits billets possibles (5€).",
+              "Mettre toutes les pièces rouges dans l'enveloppe.",
+              "Essayer de se débarrasser des 20 et 10 centimes au cours de la journée en faisant des petits tas de 50 centimes."
+            ]
+          },
+          { "type": "point", "number": 5, "text": "Répondeur : parler distinctement et épeler chaque nombre en donnant chaque chiffre qui le compose un par un." },
+          { "type": "point", "number": 6, "text": "Feuille de jour : la plier en 2, coin sur coin (pas en 3 ni en 4). Et glisser les billets et tickets CB en sandwich à l'intérieur." },
+          { "type": "point", "number": 7, "text": "Mettre tous les tickets CB à plat et dans le même sens. La télécollecte aussi." },
+          { "type": "point", "number": 8, "text": "Ranger les billets du plus grand au plus petit, tous dans le même sens (avec le drapeau de l'Europe en haut à gauche)." },
+          { "type": "point", "number": 9, "text": "Mettre les pièces à part des billets (dans l'enveloppe mais pas en sandwich dans la feuille de jour)." },
+          { "type": "point", "number": 10, "text": "Enlever la bande adhésive du rabat pour fermer l'enveloppe (la jeter à la poubelle). Penser au scotch sur le rabat de l'enveloppe (2cm suffisent)." },
+          { "type": "point", "number": 11, "text": "Ne pas oublier la télécollecte ! (on le répète à nouveau) Quoi qu'il se passe, la dernière chose à faire avant de partir c'est une télécollecte." }
+        ]
+      }
+    ]
+  },
+
+  "double": {
+    "title": "Double",
+    "sections": [
+      {
+        "items": [
+          { "type": "point", "number": 1, "text": "Toujours noter sur la feuille de jour qui est le double et qui tient la caisse. Si on a un doute, appeler le bureau qui est à quel poste." },
+          { "type": "point", "number": 2, "text": "La personne qui est à la caisse a la responsabilité de sa caisse." },
+          { "type": "point", "number": 3, "text": "Le double est là pour fluidifier le travail du caissier et lui permettre d'augmenter ses ventes." },
+          { "type": "point", "number": 4, "text": "Il doit ramasser les tickets pendant que le manège tourne." },
+          { "type": "point", "number": 5, "text": "Il doit monter sur le manège dès que celui-ci s'arrête pour aider les enfants à descendre plus vite. Il doit aussi les aider à s'installer plus rapidement pour que le manège puisse repartir en perdant le moins de temps possible." },
+          { "type": "point", "number": 6, "text": "Il doit informer le caissier dès qu'il peut relancer un autre tour." },
+          { "type": "point", "number": 7, "text": "Entre-temps, si le caissier est débordé, il peut faire des ventes de l'autre côté de la caisse pour ne pas perdre de clients." },
+          { "type": "point", "number": 8, "text": "Le teneur prend sa pause déjeuner de midi à 13h et remplace le caissier de 13h à 14h. Ne pas oublier de faire un point caisse au départ et au retour du caissier pour voir le montant effectué pendant ce laps de temps et l'utilité pour la prochaine fois d'un double." }
+        ]
+      }
+    ]
+  }
+}

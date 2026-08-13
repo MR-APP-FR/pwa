@@ -38,6 +38,8 @@ export interface ClosingFormRow {
   photo_source: PhotoSource;
   photo_captured_at: string | null;
   submitted_at: string;
+  checklist: Record<string, boolean>;
+  avis_google_count: number;
 }
 
 export interface DailyInfoRow {

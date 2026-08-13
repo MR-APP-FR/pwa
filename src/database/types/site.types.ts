@@ -1,5 +1,4 @@
 export type SiteStatut = 'actif' | 'ferme' | 'temporaire' | 'automatique';
-export type SiteNbTeneur = 1 | 2;
 
 export interface Site {
   id: number;
@@ -13,7 +12,9 @@ export interface Site {
   code_postal: string | null;
   ville: string | null;
   indication: string | null;
-  statut: SiteStatut;
-  nb_teneur: SiteNbTeneur;
+  statut: SiteStatut | null;
+  nb_teneur: number | null;
   group_id: number | null;
+  daily_info_questions?: string[];
+  closing_checklist_items?: string[];
 }

@@ -6,6 +6,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
+import { useSiteHeuresOuverture } from '../../hooks/api/useSiteHeuresOuverture';
+import { getExpectedOpeningDeadline } from '../../lib/parisTime';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
@@ -74,6 +76,7 @@ function OpeningContent() {
 
   const { data: sujets } = useSujets(mission?.site_id);
   const { data: questions } = useSiteDailyInfoQuestions(mission?.site_id);
+  const { data: heuresSemaine } = useSiteHeuresOuverture(mission?.site_id);
   const showCarteParking = useMemo(() => questions?.includes('carte_parking') ?? false, [questions]);
   const showMusiqueDisney = useMemo(() => questions?.includes('musique_disney') ?? false, [questions]);
 
@@ -91,15 +94,31 @@ function OpeningContent() {
   const [nettoyageVeilleJustification, setNettoyageVeilleJustification] = useState('');
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
   const [sujetReasons, setSujetReasons] = useState<SujetReasons>({});
+  const [pannesAutre, setPannesAutre] = useState('');
   const [carteParking, setCarteParking] = useState<boolean | null>(null);
   const [carteParkingJustification, setCarteParkingJustification] = useState('');
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
 
   const [submitted, setSubmitted] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<OpeningFieldError | null>(null);
   const [pending, startTransition] = useTransition();
+
+  type PunctualityStatus = 'avance' | 'aLheure' | 'retard';
+  const PUNCTUALITY_TOLERANCE_MS = 5 * 60 * 1000;
+  function computePunctualityStatus(): PunctualityStatus | null {
+    if (!submittedAt || !mission) return null;
+    const dateIso = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
+    const expected = getExpectedOpeningDeadline(dateIso, heuresSemaine ?? null);
+    if (!expected) return null;
+    const diffMs = submittedAt.getTime() - expected.getTime();
+    if (diffMs < -PUNCTUALITY_TOLERANCE_MS) return 'avance';
+    if (diffMs > PUNCTUALITY_TOLERANCE_MS) return 'retard';
+    return 'aLheure';
+  }
+  const punctualityStatus = computePunctualityStatus();
 
   const isFormValid =
     form.feuilleDuJour !== null &&
@@ -211,7 +230,7 @@ function OpeningContent() {
           date,
           nettoyageVeille,
           panneSujetIds: selectedSujetIds,
-          pannesAutre: null,
+          pannesAutre: pannesAutre.trim() || null,
           pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
           carteParking: showCarteParking ? carteParking : null,
           musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
@@ -226,6 +245,7 @@ function OpeningContent() {
         }
 
         queryClient.invalidateQueries({ queryKey: ['missionForms'] });
+        setSubmittedAt(new Date());
         setSubmitted(true);
       } catch {
         setSubmitError(t('forms.common.errorSubmit'));
@@ -247,6 +267,18 @@ function OpeningContent() {
           <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
             {t('forms.opening.successDescription')}
           </p>
+          {punctualityStatus && (
+            <div
+              className="rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{
+                backgroundColor:
+                  punctualityStatus === 'retard' ? colors.ACCENT_RED_MUTED : colors.ACCENT_GREEN_MUTED,
+                color: punctualityStatus === 'retard' ? colors.ACCENT_RED : colors.ACCENT_GREEN,
+              }}
+            >
+              {t(`forms.opening.punctuality.${punctualityStatus}`)}
+            </div>
+          )}
           <PrimaryButton onClick={() => router.back()} className="mt-4 px-6 py-3 text-base">
             Retour au planning
           </PrimaryButton>
@@ -379,9 +411,12 @@ function OpeningContent() {
               onSujetReasonChange={(id, reason) =>
                 setSujetReasons((prev) => ({ ...prev, [id]: reason }))
               }
+              pannesAutre={pannesAutre}
+              onPannesAutreChange={setPannesAutre}
               onClearPannes={() => {
                 setSelectedSujetIds([]);
                 setSujetReasons({});
+                setPannesAutre('');
               }}
             />
 
@@ -449,6 +484,13 @@ function OpeningContent() {
               />
             </div>
           </FormSection>
+
+          <div
+            className="rounded-xl px-3.5 py-2.5 text-sm font-medium"
+            style={{ backgroundColor: '#FDF6E3', color: '#8A6D00' }}
+          >
+            {t('forms.opening.googleReviewReminder')}
+          </div>
         </div>
 
         {submitError && (

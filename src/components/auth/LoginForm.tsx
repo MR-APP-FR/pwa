@@ -17,15 +17,14 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function doSignIn(emailValue: string, passwordValue: string) {
     setLoading(true);
     setError(null);
 
     const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
+      email: emailValue.trim(),
+      password: passwordValue,
     });
 
     if (signInError) {
@@ -37,6 +36,16 @@ export function LoginForm() {
     router.replace('/');
     router.refresh();
   }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await doSignIn(email, password);
+  }
+
+  const devBypassEmail = process.env.NEXT_PUBLIC_DEV_LOGIN_EMAIL;
+  const devBypassPassword = process.env.NEXT_PUBLIC_DEV_LOGIN_PASSWORD;
+  const devBypassEnabled =
+    process.env.NODE_ENV === 'development' && !!devBypassEmail && !!devBypassPassword;
 
   const inputStyle = {
     borderColor: colors.BORDER,
@@ -95,6 +104,17 @@ export function LoginForm() {
         <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
           {error}
         </p>
+      )}
+      {devBypassEnabled && (
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => doSignIn(devBypassEmail!, devBypassPassword!)}
+          className="w-full border py-3 text-sm font-medium"
+          style={{ ...inputStyle, borderStyle: 'dashed' }}
+        >
+          Dev bypass ({devBypassEmail})
+        </button>
       )}
     </form>
   );

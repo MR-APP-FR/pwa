@@ -114,6 +114,7 @@ export const HOME_BUTTON_ICON_BG: Record<string, string> = {
   'messages-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
   'video-outline': HOME_BUTTON_ICON_GRADIENTS.gray,
   'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.pink,
+  'suggestion-outline': HOME_BUTTON_ICON_GRADIENTS.yellow,
 };
 
 /** Couleurs tournantes pour les cartes planning */

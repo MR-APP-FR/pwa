@@ -5,10 +5,23 @@ import { useMemo } from 'react';
 import { AssignmentBanner } from '../components/home/AssignmentBanner';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
+import { DispoDerniereMinuteToggle } from '../components/home/DispoDerniereMinuteToggle';
 import { usePlanning } from '../hooks/api/usePlanning';
+import { useSiteWeather } from '../hooks/api/useSiteWeather';
+import { useUnreadStaffMessageCount } from '../hooks/api/useStaffMessages';
+import { useCurrentUser } from '../hooks/api/useCurrentUser';
+import { useWeatherBriefRead } from '../hooks/useWeatherBriefRead';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function toIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -51,6 +64,20 @@ export default function HomePage() {
   }, [nextMission]);
 
   const hasTodayMission = todayMission !== null;
+  const todayIso = toIsoDate(today);
+  const unreadStaffCount = useUnreadStaffMessageCount();
+  const { data: currentUser } = useCurrentUser();
+  const { data: todayWeather } = useSiteWeather(
+    todayMission?.site_id ?? null,
+    hasTodayMission ? todayIso : null,
+  );
+  const { isRead: weatherBriefRead, markRead: markWeatherBriefRead } = useWeatherBriefRead(
+    currentUser?.user.id ?? null,
+    todayWeather ? todayIso : null,
+    todayMission?.site_id ?? null,
+  );
+  const unreadMessageCount =
+    unreadStaffCount + (todayWeather && !weatherBriefRead ? 1 : 0);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -59,7 +86,11 @@ export default function HomePage() {
         todayMission={todayMission}
         nextMission={nextMission}
         nextDayLabel={nextDayLabel}
+        todayWeather={todayWeather ?? null}
+        onWeatherOpen={markWeatherBriefRead}
       />
+
+      {!hasTodayMission && <DispoDerniereMinuteToggle dateIso={todayIso} />}
 
       <div className="grid grid-cols-2 gap-2.5">
         <HomeButton
@@ -97,8 +128,8 @@ export default function HomePage() {
         <HomeButton
           icon="messages-outline"
           label={t('screens.home.messagesButton')}
-          onPress={() => {}}
-          disabled
+          onPress={() => router.push('/messages')}
+          badgeCount={unreadMessageCount}
         />
         <HomeButton
           icon="video-outline"
@@ -106,10 +137,14 @@ export default function HomePage() {
           onPress={() => router.push('/training')}
         />
         <HomeButton
+          icon="suggestion-outline"
+          label={t('screens.home.suggestionsButton')}
+          onPress={() => router.push('/suggestions')}
+        />
+        <HomeButton
           icon="map-pin-outline"
           label={t('screens.home.sitesMapButton')}
           onPress={() => router.push('/sites-map')}
-          fullWidth
         />
       </div>
 

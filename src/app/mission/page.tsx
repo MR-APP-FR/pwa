@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useMemo } from 'react';
 import { usePlanning } from '../../hooks/api/usePlanning';
-import { useSites } from '../../hooks/api/useSites';
 import { useMissionForms } from '../../hooks/api/useMissionForms';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -24,7 +23,6 @@ function MissionContent() {
   const { t } = useTranslation();
   const { today, weekYear, weekMonth } = useAppDate();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
-  const { data: sitesData } = useSites();
 
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
@@ -58,8 +56,7 @@ function MissionContent() {
     );
   }
 
-  const siteFromList = sitesData?.sites.find((s) => Number(s.id) === Number(mission.site_id));
-  const siteInfo = mission.site_details ?? siteFromList;
+  const siteInfo = mission.site_details;
 
   const dateLabel = formatDateLong(new Date(mission.year, mission.month - 1, mission.day));
 
