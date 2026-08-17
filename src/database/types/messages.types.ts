@@ -2,6 +2,12 @@
 
 export type StaffMessageSource = 'bureau' | 'appli';
 
+/** 👧🏻 saisi par le bureau · 🤖 automatique (météo, plus tard recap hebdo / mensuel CA). */
+export const MESSAGE_SOURCE_ICON: Record<StaffMessageSource, string> = {
+  bureau: '👧🏻',
+  appli: '🤖',
+};
+
 export interface StaffMessageRow {
   id: number;
   titre: string;
@@ -11,6 +17,8 @@ export interface StaffMessageRow {
   publie_at: string;
   expire_at: string | null;
   created_at: string;
+  site_ids: number[];
+  user_ids: number[];
 }
 
 export interface StaffMessageAckRow {

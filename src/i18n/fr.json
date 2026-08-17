@@ -63,7 +63,11 @@
       "loading": "Chargement de la carte…",
       "empty": "Aucun manège avec coordonnées GPS pour l'instant",
       "openInMaps": "Ouvrir dans Maps",
-      "siteCount": "%{count} manège(s) affiché(s)"
+      "siteCount": "%{count} manège(s) affiché(s)",
+      "statusActif": "Actif",
+      "statusFerme": "Fermé",
+      "statusTemporaire": "Temporaire",
+      "statusAutomatique": "Automatique"
     },
     "training": {
       "title": "Vidéo Formation",
@@ -128,10 +132,20 @@
     "messages": {
       "title": "Messages",
       "empty": "Aucun message pour le moment",
+      "emptyTous": "Les messages pour tout le staff apparaîtront ici.",
+      "emptyZone": "Les messages de cette zone apparaîtront ici.",
+      "emptyNotifications": "Météo du jour, recaps et infos auto apparaîtront ici.",
+      "notifications": "Notifications",
       "sourceAppli": "🤖 L'Appli",
-      "sourceBureau": "👥 Le Bureau",
+      "sourceBureau": "👧🏻 Le Bureau",
+      "sourceAppliName": "L'Appli",
+      "sourceBureauName": "Le Bureau",
       "ackButton": "Je confirme avoir lu",
-      "ackedLabel": "Lecture confirmée ✅"
+      "ackedLabel": "Lecture confirmée",
+      "pinned": "Épinglés",
+      "zones": "Zones",
+      "tous": "Tous",
+      "noMessage": "Aucun message"
     },
     "suggestions": {
       "title": "Boîte à idées",

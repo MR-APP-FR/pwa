@@ -73,6 +73,10 @@ textarea {
   z-index: 0;
 }
 
+.sites-map .leaflet-tile-pane {
+  filter: grayscale(1);
+}
+
 
 
 .leaflet-popup-content-wrapper {

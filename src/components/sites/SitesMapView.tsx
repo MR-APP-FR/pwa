@@ -1,37 +1,35 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import L from 'leaflet';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { RADIUS } from '../../constants/design';
 import { useSites } from '../../hooks/api/useSites';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import type { Site } from '../../database/types';
+import type { Site, SiteStatut } from '../../database/types';
 
 import 'leaflet/dist/leaflet.css';
 
-const FRANCE_CENTER: L.LatLngExpression = [46.6, 2.4];
-const FRANCE_ZOOM = 5.5;
+const FRANCE_CENTER: L.LatLngExpression = [46.6034, 1.8883];
+const FRANCE_ZOOM = 6;
+const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-/** Fond minimal N&B + labels Positron (typo légère, assombrissement doux via CSS) */
-const MAP_BASE_URL = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-const MAP_LABELS_URL = 'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png';
-const MAP_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const LABELS_PANE = 'labels';
+const STATUS_I18N: Record<SiteStatut, string> = {
+  actif: 'screens.sitesMap.statusActif',
+  ferme: 'screens.sitesMap.statusFerme',
+  temporaire: 'screens.sitesMap.statusTemporaire',
+  automatique: 'screens.sitesMap.statusAutomatique',
+};
 
-function MapLabelLayer() {
-  const map = useMap();
-
-  if (!map.getPane(LABELS_PANE)) {
-    map.createPane(LABELS_PANE);
-    const pane = map.getPane(LABELS_PANE);
-    if (pane) pane.style.zIndex = '350';
-  }
-
-  return <TileLayer pane={LABELS_PANE} url={MAP_LABELS_URL} />;
-}
+const STATUS_BADGE: Record<SiteStatut, { backgroundColor: string; color: string }> = {
+  actif: { backgroundColor: '#dcfce7', color: '#166534' },
+  ferme: { backgroundColor: '#fee2e2', color: '#991b1b' },
+  temporaire: { backgroundColor: '#fef9c3', color: '#854d0e' },
+  automatique: { backgroundColor: '#dbeafe', color: '#1e40af' },
+};
 
 const PIN_ICON = L.icon({
   iconUrl: '/pin.png',
@@ -44,6 +42,25 @@ function hasCoordinates(site: Site): site is Site & { latitude: number; longitud
   return site.latitude != null && site.longitude != null;
 }
 
+function MapBounds({ sites }: { sites: Array<Site & { latitude: number; longitude: number }> }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (sites.length === 0) {
+      map.setView(FRANCE_CENTER, FRANCE_ZOOM);
+      return;
+    }
+    if (sites.length === 1) {
+      map.setView([sites[0].latitude, sites[0].longitude], 13);
+      return;
+    }
+    const bounds = L.latLngBounds(sites.map((site) => [site.latitude, site.longitude]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [map, sites]);
+
+  return null;
+}
+
 export default function SitesMapView() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -54,77 +71,72 @@ export default function SitesMapView() {
     [data?.sites],
   );
 
-  if (sitesWithCoords.length === 0) {
-    return (
-      <div
-        className="flex flex-1 items-center justify-center px-6"
-        style={{ backgroundColor: colors.BG_SECONDARY }}
-      >
-        <p className="text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-          {t('screens.sitesMap.empty')}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex-1" style={{ minHeight: 0 }}>
-      <div className="absolute inset-0">
-      <MapContainer
-        className="sites-map"
-        center={FRANCE_CENTER}
-        zoom={FRANCE_ZOOM}
-        style={{ height: '100%', width: '100%', backgroundColor: '#f2f2f2' }}
-        scrollWheelZoom
-      >
-        <TileLayer attribution={MAP_ATTRIBUTION} url={MAP_BASE_URL} />
-        <MapLabelLayer />
-        {sitesWithCoords.map((site) => (
-          <Marker
-            key={site.id}
-            position={[site.latitude, site.longitude]}
-            icon={PIN_ICON}
-          >
-            <Popup>
-              <div className="min-w-[160px] space-y-2 p-0.5">
-                <p className="text-sm font-bold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
-                  {site.name}
-                </p>
-                {(site.adresse || site.ville) && (
-                  <p className="text-xs leading-snug" style={{ color: colors.TEXT_SECONDARY }}>
-                    {site.adresse || site.ville}
-                  </p>
-                )}
-                <a
-                  href={`https://maps.google.com/?q=${site.latitude},${site.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold uppercase tracking-wide"
-                  style={{
-                    backgroundColor: colors.PRIMARY,
-                    color: colors.TEXT_INVERSE,
-                    borderRadius: RADIUS.sm,
-                  }}
-                >
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                  </svg>
-                  {t('screens.planning.go')}
-                </a>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <div className="absolute inset-0 [&_.leaflet-tile-pane]:grayscale">
+        <MapContainer
+          className="sites-map"
+          center={FRANCE_CENTER}
+          zoom={FRANCE_ZOOM}
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom
+        >
+          <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILES} />
+          <MapBounds sites={sitesWithCoords} />
+          {sitesWithCoords.map((site) => {
+            const statut = site.statut ?? 'automatique';
+            const badge = STATUS_BADGE[statut];
+            return (
+              <Marker
+                key={site.id}
+                position={[site.latitude, site.longitude]}
+                icon={PIN_ICON}
+              >
+                <Popup>
+                  <div className="min-w-40 space-y-1.5 p-0.5">
+                    <p className="text-sm font-semibold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
+                      {site.name}
+                    </p>
+                    {site.adresse ? (
+                      <p className="text-xs leading-snug" style={{ color: colors.TEXT_SECONDARY }}>
+                        {site.adresse}
+                      </p>
+                    ) : null}
+                    {site.ville || site.code_postal ? (
+                      <p className="text-xs leading-snug" style={{ color: colors.TEXT_SECONDARY }}>
+                        {[site.code_postal, site.ville].filter(Boolean).join(' ')}
+                      </p>
+                    ) : null}
+                    {site.metro ? (
+                      <p className="text-xs leading-snug" style={{ color: colors.TEXT_SECONDARY }}>
+                        🚇 {site.metro}
+                      </p>
+                    ) : null}
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={badge}
+                    >
+                      {t(STATUS_I18N[statut])}
+                    </span>
+                    <a
+                      href={`https://maps.google.com/?q=${site.latitude},${site.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold uppercase tracking-wide"
+                      style={{
+                        backgroundColor: colors.PRIMARY,
+                        color: colors.TEXT_INVERSE,
+                        borderRadius: RADIUS.sm,
+                      }}
+                    >
+                      {t('screens.planning.go')}
+                    </a>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
       </div>
 
       <div

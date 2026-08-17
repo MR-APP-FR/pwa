@@ -23,13 +23,17 @@ export interface UserInfo {
   ressenti: string | null;
   permis: boolean;
   voiture: boolean;
-  les_transports: string | null;
+  les_transports: boolean | null;
   part_avec_les_campings: boolean;
   combien_de_temps_en_general: string | null;
   reste_tout_lhiver_sur: string | null;
   religion: string | null;
   chretienne: boolean;
+  baptise: boolean | null;
   famille: string | null;
+  famille_frequente: string | null;
+  famille_mariee_divorcee: string | null;
+  famille_enfants: string | null;
   rsa: string | null;
   declaree: boolean;
   sait_lire: boolean;

@@ -63,7 +63,11 @@
       "loading": "Loading map…",
       "empty": "No carousel with GPS coordinates yet",
       "openInMaps": "Open in Maps",
-      "siteCount": "%{count} carousel(s) shown"
+      "siteCount": "%{count} carousel(s) shown",
+      "statusActif": "Active",
+      "statusFerme": "Closed",
+      "statusTemporaire": "Temporary",
+      "statusAutomatique": "Automatic"
     },
     "training": {
       "title": "Training video",
@@ -128,10 +132,20 @@
     "messages": {
       "title": "Messages",
       "empty": "No messages yet",
+      "emptyTous": "Messages for everyone will show up here.",
+      "emptyZone": "Messages for this zone will show up here.",
+      "emptyNotifications": "Daily weather, recaps and auto updates will show up here.",
+      "notifications": "Notifications",
       "sourceAppli": "🤖 The App",
-      "sourceBureau": "👥 The Office",
+      "sourceBureau": "👧🏻 The Office",
+      "sourceAppliName": "The App",
+      "sourceBureauName": "The Office",
       "ackButton": "I confirm I've read it",
-      "ackedLabel": "Read confirmed ✅"
+      "ackedLabel": "Read confirmed",
+      "pinned": "Pinned",
+      "zones": "Zones",
+      "tous": "Everyone",
+      "noMessage": "No messages"
     },
     "suggestions": {
       "title": "Suggestion box",

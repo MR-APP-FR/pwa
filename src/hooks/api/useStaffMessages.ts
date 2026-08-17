@@ -22,7 +22,7 @@ export function useStaffMessages() {
 
       const { data: messages, error } = await supabase
         .from('staff_message')
-        .select('id, titre, corps, source, require_ack, publie_at, expire_at, created_at')
+        .select('id, titre, corps, source, require_ack, publie_at, expire_at, created_at, site_ids, user_ids')
         .order('publie_at', { ascending: false })
         .limit(100);
       if (error) throw new Error(`useStaffMessages fetch failed: ${error.message}`);
@@ -39,6 +39,8 @@ export function useStaffMessages() {
         const ack = ackByMessage.get(m.id);
         return {
           ...m,
+          site_ids: m.site_ids ?? [],
+          user_ids: m.user_ids ?? [],
           read_at: ack?.read_at ?? null,
           acked_at: ack?.acked_at ?? null,
         };
