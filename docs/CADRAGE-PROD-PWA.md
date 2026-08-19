@@ -99,6 +99,21 @@ existe.
    l'action ne le renseigne pas → le brancher depuis le collègue (`double_id`) de la
    mission.
 
+> **Mise à jour 2026-08-19 (audit du 2026-08-18, Lot 1)** — l'hypothèse du point 1
+> était fausse : `daily_info` porte bien une contrainte unique `(site_id, date)`
+> (`daily_info_unique_site_date`), posée dans une migration antérieure. L'ouverture ET
+> la fermeture appelant toutes deux `submitDailyInfo` en `insert`, toute fermeture avec
+> panne sur un site déjà ouvert levait une violation de contrainte 23505 — la panne
+> était perdue, aucune intervention créée. Le modèle a été revu : **une ligne par
+> (site, jour)** pour les trois tables (`opening_form`, `closing_form`, `daily_info`),
+> cohérent avec cette contrainte déjà existante. `daily_info` est passée en upsert
+> `onConflict: 'site_id,date'` avec fusion partielle (les champs omis par un appelant
+> ne sont pas réinitialisés par l'autre — cf. `pwa/src/lib/actions/daily-info.ts`).
+> La contrainte concurrente `(site_id,date,user_id)` sur `opening_form`/`closing_form`
+> a été supprimée. Le point 6 est fait : `partner_user_id` est renseigné depuis
+> `planning.double_id`. Migration :
+> `pwa/supabase/migrations/20260819000002_gre_terrain_forms_site_day_model.sql`.
+
 ### 3b — Payes + contrôle enveloppe (fermeture) — ✅ LIVRÉE
 
 Livré côté PWA (pas de migration : colonnes `paye_jour` / `paye_double` réutilisées).
@@ -283,6 +298,18 @@ Chemins PWA actuels :
 
 > URL stockée = `getPublicUrl` → bucket public = photos **devinables**. Trancher avec
 > l'admin (doc jumeau étape 2) : garder public vs privé + path en base + URL signée.
+>
+> **Fait le 2026-08-19** (audit du 2026-08-18 §3.4, Lot 3) : bucket passé en privé
+> (`public = false`, `file_size_limit` 8 Mo, `allowed_mime_types` image/jpeg,png,webp).
+> `closing_form.photo_url` / `daily_info.photo_nettoyage_url` stockent désormais le
+> **path** storage (les lignes existantes ont été migrées). Le CRM résout une URL
+> signée à l'affichage via `lib/actions/terrain-photos.ts:getTerrainPhotoSignedUrl`
+> (TTL 10 min, même motif que `staff-documents.ts`). Migration :
+> `pwa/supabase/migrations/20260819000003_gre_telecollecte_photos_private.sql`.
+> Point non traité : la policy Storage SELECT reste ouverte à tout `authenticated`
+> (pas de restriction par propriétaire) — un employé PWA pourrait en théorie deviner
+> le path d'une photo d'un autre site. Accepté pour l'instant (même niveau de risque
+> qu'avant sur les autres tables à lecture large), à revoir si ça devient un problème.
 
 #### RPC démo
 

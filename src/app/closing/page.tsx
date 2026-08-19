@@ -337,15 +337,15 @@ function ClosingContent() {
         }
 
         if (hasPannes) {
+          // nettoyageVeille / carteParking / musiqueDisney omis (undefined) :
+          // la fermeture ne recueille pas ces champs et ne doit pas écraser
+          // ce que l'ouverture a déjà écrit sur la même ligne site/jour.
           const dailyResult = await submitDailyInfo({
             siteId: mission.site_id,
             date,
-            nettoyageVeille: null,
             panneSujetIds: selectedSujetIds,
             pannesAutre: pannesAutre.trim() || null,
             pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
-            carteParking: null,
-            musiqueDisney: null,
           });
           if (!dailyResult.ok) {
             setSubmitError(dailyResult.error);

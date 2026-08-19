@@ -39,6 +39,7 @@ export async function updateSession(request: NextRequest) {
   const isPublicRoute =
     pathname.startsWith('/login') ||
     pathname.startsWith('/auth') ||
+    pathname.startsWith('/dev/bypass-login') ||
     pathname === '/sw.js' ||
     pathname === '/manifest.json';
   const isPremiereConnexionRoute = pathname.startsWith('/premiere-connexion');

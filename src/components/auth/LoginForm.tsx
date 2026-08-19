@@ -8,7 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
 
-export function LoginForm() {
+export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const router = useRouter();
@@ -41,11 +41,6 @@ export function LoginForm() {
     e.preventDefault();
     await doSignIn(email, password);
   }
-
-  const devBypassEmail = process.env.NEXT_PUBLIC_DEV_LOGIN_EMAIL;
-  const devBypassPassword = process.env.NEXT_PUBLIC_DEV_LOGIN_PASSWORD;
-  const devBypassEnabled =
-    process.env.NODE_ENV === 'development' && !!devBypassEmail && !!devBypassPassword;
 
   const inputStyle = {
     borderColor: colors.BORDER,
@@ -105,16 +100,14 @@ export function LoginForm() {
           {error}
         </p>
       )}
-      {devBypassEnabled && (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => doSignIn(devBypassEmail!, devBypassPassword!)}
-          className="w-full border py-3 text-sm font-medium"
+      {devBypassEmail && (
+        <a
+          href="/dev/bypass-login"
+          className="block w-full border py-3 text-center text-sm font-medium"
           style={{ ...inputStyle, borderStyle: 'dashed' }}
         >
           Dev bypass ({devBypassEmail})
-        </button>
+        </a>
       )}
     </form>
   );

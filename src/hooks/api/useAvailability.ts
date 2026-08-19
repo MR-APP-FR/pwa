@@ -9,7 +9,8 @@ import { useCurrentUser } from './useCurrentUser';
  * de dates, pour préremplir /availability.
  */
 
-export interface AvailabilityRow {
+/** Projection partielle (date, available, note) — pas le type table complet, cf. `database/types/AvailabilityRow`. */
+export interface AvailabilitySummaryRow {
   date: string;
   available: boolean;
   note: string | null;
@@ -19,7 +20,7 @@ export function useAvailability(startIso: string, endIso: string) {
   const { data: currentUser } = useCurrentUser();
   const employeeId = currentUser?.user.id ?? null;
 
-  return useQuery<AvailabilityRow[]>({
+  return useQuery<AvailabilitySummaryRow[]>({
     queryKey: ['availability', employeeId, startIso, endIso],
     enabled: employeeId !== null && startIso.length > 0 && endIso.length > 0,
     queryFn: async () => {
@@ -35,7 +36,7 @@ export function useAvailability(startIso: string, endIso: string) {
       if (error) {
         throw new Error(`useAvailability fetch failed: ${error.message}`);
       }
-      return (data ?? []) as AvailabilityRow[];
+      return (data ?? []) as AvailabilitySummaryRow[];
     },
     staleTime: 60 * 1000,
   });

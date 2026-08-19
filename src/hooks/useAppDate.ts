@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { SITE_TIME_RANGES, SITE_TIME_RANGES_FULL } from '../constants/siteHours';
 import { getDevDateOverride } from '../lib/dev/dateOverrideClient';
+import { toParisLocalDate } from '../lib/parisTime';
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -16,7 +16,9 @@ function getMonday(d: Date): Date {
 /** Date / bornes de semaine utilisées par l'accueil, le planning et les missions. */
 export function useAppDate() {
   return useMemo(() => {
-    const today = getDevDateOverride() ?? new Date();
+    // Y/M/D calés sur le jour calendaire Europe/Paris, quel que soit le
+    // fuseau de l'appareil — cf. audit 2026-08-18 §3.5.
+    const today = toParisLocalDate(getDevDateOverride() ?? new Date());
     const weekStart = getMonday(today);
 
     const nextWeekStart = new Date(weekStart);
@@ -32,8 +34,6 @@ export function useAppDate() {
       weekStart,
       nextWeekStart,
       nextWeekEnd,
-      siteTimeRanges: SITE_TIME_RANGES,
-      siteTimeRangesFull: SITE_TIME_RANGES_FULL,
     };
   }, []);
 }

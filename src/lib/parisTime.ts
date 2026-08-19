@@ -48,6 +48,43 @@ function getParisWallParts(utcMs: number) {
   };
 }
 
+/** Parties Y/M/D du jour calendaire Europe/Paris correspondant à un instant. */
+export function getParisDateIsoParts(instant: Date = new Date()): { y: number; mo: number; d: number } {
+  const p = getParisWallParts(instant.getTime());
+  return { y: p.y, mo: p.mo, d: p.d };
+}
+
+/**
+ * `Date` locale (au sens `getFullYear`/`getMonth`/`getDate`/`getDay`) dont les
+ * champs Y/M/D correspondent au jour calendaire Europe/Paris de `instant`.
+ * Permet de réutiliser tel quel du code existant qui lit ces getters sans
+ * changer son fuseau interne — cf. audit 2026-08-18 §3.5 (dérive PWA/CRM).
+ */
+export function toParisLocalDate(instant: Date = new Date()): Date {
+  const { y, mo, d } = getParisDateIsoParts(instant);
+  return new Date(y, mo - 1, d);
+}
+
+/**
+ * Parse une date ISO `YYYY-MM-DD` en `Date` locale à minuit — jamais
+ * `new Date(dateIso)`, qui parse en UTC et peut faire glisser le jour d'un
+ * cran selon le fuseau du runtime.
+ */
+export function parseIsoDateAsLocalDate(dateIso: string): Date {
+  const parsed = parseDateIsoParts(dateIso);
+  if (!parsed) return toParisLocalDate();
+  return new Date(parsed.y, parsed.mo - 1, parsed.d);
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** `Date` locale (Y/M/D déjà corrects, cf. `toParisLocalDate`) -> `YYYY-MM-DD`. */
+export function toIsoDateString(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
 /** Instant UTC correspondant à une heure murale Europe/Paris sur le jour `dateIso` (YYYY-MM-DD). */
 export function parisWallClockToDate(
   dateIso: string,

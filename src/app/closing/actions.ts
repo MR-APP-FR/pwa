@@ -11,7 +11,7 @@ import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
  */
 
 export type SubmitClosingResult =
-  | { ok: true; id: number; photoUrl: string }
+  | { ok: true; id: number; photoPath: string }
   | { ok: false; error: string };
 
 const PHOTO_BUCKET = 'telecollecte-photos';
@@ -59,6 +59,16 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   if (!Number.isFinite(siteId) || siteId <= 0) return { ok: false, error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'Date invalide.' };
   if (!Number.isFinite(recetteTotale)) return { ok: false, error: 'Recette totale manquante.' };
+  // Garde-fou valeurs aberrantes — cf. audit 2026-08-18 §3.6 (incident mars 2026 :
+  // 2229 enfants saisis pour 29 réels). Ne bloque pas les gros sites, juste les
+  // erreurs de saisie manifestes (chiffre collé, virgule ratée).
+  if (recetteTotale < 0 || recetteTotale > 10000) {
+    return { ok: false, error: 'Recette totale invraisemblable — vérifie la saisie.' };
+  }
+  const nbEnfantsCheck = nullableNumber(formData, 'nbEnfants');
+  if (nbEnfantsCheck !== null && (nbEnfantsCheck < 0 || nbEnfantsCheck > 500)) {
+    return { ok: false, error: "Nombre d'enfants invraisemblable — vérifie la saisie." };
+  }
   if (!(photo instanceof File) || photo.size === 0) {
     return { ok: false, error: 'Photo de télécollecte manquante.' };
   }
@@ -99,8 +109,25 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     return { ok: false, error: `Upload photo échoué : ${upload.error.message}` };
   }
 
-  const publicUrl = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(upload.data.path).data
-    .publicUrl;
+  // Bucket privé (audit 2026-08-18 §3.4) : on stocke le path, jamais une URL
+  // publique — le CRM résout une URL signée à l'affichage.
+  const photoPath = upload.data.path;
+
+  const [y, m, d] = date.split('-').map(Number);
+  const { data: planningRow } = await supabase
+    .from('planning')
+    .select('user_id, double_id')
+    .eq('site_id', siteId)
+    .eq('year', y)
+    .eq('month', m)
+    .eq('day', d)
+    .maybeSingle();
+  const partnerUserId =
+    planningRow?.user_id === userId
+      ? (planningRow?.double_id ?? null)
+      : planningRow?.double_id === userId
+        ? (planningRow?.user_id ?? null)
+        : null;
 
   const { data, error } = await supabase
     .from('closing_form')
@@ -108,6 +135,7 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
       {
         site_id: siteId,
         user_id: userId,
+        partner_user_id: partnerUserId,
         date,
         recette_totale: recetteTotale,
         carte_bleue: nullableNumber(formData, 'carteBleue'),
@@ -120,13 +148,13 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         point_caisse_13_14: nullableNumber(formData, 'pointCaisse13h'),
         point_caisse_20_2035: nullableNumber(formData, 'pointCaisse20h'),
         observations: nullableText(formData, 'observations'),
-        photo_url: publicUrl,
+        photo_url: photoPath,
         photo_source: photoSourceRaw,
         photo_captured_at: photoCapturedAtIso,
         checklist: parseChecklist(formData),
         avis_google_count: nullableNumber(formData, 'avisGoogleCount') ?? 0,
       },
-      { onConflict: 'site_id,date,user_id' },
+      { onConflict: 'site_id,date' },
     )
     .select('id')
     .single();
@@ -135,5 +163,5 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     return { ok: false, error: `Enregistrement closing_form a échoué : ${error.message}` };
   }
 
-  return { ok: true, id: data.id, photoUrl: publicUrl };
+  return { ok: true, id: data.id, photoPath };
 }

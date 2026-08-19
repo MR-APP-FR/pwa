@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { User, X, Search, MapPin, Check, LogOut } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -13,6 +14,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
 import { PushSettingsRow } from '../../components/pwa/PushSettingsRow';
+import { updatePreferredSites } from './actions';
 
 function EditSitesModal({
   isOpen,
@@ -31,12 +33,16 @@ function EditSitesModal({
   const [selectedIds, setSelectedIds] = useState<number[]>(initialSelectedIds);
   const [searchQuery, setSearchQuery] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, startSaving] = useTransition();
   const backdropRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
       setSelectedIds(initialSelectedIds);
       setSearchQuery('');
+      setSaveError(null);
       requestAnimationFrame(() => setIsVisible(true));
     } else {
       setIsVisible(false);
@@ -46,6 +52,19 @@ function EditSitesModal({
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 200);
+  };
+
+  const handleSave = () => {
+    setSaveError(null);
+    startSaving(async () => {
+      const result = await updatePreferredSites(selectedIds);
+      if (!result.ok) {
+        setSaveError(result.error);
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      handleClose();
+    });
   };
 
   const toggleSite = (siteId: number) => {
@@ -202,23 +221,30 @@ function EditSitesModal({
             ))
           )}
         </div>
+        {saveError && (
+          <p className="px-5 pb-1 text-xs" style={{ color: colors.ACCENT_RED ?? '#EB5757' }}>
+            {saveError}
+          </p>
+        )}
         <div
           className="flex gap-3 px-5 py-4 border-t"
           style={{ borderColor: colors.TEXT_SECONDARY + '12' }}
         >
           <button
             onClick={handleClose}
+            disabled={isSaving}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors duration-150"
             style={{ borderColor: colors.TEXT_SECONDARY + '20', color: colors.TEXT_SECONDARY }}
           >
             Annuler
           </button>
           <PrimaryButton
-            onClick={handleClose}
+            onClick={handleSave}
+            disabled={isSaving}
             className="flex flex-[1.5] items-center justify-center gap-1.5 py-2.5 text-sm"
           >
             <Check size={16} />
-            Sauvegarder
+            {isSaving ? 'Enregistrement…' : 'Sauvegarder'}
           </PrimaryButton>
         </div>
       </div>

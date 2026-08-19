@@ -21,3 +21,5 @@ export type {
 export { WEATHER_BRIEF_MESSAGE_ID, MESSAGE_SOURCE_ICON } from './messages.types';
 export type { SiteWeather, WeatherCondition, WeatherSource, CrowdLevel } from './weather.types';
 export type { PushSubscriptionRow } from './push.types';
+export type { AvailabilityRow } from './availability.types';
+export type { Sujet } from './sujet.types';

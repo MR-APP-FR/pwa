@@ -76,12 +76,18 @@ interface SubmitDailyInfoInput {
   siteId: number;
   /** Format ISO date YYYY-MM-DD — date de la mission */
   date: string;
-  nettoyageVeille: boolean | null;
+  /**
+   * `undefined` = ne pas toucher ce champ (cas de la fermeture, qui ne
+   * recueille pas ces informations et ne doit pas écraser ce que l'ouverture
+   * a déjà écrit sur la même ligne site/jour). `null` = valeur explicitement
+   * effacée.
+   */
+  nettoyageVeille?: boolean | null;
   panneSujetIds: number[];
   pannesAutre: string | null;
   pannes: string | null;
-  carteParking: boolean | null;
-  musiqueDisney: boolean | null;
+  carteParking?: boolean | null;
+  musiqueDisney?: boolean | null;
   /** Photo optionnelle du nettoyage veille (cf. étape 2 du cadrage prod). */
   nettoyagePhoto?: File | null;
   nettoyagePhotoSource?: PhotoSource | null;
@@ -122,9 +128,9 @@ export async function submitDailyInfo(
       return { ok: false, error: `Upload photo nettoyage échoué : ${upload.error.message}` };
     }
 
-    photoNettoyageUrl = supabase.storage
-      .from(NETTOYAGE_PHOTO_BUCKET)
-      .getPublicUrl(upload.data.path).data.publicUrl;
+    // Bucket privé (audit 2026-08-18 §3.4) : on stocke le path, jamais une
+    // URL publique — le CRM résout une URL signée à l'affichage.
+    photoNettoyageUrl = upload.data.path;
     photoSource = input.nettoyagePhotoSource ?? 'phototheque';
     photoCapturedAt =
       input.nettoyagePhotoCapturedAtMs != null
@@ -132,27 +138,37 @@ export async function submitDailyInfo(
         : null;
   }
 
+  // Upsert idempotent : une seule ligne par (site, jour) — modèle arbitré le
+  // 2026-08-18 (audit §Lot 1). Ouverture et fermeture peuvent toutes deux
+  // écrire cette ligne le même jour ; les champs omis du payload (nettoyage,
+  // photo) ne sont PAS réinitialisés par PostgREST côté conflit — seuls les
+  // champs explicitement fournis sont mis à jour. Ne jamais passer `null` en
+  // dur pour un champ qu'on ne recueille pas ici (cf. appel depuis /closing).
+  const row: Record<string, unknown> = {
+    site_id: input.siteId,
+    user_id: userId,
+    date: input.date,
+    pannes_sujet_ids: input.panneSujetIds,
+    pannes_autre: input.pannesAutre,
+    pannes: input.pannes,
+  };
+  if (input.nettoyageVeille !== undefined) row.nettoyage_veille = input.nettoyageVeille;
+  if (input.carteParking !== undefined) row.carte_parking = input.carteParking;
+  if (input.musiqueDisney !== undefined) row.musique_disney = input.musiqueDisney;
+  if (photoNettoyageUrl !== null) {
+    row.photo_nettoyage_url = photoNettoyageUrl;
+    row.photo_source = photoSource;
+    row.photo_captured_at = photoCapturedAt;
+  }
+
   const { data, error } = await supabase
     .from('daily_info')
-    .insert({
-      site_id: input.siteId,
-      user_id: userId,
-      date: input.date,
-      nettoyage_veille: input.nettoyageVeille,
-      pannes_sujet_ids: input.panneSujetIds,
-      pannes_autre: input.pannesAutre,
-      pannes: input.pannes,
-      carte_parking: input.carteParking,
-      musique_disney: input.musiqueDisney,
-      photo_nettoyage_url: photoNettoyageUrl,
-      photo_source: photoSource,
-      photo_captured_at: photoCapturedAt,
-    })
+    .upsert(row, { onConflict: 'site_id,date' })
     .select('id')
     .single();
 
   if (error) {
-    return { ok: false, error: `Insert daily_info a échoué : ${error.message}` };
+    return { ok: false, error: `Enregistrement daily_info a échoué : ${error.message}` };
   }
   return { ok: true, id: data.id };
 }

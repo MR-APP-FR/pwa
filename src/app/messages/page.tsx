@@ -12,6 +12,7 @@ import { useSites } from '../../hooks/api/useSites';
 import { useWeatherBriefRead } from '../../hooks/useWeatherBriefRead';
 import { useAppDate } from '../../hooks/useAppDate';
 import { weatherBriefBody, weatherBriefTitle } from '../../lib/weather/encourageCopy';
+import { toIsoDateString } from '../../lib/parisTime';
 import { markMessagesRead } from './actions';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -28,14 +29,6 @@ import {
   messagesByConversation,
 } from './conversations';
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-function toIsoDate(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
 export default function MessagesPage() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -48,7 +41,7 @@ export default function MessagesPage() {
   const { today, weekYear, weekMonth } = useAppDate();
   const { data: currentUser } = useCurrentUser();
   const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
-  const todayIso = toIsoDate(today);
+  const todayIso = toIsoDateString(today);
   const todayMission = useMemo(
     () =>
       (planningData?.planning ?? []).find(

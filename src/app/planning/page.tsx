@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
+import { useSitesHeuresOuverture } from '../../hooks/api/useSitesHeuresOuverture';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
@@ -12,6 +13,7 @@ import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
+import { dateIsoToJourSemaineKey, toIsoDateString, type HeuresSemaine } from '../../lib/parisTime';
 
 interface WeekDay {
   date: Date;
@@ -20,11 +22,36 @@ interface WeekDay {
   timeRange?: string;
 }
 
+function formatHeureCourte(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const m = String(raw).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+  return min === 0 ? `${h}h` : `${h}h${String(min).padStart(2, '0')}`;
+}
+
+/** Horaires du jour pour le site de la mission, dérivés de `site_infos.heures_semaine`. */
+function buildTimeRange(
+  mission: PlanningWithColleague | null,
+  date: Date,
+  heuresBySite: Map<number, HeuresSemaine>,
+): string | undefined {
+  if (!mission) return undefined;
+  const heures = heuresBySite.get(mission.site_id);
+  const jour = heures?.[dateIsoToJourSemaineKey(toIsoDateString(date))];
+  const ouvre = formatHeureCourte(jour?.ouvre);
+  if (!ouvre) return undefined;
+  const doubleH = formatHeureCourte(jour?.double);
+  return doubleH ? `Ouverture ${ouvre} · double ${doubleH}` : `Ouverture ${ouvre}`;
+}
+
 function getWeekDays(
   weekStart: Date,
   missions: PlanningWithColleague[],
   today: Date,
-  timeRangesFull: Record<number, string>,
+  heuresBySite: Map<number, HeuresSemaine>,
 ): WeekDay[] {
   const days: WeekDay[] = [];
   for (let i = 0; i < 7; i++) {
@@ -44,7 +71,7 @@ function getWeekDays(
         date.getDate() === today.getDate() &&
         date.getMonth() === today.getMonth() &&
         date.getFullYear() === today.getFullYear(),
-      timeRange: mission ? timeRangesFull[mission.site_id] : undefined,
+      timeRange: buildTimeRange(mission, date, heuresBySite),
     });
   }
   return days;
@@ -54,7 +81,7 @@ export default function PlanningPage() {
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { today, weekStart: baseWeekStart, siteTimeRangesFull } = useAppDate();
+  const { today, weekStart: baseWeekStart } = useAppDate();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const viewedWeekStart = useMemo(() => {
@@ -69,9 +96,12 @@ export default function PlanningPage() {
   const { data: planningData } = usePlanning({ year: viewedYear, month: viewedMonth });
   const missions = planningData?.planning ?? [];
 
+  const weekSiteIds = useMemo(() => missions.map((m) => m.site_id), [missions]);
+  const { data: heuresBySite } = useSitesHeuresOuverture(weekSiteIds);
+
   const weekDays = useMemo(
-    () => getWeekDays(viewedWeekStart, missions, today, siteTimeRangesFull),
-    [viewedWeekStart, missions, today, siteTimeRangesFull],
+    () => getWeekDays(viewedWeekStart, missions, today, heuresBySite ?? new Map()),
+    [viewedWeekStart, missions, today, heuresBySite],
   );
 
   const weekSubtitle = t('screens.planning.planningWeekTitle', {

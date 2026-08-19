@@ -13,6 +13,13 @@ export default async function LoginPage() {
     redirect('/');
   }
 
+  const devBypassEmail =
+    process.env.NODE_ENV === 'development' &&
+    process.env.DEV_LOGIN_EMAIL &&
+    process.env.DEV_LOGIN_PASSWORD
+      ? process.env.DEV_LOGIN_EMAIL
+      : undefined;
+
   return (
     <div className="flex min-h-screen flex-col px-6 py-10">
       <div className="mb-10 flex flex-col items-center gap-4 pt-6">
@@ -37,7 +44,7 @@ export default async function LoginPage() {
           </p>
         </div>
       </div>
-      <LoginForm />
+      <LoginForm devBypassEmail={devBypassEmail} />
     </div>
   );
 }

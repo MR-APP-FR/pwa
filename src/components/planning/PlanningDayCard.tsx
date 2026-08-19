@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PLANNING_DAY_ACCENTS } from '../../constants/colors';
@@ -19,6 +20,7 @@ interface PlanningDayCardProps {
 export function PlanningDayCard({ date, mission, isToday, timeRange, dayIndex = 0 }: PlanningDayCardProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const router = useRouter();
 
   const dayLabel = formatWeekday(date);
   const dateLabel = formatDayMonth(date);
@@ -56,6 +58,8 @@ export function PlanningDayCard({ date, mission, isToday, timeRange, dayIndex = 
     </div>
   );
 
+  // Audit 2026-08-18 §4.2 : la carte n'était ni Link ni onClick — depuis
+  // /planning, aucune mission n'était ouvrable.
   return (
     <div
       className="mx-4 mb-3 p-4"
@@ -64,7 +68,21 @@ export function PlanningDayCard({ date, mission, isToday, timeRange, dayIndex = 
         borderRadius: RADIUS.md,
         boxShadow: colors.CARD_SHADOW,
         border: `1px solid ${colors.BORDER}`,
+        cursor: mission ? 'pointer' : undefined,
       }}
+      role={mission ? 'button' : undefined}
+      tabIndex={mission ? 0 : undefined}
+      onClick={mission ? () => router.push(`/mission?id=${mission.id}`) : undefined}
+      onKeyDown={
+        mission
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push(`/mission?id=${mission.id}`);
+              }
+            }
+          : undefined
+      }
     >
       <div className="flex flex-col gap-1.5">
         {dayHeader}

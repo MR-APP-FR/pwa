@@ -53,7 +53,9 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
     return { ok: false, error: session.error };
   }
 
-  // Upsert idempotent : une seule ligne par (site, jour, employé) — cf. étape 3
+  // Upsert idempotent : une seule ligne par (site, jour) — modèle arbitré le
+  // 2026-08-18 (audit §Lot 1). Le dernier soumetteur (teneur ou double) devient
+  // user_id ; ça évite l'échec 23505 du second teneur d'un binôme.
   const { data, error } = await session.supabase
     .from('opening_form')
     .upsert(
@@ -66,7 +68,7 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
         fond_caisse_100: parsed.fondCaisse100,
         observations: parsed.observations,
       },
-      { onConflict: 'site_id,date,user_id' },
+      { onConflict: 'site_id,date' },
     )
     .select('id')
     .single();

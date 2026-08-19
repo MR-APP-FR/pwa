@@ -14,6 +14,7 @@ import { RADIUS } from '../../constants/design';
 import { useAvailability } from '../../hooks/api/useAvailability';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { isBrowserOffline } from '../../lib/offline';
+import { parseIsoDateAsLocalDate, toIsoDateString, toParisLocalDate } from '../../lib/parisTime';
 import { submitAvailability } from './actions';
 
 interface DayAvailability {
@@ -29,15 +30,6 @@ function buildWeekDays(startDate: Date): Date[] {
   });
 }
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-/** Date locale -> YYYY-MM-DD (cohérent avec l'affichage du jour). */
-function toIsoDate(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
 function AvailabilityContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -46,10 +38,12 @@ function AvailabilityContent() {
 
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
-  const start = startDate ? new Date(startDate) : new Date();
-  const end = endDate ? new Date(endDate) : new Date();
+  // Jamais `new Date(dateString)` (parse en UTC, glisse d'un jour selon le
+  // fuseau du runtime) — cf. audit 2026-08-18 §3.5.
+  const start = startDate ? parseIsoDateAsLocalDate(startDate) : toParisLocalDate();
+  const end = endDate ? parseIsoDateAsLocalDate(endDate) : toParisLocalDate();
   const weekDays = buildWeekDays(start);
-  const weekIso = weekDays.map(toIsoDate);
+  const weekIso = weekDays.map(toIsoDateString);
 
   const { data: currentUser } = useCurrentUser();
   const { data: existing } = useAvailability(weekIso[0] ?? '', weekIso[6] ?? '');
@@ -86,7 +80,7 @@ function AvailabilityContent() {
       return;
     }
     const days = weekDays.map((date, i) => ({
-      date: toIsoDate(date),
+      date: toIsoDateString(date),
       available: availability[i]?.available ?? true,
       note: availability[i]?.note ?? null,
     }));
