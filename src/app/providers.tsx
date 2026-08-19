@@ -2,35 +2,18 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Header } from '../components/layout/Header';
+import { isBarePath, showsShellHeader } from '../components/layout/pageChrome';
 import { InstallBanner } from '../components/pwa/InstallBanner';
 import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-const BARE_PATHS = new Set(['/login']);
-
-/** Permet à un layout de page (ex: FormScrollLayout) de masquer le Header sticky global
- *  pendant qu'il rend son propre Header (variant scrollant). */
-const GlobalHeaderVisibilityContext = createContext<{ hide: () => void; show: () => void } | null>(null);
-
-export function useSuppressGlobalHeader() {
-  const ctx = useContext(GlobalHeaderVisibilityContext);
-  if (!ctx) {
-    throw new Error('useSuppressGlobalHeader must be used within Providers');
-  }
-  return ctx;
-}
-
 function AppShell({ children }: { children: ReactNode }) {
   const { colors } = useThemeColors();
   const pathname = usePathname();
-  const bare = BARE_PATHS.has(pathname);
-
-  const [suppressCount, setSuppressCount] = useState(0);
-  const hide = useCallback(() => setSuppressCount((c) => c + 1), []);
-  const show = useCallback(() => setSuppressCount((c) => Math.max(0, c - 1)), []);
-  const visibility = useMemo(() => ({ hide, show }), [hide, show]);
+  const bare = isBarePath(pathname);
+  const shellHeader = showsShellHeader(pathname);
 
   if (bare) {
     return (
@@ -44,17 +27,15 @@ function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <GlobalHeaderVisibilityContext.Provider value={visibility}>
-      <div
-        className="mx-auto flex min-h-screen max-w-md flex-col"
-        style={{ backgroundColor: colors.BG_SECONDARY }}
-      >
-        {suppressCount === 0 && <Header />}
-        <main className="flex flex-1 flex-col">{children}</main>
-        <PushEnableBanner />
-        <InstallBanner />
-      </div>
-    </GlobalHeaderVisibilityContext.Provider>
+    <div
+      className="mx-auto flex min-h-screen max-w-md flex-col"
+      style={{ backgroundColor: colors.BG_SECONDARY }}
+    >
+      {shellHeader ? <Header /> : null}
+      <main className="flex flex-1 flex-col">{children}</main>
+      <PushEnableBanner />
+      <InstallBanner />
+    </div>
   );
 }
 

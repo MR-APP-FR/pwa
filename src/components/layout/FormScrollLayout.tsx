@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Header } from './Header';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { useSuppressGlobalHeader } from '../../app/providers';
 
 interface FormScrollLayoutProps {
   children: React.ReactNode;
@@ -14,22 +12,12 @@ interface FormScrollLayoutProps {
 const FOOTER_SPACER = 'calc(5.5rem + env(safe-area-inset-bottom))';
 
 /**
- * Layout formulaire : scroll natif de la page.
- * Le header logo défile ; le PageHeader (sticky) se fixe en haut ;
- * le footer d'action reste collé en bas de l'écran.
- *
- * Masque le Header sticky global (rendu par AppShell) pendant son montage,
- * puisqu'il rend lui-même un Header en variant scrollant.
+ * Layout des pages intérieures : scroll natif.
+ * Rend le Header logo (il défile) ; le PageHeader se fixe ensuite.
+ * AppShell ne rend pas de Header sur ces routes (voir pageChrome.ts).
  */
 export function FormScrollLayout({ children, footer }: FormScrollLayoutProps) {
   const { colors } = useThemeColors();
-  const { hide, show } = useSuppressGlobalHeader();
-
-  useEffect(() => {
-    hide();
-    return show;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <>
