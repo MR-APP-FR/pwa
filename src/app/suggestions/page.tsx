@@ -5,15 +5,20 @@ import { useRouter } from 'next/navigation';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { isBrowserOffline } from '../../lib/offline';
-import { submitSuggestionAnonyme } from './actions';
+import { submitSuggestion } from './actions';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { YesNoToggle } from '../../components/common/YesNoToggle';
 import { RADIUS } from '../../constants/design';
 
-const CATEGORIES = ['materiel', 'organisation', 'ambiance', 'autre'] as const;
+const CATEGORIES = ['materiel', 'organisation', 'ambiance', 'autres'] as const;
 type Category = (typeof CATEGORIES)[number];
+
+function categoryLabelKey(cat: Category): string {
+  return `screens.suggestions.category${cat.charAt(0).toUpperCase()}${cat.slice(1)}`;
+}
 
 export default function SuggestionsPage() {
   const router = useRouter();
@@ -22,6 +27,7 @@ export default function SuggestionsPage() {
 
   const [corps, setCorps] = useState('');
   const [categorie, setCategorie] = useState<Category | null>(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -37,13 +43,21 @@ export default function SuggestionsPage() {
       return;
     }
     startTransition(async () => {
-      const result = await submitSuggestionAnonyme(corps, categorie);
+      const result = await submitSuggestion(corps, categorie, isAnonymous);
       if (!result.ok) {
         setError(result.error);
         return;
       }
       setSubmitted(true);
     });
+  };
+
+  const resetForm = () => {
+    setCorps('');
+    setCategorie(null);
+    setIsAnonymous(false);
+    setSubmitted(false);
+    setError(null);
   };
 
   if (submitted) {
@@ -53,21 +67,13 @@ export default function SuggestionsPage() {
           className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6"
           style={{ backgroundColor: colors.BG_SECONDARY }}
         >
-          <span className="text-6xl mb-2">&#x2705;</span>
           <h2 className="text-xl font-bold text-center" style={{ color: colors.TEXT_PRIMARY }}>
             {t('screens.suggestions.successTitle')}
           </h2>
           <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
             {t('screens.suggestions.successDescription')}
           </p>
-          <PrimaryButton
-            onClick={() => {
-              setCorps('');
-              setCategorie(null);
-              setSubmitted(false);
-            }}
-            className="mt-4 px-6 py-3 text-base"
-          >
+          <PrimaryButton onClick={resetForm} className="mt-4 px-6 py-3 text-base">
             {t('screens.suggestions.sendAnother')}
           </PrimaryButton>
           <button
@@ -76,7 +82,7 @@ export default function SuggestionsPage() {
             className="text-sm font-semibold"
             style={{ color: colors.TEXT_SECONDARY }}
           >
-            {'←'} Accueil
+            {t('screens.suggestions.backHome')}
           </button>
         </div>
       </FormScrollLayout>
@@ -86,7 +92,7 @@ export default function SuggestionsPage() {
   return (
     <FormScrollLayout
       footer={
-        <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
+        <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
           <PrimaryButton onClick={handleSubmit} disabled={pending} className="w-full py-4 text-base">
             {pending ? '…' : t('screens.suggestions.submit')}
           </PrimaryButton>
@@ -95,31 +101,20 @@ export default function SuggestionsPage() {
     >
       <div style={{ backgroundColor: colors.BG_SECONDARY }}>
         <FormPinnedPageHeader>
-          <PageHeader pin="static" accent="yellow" title={t('screens.suggestions.title')} showBack />
+          <PageHeader pin="static" accent="orange" title={t('screens.suggestions.title')} showBack />
         </FormPinnedPageHeader>
 
-        <div className="space-y-3 px-4 py-4">
-          <p className="text-sm leading-relaxed" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('screens.suggestions.intro')}
-          </p>
-          <div
-            className="rounded-xl border px-3 py-2.5 text-xs leading-relaxed"
-            style={{
-              borderColor: colors.BORDER,
-              backgroundColor: colors.BG_TERTIARY,
-              color: colors.TEXT_SECONDARY,
-            }}
-          >
-            {t('screens.suggestions.anonymityNotice')}
-          </div>
-
-          <div className="card-surface space-y-4 px-4 py-4">
+        <div className="space-y-4 px-5 py-5">
+          <div className="card-surface space-y-5 px-5 py-5">
+            <p className="text-sm leading-relaxed" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('screens.suggestions.intro')}
+            </p>
             <textarea
               placeholder={t('screens.suggestions.bodyPlaceholder')}
               value={corps}
               onChange={(e) => setCorps(e.target.value)}
-              rows={5}
-              className="min-h-[120px] w-full resize-none rounded-xl border px-3 py-3 text-base"
+              rows={6}
+              className="min-h-[140px] w-full resize-none rounded-xl border px-3 py-3 text-base"
               style={{
                 color: colors.TEXT_PRIMARY,
                 borderColor: colors.BORDER,
@@ -128,11 +123,17 @@ export default function SuggestionsPage() {
               }}
             />
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-                {t('screens.suggestions.categoryLabel')}
-              </label>
-              <div className="flex flex-wrap gap-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h3
+                  className="text-xs font-bold uppercase tracking-wide"
+                  style={{ color: colors.PRIMARY, fontFamily: 'var(--font-display)' }}
+                >
+                  {t('screens.suggestions.categoryLabel')}
+                </h3>
+                <div className="h-px flex-1" style={{ backgroundColor: colors.BORDER }} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 {CATEGORIES.map((cat) => {
                   const selected = categorie === cat;
                   return (
@@ -140,19 +141,42 @@ export default function SuggestionsPage() {
                       key={cat}
                       type="button"
                       onClick={() => setCategorie(selected ? null : cat)}
-                      className="min-h-[40px] px-3.5 py-1.5 text-sm font-semibold"
+                      className="min-h-[44px] w-full px-3 py-2 text-sm font-bold"
                       style={{
-                        borderRadius: RADIUS.full,
-                        backgroundColor: selected ? colors.PRIMARY_MUTED : colors.BG_SECONDARY,
-                        color: selected ? colors.PRIMARY : colors.TEXT_SECONDARY,
-                        boxShadow: `inset 0 0 0 1px ${selected ? colors.PRIMARY : colors.BORDER}`,
+                        borderRadius: RADIUS.sm,
+                        fontFamily: 'var(--font-display)',
+                        backgroundColor: selected ? colors.ACCENT_ORANGE_MUTED : colors.BG_SECONDARY,
+                        color: selected ? colors.ACCENT_ORANGE : colors.TEXT_PRIMARY,
+                        boxShadow: `inset 0 0 0 ${selected ? 2 : 1}px ${selected ? colors.ACCENT_ORANGE : colors.BORDER}`,
                       }}
                     >
-                      {t(`screens.suggestions.category${cat.charAt(0).toUpperCase()}${cat.slice(1)}`)}
+                      {t(categoryLabelKey(cat))}
                     </button>
                   );
                 })}
               </div>
+            </div>
+          </div>
+
+          <div className="card-surface space-y-5 px-5 py-5">
+            <p className="text-sm leading-relaxed" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('screens.suggestions.anonymityNotice')}
+            </p>
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="text-sm font-bold"
+                style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
+              >
+                {t('screens.suggestions.anonymousLabel')}
+              </span>
+              <YesNoToggle
+                compact
+                value={isAnonymous}
+                onChange={setIsAnonymous}
+                yesLabel={t('forms.opening.fondDeCaisseYes')}
+                noLabel={t('forms.opening.fondDeCaisseNo')}
+                invertSelectedColors
+              />
             </div>
           </div>
 
