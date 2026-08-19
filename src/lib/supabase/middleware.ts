@@ -41,6 +41,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname === '/sw.js' ||
     pathname === '/manifest.json';
+  const isPremiereConnexionRoute = pathname.startsWith('/premiere-connexion');
+  const isApiRoute = pathname.startsWith('/api');
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
@@ -52,6 +54,42 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
+  }
+
+  // Mot de passe temporaire (provisioning auto) : force /premiere-connexion tant que
+  // public.user.must_change_password = true pour l'employé résolu depuis la session.
+  if (user && !isPublicRoute && !isPremiereConnexionRoute && !isApiRoute) {
+    const { data: employeeId } = await supabase.rpc('current_employee_id');
+    if (typeof employeeId === 'number' && employeeId > 0) {
+      const { data: userRow } = await supabase
+        .from('user')
+        .select('must_change_password')
+        .eq('id', employeeId)
+        .single();
+
+      if (userRow?.must_change_password) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/premiere-connexion';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  if (user && isPremiereConnexionRoute) {
+    const { data: employeeId } = await supabase.rpc('current_employee_id');
+    if (typeof employeeId === 'number' && employeeId > 0) {
+      const { data: userRow } = await supabase
+        .from('user')
+        .select('must_change_password')
+        .eq('id', employeeId)
+        .single();
+
+      if (!userRow?.must_change_password) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

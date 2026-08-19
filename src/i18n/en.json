@@ -12,6 +12,14 @@
     "signingOut": "Signing out…",
     "loginError": "Incorrect email or password."
   },
+  "firstLogin": {
+    "title": "Choose your password",
+    "subtitle": "This is your first login. Set a new password before continuing.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "submit": "Confirm",
+    "submitting": "Saving…"
+  },
   "screens": {
     "home": {
       "todayAssignment": "Today's assignment",

@@ -52,7 +52,7 @@ export function useCurrentUser() {
       const [userRes, userInfoRes] = await Promise.all([
         supabase
           .from('user')
-          .select('id, login, email, registered, fullname, role, actif')
+          .select('id, login, email, registered, fullname, role, actif, must_change_password')
           .eq('id', userId)
           .maybeSingle(),
         supabase.from('user_info').select('*').eq('user_id', userId).maybeSingle(),
@@ -105,6 +105,7 @@ function mapUserRow(row: {
   fullname: string | null;
   role: string | null;
   actif: boolean;
+  must_change_password: boolean;
 }): User {
   return {
     id: row.id,
@@ -114,6 +115,7 @@ function mapUserRow(row: {
     fullname: row.fullname ?? '',
     role: row.role,
     actif: row.actif,
+    must_change_password: row.must_change_password,
   };
 }
 

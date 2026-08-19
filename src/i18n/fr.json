@@ -12,6 +12,14 @@
     "signingOut": "Déconnexion…",
     "loginError": "Email ou mot de passe incorrect."
   },
+  "firstLogin": {
+    "title": "Choisis ton mot de passe",
+    "subtitle": "C'est ta première connexion. Choisis un nouveau mot de passe avant de continuer.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "submit": "Valider",
+    "submitting": "Enregistrement…"
+  },
   "screens": {
     "home": {
       "todayAssignment": "Affectation du jour",

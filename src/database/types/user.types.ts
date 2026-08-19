@@ -8,6 +8,7 @@ export interface User {
   fullname: string;
   role: UserRole;
   actif: boolean;
+  must_change_password: boolean;
 }
 
 export interface UserInfo {
