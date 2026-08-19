@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { Header } from '../components/layout/Header';
 import { InstallBanner } from '../components/pwa/InstallBanner';
+import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const BARE_PATHS = new Set(['/login']);
@@ -50,6 +51,7 @@ function AppShell({ children }: { children: ReactNode }) {
       >
         {suppressCount === 0 && <Header />}
         <main className="flex flex-1 flex-col">{children}</main>
+        <PushEnableBanner />
         <InstallBanner />
       </div>
     </GlobalHeaderVisibilityContext.Provider>

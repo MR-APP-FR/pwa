@@ -40,19 +40,39 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || 'Manège';
-  const options = {
-    body: data.body || '',
-    icon: '/logo.png',
-    badge: '/logo.png',
-    data: data.url ? { url: data.url } : undefined,
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      let data = {};
+      try {
+        data = event.data ? event.data.json() : {};
+      } catch {
+        data = { body: event.data ? event.data.text() : '' };
+      }
+      const title = data.title || 'Manège';
+      await self.registration.showNotification(title, {
+        body: data.body || '',
+        icon: '/logo.png',
+        badge: '/logo.png',
+        data: { url: data.url || '/messages' },
+      });
+    })()
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/';
-  event.waitUntil(clients.openWindow(url));
+  const url = event.notification.data?.url || '/messages';
+  event.waitUntil(
+    (async () => {
+      const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of allClients) {
+        if ('focus' in client) {
+          await client.focus();
+          if ('navigate' in client) await client.navigate(url);
+          return;
+        }
+      }
+      await clients.openWindow(url);
+    })()
+  );
 });

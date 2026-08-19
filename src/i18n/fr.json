@@ -178,6 +178,17 @@
       "preferredSitesTitle": "Sites préférés",
       "noPreferredSites": "Aucun site préféré pour l'instant"
     },
+    "push": {
+      "title": "Notifications",
+      "banner": "Active les notifications pour recevoir les messages du bureau, même l'app fermée.",
+      "enable": "Activer",
+      "enabling": "Activation…",
+      "later": "Plus tard",
+      "enabled": "Notifications activées sur cet appareil.",
+      "denied": "Notifications bloquées. Réactive-les dans les réglages du téléphone.",
+      "needInstall": "Ajoute d'abord Manège à l'écran d'accueil pour recevoir les notifications.",
+      "unsupported": "Les notifications ne sont pas disponibles sur cet appareil."
+    },
     "appearance": {
       "title": "Apparence",
       "theme": "Thème",

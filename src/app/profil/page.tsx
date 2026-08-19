@@ -12,6 +12,7 @@ import { createClient } from '../../lib/supabase/client';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
+import { PushSettingsRow } from '../../components/pwa/PushSettingsRow';
 
 function EditSitesModal({
   isOpen,
@@ -326,6 +327,8 @@ export default function ProfilPage() {
           ))
         )}
       </div>
+
+      <PushSettingsRow />
 
       <DevToolsPanel colors={colors} />
 

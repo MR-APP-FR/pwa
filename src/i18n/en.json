@@ -178,6 +178,17 @@
       "preferredSitesTitle": "Preferred sites",
       "noPreferredSites": "No preferred sites yet"
     },
+    "push": {
+      "title": "Notifications",
+      "banner": "Turn on notifications to get office messages even when the app is closed.",
+      "enable": "Enable",
+      "enabling": "Enabling…",
+      "later": "Later",
+      "enabled": "Notifications are on for this device.",
+      "denied": "Notifications are blocked. Enable them in the phone settings.",
+      "needInstall": "Add Manège to your Home Screen first to receive notifications.",
+      "unsupported": "Notifications are not available on this device."
+    },
     "appearance": {
       "title": "Appearance",
       "theme": "Theme",
