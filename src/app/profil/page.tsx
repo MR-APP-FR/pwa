@@ -283,7 +283,7 @@ export default function ProfilPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      <PageHeader title={t('screens.profil.title')} />
+      <PageHeader accent="primary" title={t('screens.profil.title')} />
       <p
         className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
         style={{ color: colors.TEXT_SECONDARY }}

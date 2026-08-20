@@ -12,6 +12,8 @@ import type { PlanningWithColleague } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
+import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import { dateIsoToJourSemaineKey, toIsoDateString, type HeuresSemaine } from '../../lib/parisTime';
 
@@ -29,7 +31,7 @@ function formatHeureCourte(raw: string | null | undefined): string | null {
   const h = Number(m[1]);
   const min = Number(m[2]);
   if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
-  return min === 0 ? `${h}h` : `${h}h${String(min).padStart(2, '0')}`;
+  return min === 0 ? `${h}H` : `${h}H${String(min).padStart(2, '0')}`;
 }
 
 /** Horaires du jour pour le site de la mission, dérivés de `site_infos.heures_semaine`. */
@@ -42,9 +44,7 @@ function buildTimeRange(
   const heures = heuresBySite.get(mission.site_id);
   const jour = heures?.[dateIsoToJourSemaineKey(toIsoDateString(date))];
   const ouvre = formatHeureCourte(jour?.ouvre);
-  if (!ouvre) return undefined;
-  const doubleH = formatHeureCourte(jour?.double);
-  return doubleH ? `Ouverture ${ouvre} · double ${doubleH}` : `Ouverture ${ouvre}`;
+  return ouvre ?? undefined;
 }
 
 function getWeekDays(
@@ -109,13 +109,18 @@ export default function PlanningPage() {
   });
 
   return (
+    <FormScrollLayout>
     <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      <PageHeader
-        title={t('screens.planning.title')}
-        subtitle={weekSubtitle}
-        showBack
-        onBack={() => router.push('/')}
-      />
+      <FormPinnedPageHeader>
+        <PageHeader
+          pin="static"
+          accent="primary"
+          title={t('screens.planning.title')}
+          subtitle={weekSubtitle}
+          showBack
+          onBack={() => router.push('/')}
+        />
+      </FormPinnedPageHeader>
       <div className="grid w-full grid-cols-2 gap-2 px-4 py-3">
         <button
           type="button"
@@ -152,17 +157,17 @@ export default function PlanningPage() {
         </button>
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
-        {weekDays.map((day, index) => (
+        {weekDays.map((day) => (
           <PlanningDayCard
             key={day.date.toISOString()}
             date={day.date}
             mission={day.mission}
             isToday={day.isToday}
             timeRange={day.timeRange}
-            dayIndex={index}
           />
         ))}
       </div>
     </div>
+    </FormScrollLayout>
   );
 }

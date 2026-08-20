@@ -154,6 +154,7 @@ function AvailabilityContent() {
         <FormPinnedPageHeader>
           <PageHeader
             pin="static"
+            accent="yellow"
             title={t('availability.title')}
             subtitle={formatWeekRange(start, end)}
             showBack

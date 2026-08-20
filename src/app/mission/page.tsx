@@ -9,6 +9,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
+import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import { HOME_BUTTON_ICON_GRADIENTS } from '../../constants/colors';
 
@@ -73,12 +75,6 @@ function MissionContent() {
       ? t('screens.home.nextAssignment')
       : t('screens.mission.title');
 
-  const accentColor = isTodayMission
-    ? colors.ACCENT_RED
-    : isNextMission
-      ? colors.ACCENT_BLUE
-      : undefined;
-
   const hasGps = siteInfo?.latitude != null && siteInfo?.longitude != null;
   const mapsUrl = hasGps
     ? `https://maps.google.com/?q=${siteInfo!.latitude},${siteInfo!.longitude}`
@@ -88,15 +84,18 @@ function MissionContent() {
   const indicationValue = siteInfo?.indication?.trim() ?? '';
 
   return (
+    <FormScrollLayout>
     <div className="flex-1 flex flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      <PageHeader
-        title={headerTitle}
-        subtitle={mission.site_name}
-        detail={dateLabel}
-        subtitleColor={accentColor}
-        detailColor={accentColor}
-        showBack
-      />
+      <FormPinnedPageHeader>
+        <PageHeader
+          pin="static"
+          accent="primary"
+          title={headerTitle}
+          subtitle={mission.site_name}
+          detail={dateLabel}
+          showBack
+        />
+      </FormPinnedPageHeader>
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
         {/* Site */}
         <div className="card-surface px-5 py-4 space-y-3">
@@ -237,6 +236,7 @@ function MissionContent() {
         </div>
       )}
     </div>
+    </FormScrollLayout>
   );
 }
 

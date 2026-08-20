@@ -35,6 +35,7 @@ export const HOME_BUTTON_ICON_GRADIENTS = {
   red: homeIconGradient('#FF6B63', '#C62828'),
   blue: homeIconGradient('#5BC8FF', '#1A2878'),
   yellow: homeIconGradient('#FFE14D', '#E8B020'),
+  orange: homeIconGradient('#FFC46A', '#F7941D'),
   purple: homeIconGradient('#C060E0', '#6B1F9E'),
   gray: homeIconGradient('#C8C5C0', '#6E6A66'),
   pink: homeIconGradient('#FF7EB3', '#D94F8C'),
@@ -114,16 +115,5 @@ export const HOME_BUTTON_ICON_BG: Record<string, string> = {
   'messages-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
   'video-outline': HOME_BUTTON_ICON_GRADIENTS.gray,
   'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.pink,
-  'suggestion-outline': HOME_BUTTON_ICON_GRADIENTS.yellow,
+  'suggestion-outline': HOME_BUTTON_ICON_GRADIENTS.orange,
 };
-
-/** Couleurs tournantes pour les cartes planning */
-export const PLANNING_DAY_ACCENTS: (keyof typeof BRAND)[] = [
-  'ACCENT_BLUE',
-  'ACCENT_ORANGE',
-  'ACCENT_YELLOW',
-  'ACCENT_GREEN',
-  'ACCENT_PURPLE',
-  'ACCENT_PINK',
-  'ACCENT_RED',
-];

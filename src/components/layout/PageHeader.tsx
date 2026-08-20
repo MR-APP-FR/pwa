@@ -12,7 +12,7 @@ interface PageHeaderStep {
   hints?: string[];
 }
 
-type PageHeaderAccent = 'primary' | 'green' | 'red' | 'purple' | 'yellow' | 'pink' | 'orange';
+type PageHeaderAccent = 'primary' | 'green' | 'red' | 'purple' | 'yellow' | 'pink' | 'orange' | 'gray';
 
 interface PageHeaderProps {
   title: string;
@@ -25,7 +25,7 @@ interface PageHeaderProps {
   step?: PageHeaderStep;
   /** sticky par défaut ; static pour FormPinnedPageHeader */
   pin?: 'sticky' | 'static';
-  /** Couleur de la section (pastille de titre, pas d'étape) ; 'primary' (bleu marine) par défaut. */
+  /** Couleur de la section (homepage) ; 'primary' (bleu marine) par défaut. */
   accent?: PageHeaderAccent;
 }
 
@@ -54,19 +54,22 @@ export function PageHeader({
     router.back();
   };
 
-  const ACCENT_MAP: Record<PageHeaderAccent, { color: string; muted: string }> = {
-    primary: { color: colors.PRIMARY, muted: colors.PRIMARY_MUTED },
-    green: { color: colors.ACCENT_GREEN, muted: colors.ACCENT_GREEN_MUTED },
-    red: { color: colors.ACCENT_RED, muted: colors.ACCENT_RED_MUTED },
-    purple: { color: colors.ACCENT_PURPLE, muted: colors.ACCENT_PURPLE_MUTED },
-    yellow: { color: colors.ACCENT_YELLOW, muted: colors.ACCENT_YELLOW_MUTED },
-    pink: { color: colors.ACCENT_PINK, muted: colors.ACCENT_PINK_MUTED },
-    orange: { color: colors.ACCENT_ORANGE, muted: colors.ACCENT_ORANGE_MUTED },
+  const ACCENT_MAP: Record<PageHeaderAccent, string> = {
+    primary: colors.PRIMARY,
+    green: colors.ACCENT_GREEN,
+    red: colors.ACCENT_RED,
+    purple: colors.ACCENT_PURPLE,
+    yellow: colors.ACCENT_YELLOW,
+    pink: colors.ACCENT_PINK,
+    orange: colors.ACCENT_ORANGE,
+    gray: colors.TEXT_SECONDARY,
   };
   const sectionAccent = ACCENT_MAP[accent];
   const stepAccent = colors.PRIMARY;
   const stepLabel = step ? step.labels[step.current - 1] : undefined;
   const stepHint = step?.hints?.[step.current - 1];
+  const hasContext = Boolean(subtitle || detail);
+  const contextColor = colors.PRIMARY;
 
   return (
     <div
@@ -98,49 +101,38 @@ export function PageHeader({
         )}
 
         <div className="flex min-w-0 flex-1 flex-col items-center text-center">
-          {subtitle ? (
-            <div className="flex min-w-0 flex-col items-center gap-0.5">
-              <span
-                className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
-                style={{
-                  borderRadius: RADIUS.xs,
-                  backgroundColor: sectionAccent.muted,
-                  color: sectionAccent.color,
-                  boxShadow: `inset 0 0 0 0.5px ${sectionAccent.color}`,
-                  fontFamily: 'var(--font-display)',
-                }}
-              >
-                {title}
-              </span>
+          <div className="flex min-w-0 flex-col items-center gap-0.5">
+            {subtitle && (
               <p
                 className="min-w-0 break-words text-[17px] font-bold uppercase leading-tight"
                 style={{
-                  color: subtitleColor ?? colors.TEXT_PRIMARY,
+                  color: subtitleColor ?? contextColor,
                   fontFamily: 'var(--font-display)',
                 }}
               >
                 {subtitle}
               </p>
-              {detail && (
-                <p
-                  className="min-w-0 break-words text-[15px] font-bold uppercase leading-tight"
-                  style={{
-                    color: detailColor ?? colors.TEXT_SECONDARY,
-                    fontFamily: 'var(--font-display)',
-                  }}
-                >
-                  {detail}
-                </p>
-              )}
-            </div>
-          ) : (
+            )}
+            {detail && (
+              <p
+                className="min-w-0 break-words text-[15px] font-bold uppercase leading-tight"
+                style={{
+                  color: detailColor ?? contextColor,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {detail}
+              </p>
+            )}
             <p
-              className="text-[18px] font-bold uppercase leading-tight"
-              style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
+              className={`min-w-0 break-words font-bold uppercase leading-tight ${
+                hasContext ? 'text-[15px]' : 'text-[18px]'
+              }`}
+              style={{ color: sectionAccent, fontFamily: 'var(--font-display)' }}
             >
               {title}
             </p>
-          )}
+          </div>
 
           {step && (
             <div className="mt-2 flex items-center justify-center gap-2">

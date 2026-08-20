@@ -11,7 +11,9 @@ revoke execute on function public.add_admin_by_email(text) from public, anon;
 revoke execute on function public.get_users_with_roles() from public, anon;
 revoke execute on function public.ensure_portal_admin_role() from public, anon;
 revoke execute on function public.is_admin(uuid) from public, anon;
-revoke execute on function public.is_email_admin(text) from public, anon;
+-- is_email_admin : le login CRM l'appelle AVANT session (rôle anon) via
+-- checkEmailIsAdmin(). On retire public, on garde anon.
+revoke execute on function public.is_email_admin(text) from public;
 revoke execute on function public.sync_closing_form_to_data() from public, anon;
 revoke execute on function public.submit_suggestion_anonyme(text, text) from public, anon;
 revoke execute on function public.recompute_staff_activity(integer, integer, integer) from public, anon;
@@ -19,7 +21,7 @@ revoke execute on function public.recompute_staff_activity(integer, integer, int
 -- is_admin / is_email_admin sont appelées par des policies RLS pour authenticated ;
 -- authenticated garde EXECUTE (déjà accordé), seul anon/public est retiré.
 grant execute on function public.is_admin(uuid) to authenticated;
-grant execute on function public.is_email_admin(text) to authenticated;
+grant execute on function public.is_email_admin(text) to anon, authenticated;
 grant execute on function public.recompute_staff_activity(integer, integer, integer) to authenticated;
 grant execute on function public.submit_suggestion_anonyme(text, text) to authenticated;
 grant execute on function public.sync_closing_form_to_data() to authenticated;

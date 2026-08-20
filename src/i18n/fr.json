@@ -5,7 +5,7 @@
   "auth": {
     "email": "Email",
     "password": "Mot de passe",
-    "passwordHint": "Mot de passe initial = ton username (login)",
+    "passwordHint": "Mot de passe initial = ton email",
     "signIn": "Se connecter",
     "signingIn": "Connexion…",
     "signOut": "Se déconnecter",
@@ -69,6 +69,8 @@
     "sitesMap": {
       "title": "Carte des points de vente",
       "loading": "Chargement de la carte…",
+      "loadError": "Impossible de charger la carte.",
+      "missingKey": "Clé Google Maps manquante.",
       "empty": "Aucun manège avec coordonnées GPS pour l'instant",
       "openInMaps": "Ouvrir dans Maps",
       "siteCount": "%{count} manège(s) affiché(s)",

@@ -63,6 +63,7 @@ Projet Vercel `pwa` — env Production / Preview / Development :
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
 
 **Ne jamais** définir `SUPABASE_SERVICE_ROLE_KEY` sur Vercel.
 

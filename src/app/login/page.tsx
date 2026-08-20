@@ -40,7 +40,7 @@ export default async function LoginPage() {
             Connexion
           </h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary, #6b7280)' }}>
-            Email et mot de passe (username)
+            Email et mot de passe (l&apos;email au premier login)
           </p>
         </div>
       </div>

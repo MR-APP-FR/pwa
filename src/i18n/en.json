@@ -5,7 +5,7 @@
   "auth": {
     "email": "Email",
     "password": "Password",
-    "passwordHint": "Initial password = your username (login)",
+    "passwordHint": "Initial password = your email",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
     "signOut": "Sign out",
@@ -69,6 +69,8 @@
     "sitesMap": {
       "title": "Points of sale map",
       "loading": "Loading map…",
+      "loadError": "Couldn't load the map.",
+      "missingKey": "Google Maps key is missing.",
       "empty": "No carousel with GPS coordinates yet",
       "openInMaps": "Open in Maps",
       "siteCount": "%{count} carousel(s) shown",

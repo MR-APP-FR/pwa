@@ -2,6 +2,8 @@
 
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '../../../components/layout/PageHeader';
+import { FormScrollLayout } from '../../../components/layout/FormScrollLayout';
+import { FormPinnedPageHeader } from '../../../components/layout/FormPinnedPageHeader';
 import { TRAINING_THEMES, type TrainingThemeId } from '../../../constants/trainingThemes';
 import trainingContent from '../../../constants/trainingContent.json';
 import { useThemeColors } from '../../../hooks/useThemeColors';
@@ -42,12 +44,18 @@ export default function TrainingThemeDetailPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      <PageHeader
-        title={t(theme.labelKey)}
-        showBack
-        onBack={() => router.push('/training')}
-      />
+    <FormScrollLayout>
+      <div className="flex flex-1 flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
+        <FormPinnedPageHeader>
+          <PageHeader
+            pin="static"
+            accent="gray"
+            title={t('screens.training.title')}
+            subtitle={t(theme.labelKey)}
+            showBack
+            onBack={() => router.push('/training')}
+          />
+        </FormPinnedPageHeader>
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4">
         <div
@@ -155,6 +163,7 @@ export default function TrainingThemeDetailPage() {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    </FormScrollLayout>
   );
 }

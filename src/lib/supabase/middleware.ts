@@ -54,12 +54,17 @@ export async function updateSession(request: NextRequest) {
   if (user && pathname.startsWith('/login')) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
+    url.search = '';
     return NextResponse.redirect(url);
   }
 
+  // En local, le bypass / switcher d'employé ne doit pas être bloqué par
+  // le mur « première connexion ». En prod le flag reste obligatoire.
+  const enforcePasswordChange = process.env.NODE_ENV !== 'development';
+
   // Mot de passe temporaire (provisioning auto) : force /premiere-connexion tant que
   // public.user.must_change_password = true pour l'employé résolu depuis la session.
-  if (user && !isPublicRoute && !isPremiereConnexionRoute && !isApiRoute) {
+  if (enforcePasswordChange && user && !isPublicRoute && !isPremiereConnexionRoute && !isApiRoute) {
     const { data: employeeId } = await supabase.rpc('current_employee_id');
     if (typeof employeeId === 'number' && employeeId > 0) {
       const { data: userRow } = await supabase

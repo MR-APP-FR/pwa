@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
+import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -33,13 +35,25 @@ export default function SitesMapPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col" style={{ backgroundColor: colors.BG_SECONDARY }}>
-      <PageHeader
-        title={t('screens.sitesMap.title')}
-        showBack
-        onBack={() => router.push('/')}
-      />
-      <SitesMapView />
-    </div>
+    <FormScrollLayout>
+      <div
+        className="flex min-h-0 flex-col"
+        style={{
+          backgroundColor: colors.BG_SECONDARY,
+          height: 'calc(100dvh - 7.5rem)',
+        }}
+      >
+        <FormPinnedPageHeader>
+          <PageHeader
+            pin="static"
+            accent="pink"
+            title={t('screens.home.sitesMapButton')}
+            showBack
+            onBack={() => router.push('/')}
+          />
+        </FormPinnedPageHeader>
+        <SitesMapView />
+      </div>
+    </FormScrollLayout>
   );
 }

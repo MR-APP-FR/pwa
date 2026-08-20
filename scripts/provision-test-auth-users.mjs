@@ -2,9 +2,9 @@
 /**
  * Provisionne des comptes Auth pour les employés actifs (phase test).
  *
- * Règles (CADRAGE étape 5) :
+ * Règles :
  * - email Auth = public.user.email (pré-requis current_employee_id())
- * - password initial = public.user.login (username métier)
+ * - password initial = public.user.email (temporaire, must_change_password)
  *
  * Usage :
  *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/provision-test-auth-users.mjs
@@ -50,39 +50,46 @@ async function listActiveEmployees() {
     .eq('actif', true)
     .not('email', 'is', null)
     .neq('email', '')
-    .not('login', 'is', null)
-    .neq('login', '')
     .order('id');
 
   if (error) throw new Error(`Lecture public.user : ${error.message}`);
   return data ?? [];
 }
 
-async function findAuthUserByEmail(email) {
-  // listUsers paginé — pour un volume terrain raisonnable
+async function loadAuthUsersByEmail() {
+  const byEmail = new Map();
   let page = 1;
   const perPage = 200;
   while (true) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
     if (error) throw new Error(`listUsers : ${error.message}`);
-    const hit = data.users.find((u) => (u.email ?? '').toLowerCase() === email.toLowerCase());
-    if (hit) return hit;
-    if (data.users.length < perPage) return null;
+    for (const user of data.users) {
+      if (user.email) byEmail.set(user.email.toLowerCase(), user);
+    }
+    if (data.users.length < perPage) return byEmail;
     page += 1;
   }
 }
 
-async function upsertAuthUser(employee) {
-  const email = employee.email.trim();
-  const password = employee.login; // username métier
+async function markMustChangePassword(userId, email) {
+  const { error } = await admin.from('user').update({ must_change_password: true }).eq('id', userId);
+  if (error) {
+    throw new Error(`must_change_password ${email} : ${error.message}`);
+  }
+}
 
-  const existing = await findAuthUserByEmail(email);
+async function upsertAuthUser(employee, authByEmail) {
+  const email = employee.email.trim();
+  const password = email;
+
+  const existing = authByEmail.get(email.toLowerCase());
   if (existing) {
     const { error } = await admin.auth.admin.updateUserById(existing.id, {
       password,
       email_confirm: true,
     });
     if (error) throw new Error(`updateUser ${email} : ${error.message}`);
+    await markMustChangePassword(employee.id, email);
     return { action: 'updated', email, login: employee.login, id: existing.id };
   }
 
@@ -97,6 +104,8 @@ async function upsertAuthUser(employee) {
     },
   });
   if (error) throw new Error(`createUser ${email} : ${error.message}`);
+  authByEmail.set(email.toLowerCase(), data.user);
+  await markMustChangePassword(employee.id, email);
   return { action: 'created', email, login: employee.login, id: data.user.id };
 }
 
@@ -116,13 +125,15 @@ async function main() {
 
   console.log(`Employés à provisionner : ${employees.length}${dryRun ? ' (dry-run)' : ''}`);
 
+  const authByEmail = dryRun ? new Map() : await loadAuthUsersByEmail();
+
   for (const emp of employees) {
     if (dryRun) {
-      console.log(`  [dry-run] id=${emp.id} email=${emp.email} password=${emp.login}`);
+      console.log(`  [dry-run] id=${emp.id} email=${emp.email} password=<email>`);
       continue;
     }
     try {
-      const result = await upsertAuthUser(emp);
+      const result = await upsertAuthUser(emp, authByEmail);
       console.log(`  ✓ ${result.action} ${result.email} (login=${result.login})`);
     } catch (err) {
       console.error(`  ✗ ${emp.email} : ${err.message}`);

@@ -68,25 +68,6 @@ textarea {
   box-shadow: var(--shadow-card);
 }
 
-.leaflet-container {
-  font-family: var(--font-body);
-  z-index: 0;
-}
-
-.sites-map .leaflet-tile-pane {
-  filter: grayscale(1);
-}
-
-
-
-.leaflet-popup-content-wrapper {
-  border-radius: var(--radius-sm);
-}
-
-.leaflet-popup-content {
-  margin: 10px 12px;
-}
-
 @media (display-mode: standalone) {
   body {
     padding-bottom: env(safe-area-inset-bottom);

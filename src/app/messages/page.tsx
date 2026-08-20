@@ -157,12 +157,13 @@ export default function MessagesPage() {
           <PageHeader
             pin="static"
             accent="purple"
-            title={
+            title={t('screens.messages.title')}
+            subtitle={
               selected
                 ? selected.kind === 'notifications'
                   ? t('screens.messages.notifications')
                   : selected.label
-                : t('screens.messages.title')
+                : undefined
             }
             showBack
             onBack={selected ? () => setSelectedKey(null) : undefined}
