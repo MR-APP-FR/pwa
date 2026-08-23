@@ -127,7 +127,8 @@
       "yourConfirmation": "Your confirmation",
       "colleagueConfirmation": "Colleague confirmation",
       "completed": "Completed",
-      "noMissionDay": "No shift this day"
+      "noMissionDay": "No shift this day",
+      "atTime": "at %{time}"
     },
     "planningWeek": {
       "title": "Weekly planning",

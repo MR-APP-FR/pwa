@@ -23,6 +23,7 @@ import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
 import { formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
@@ -307,16 +308,16 @@ function OpeningContent() {
             pin="static"
             accent="green"
             title={t('forms.opening.title')}
-            subtitle={mission?.site_name}
-            detail={
-              mission
-                ? formatMissionDate(mission.year, mission.month, mission.day)
-                : undefined
-            }
             showBack
           />
         </FormPinnedPageHeader>
-        <div className="space-y-4 px-5 py-5">
+        {mission && (
+          <PageSectionTitle
+            title={mission.site_name}
+            detail={formatMissionDate(mission.year, mission.month, mission.day)}
+          />
+        )}
+        <div className="space-y-4 px-5 pb-5 pt-3">
         <div className="card-surface space-y-5 px-5 py-5">
           <FormSection title={t('forms.opening.sectionCounts')}>
             <FormNumberInput

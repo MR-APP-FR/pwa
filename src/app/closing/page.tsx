@@ -25,6 +25,7 @@ import { compressImageFile } from '../../lib/compressImageFile';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
 import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
@@ -403,16 +404,16 @@ function ClosingContent() {
             pin="static"
             accent="red"
             title={t('forms.closing.title')}
-            subtitle={mission?.site_name}
-            detail={
-              mission
-                ? formatMissionDate(mission.year, mission.month, mission.day)
-                : undefined
-            }
             showBack
           />
         </FormPinnedPageHeader>
-        <div className="px-4 py-3">
+        {mission && (
+          <PageSectionTitle
+            title={mission.site_name}
+            detail={formatMissionDate(mission.year, mission.month, mission.day)}
+          />
+        )}
+        <div className="px-4 pb-3 pt-3">
           {isBeforeClosingDeadline && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"

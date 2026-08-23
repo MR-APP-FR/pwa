@@ -6,6 +6,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatPlanningDayLabel, formatWeekRange } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
@@ -156,16 +157,19 @@ function AvailabilityContent() {
             pin="static"
             accent="yellow"
             title={t('availability.title')}
-            subtitle={formatWeekRange(start, end)}
             showBack
           />
         </FormPinnedPageHeader>
+        <PageSectionTitle title={formatWeekRange(start, end)} />
 
-        <div className="space-y-2.5 px-4 py-4">
-          <p className="px-1 text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('availability.description')}
-          </p>
+        <p
+          className="px-5 pt-2 pb-4 text-center text-sm"
+          style={{ color: colors.TEXT_SECONDARY }}
+        >
+          {t('availability.description')}
+        </p>
 
+        <div className="space-y-2.5 px-4 pb-4">
           {weekDays.map((date, index) => {
             const day = availability[index];
             if (!day) return null;

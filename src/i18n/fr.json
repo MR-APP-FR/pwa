@@ -127,7 +127,8 @@
       "yourConfirmation": "Votre confirmation",
       "colleagueConfirmation": "Confirmation du collègue",
       "completed": "Terminé",
-      "noMissionDay": "Aucune mission ce jour"
+      "noMissionDay": "Aucune mission ce jour",
+      "atTime": "à %{time}"
     },
     "planningWeek": {
       "title": "Planning de la semaine",

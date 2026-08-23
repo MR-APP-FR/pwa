@@ -13,8 +13,8 @@ export interface Conversation {
   pinned: boolean;
 }
 
-export function zoneConversationKey(groupId: number | null): string {
-  return groupId === null ? 'zone:none' : `zone:${groupId}`;
+export function zoneConversationKey(groupId: number): string {
+  return `zone:${groupId}`;
 }
 
 export function matchMessageConversationKey(
@@ -27,7 +27,7 @@ export function matchMessageConversationKey(
   const zoneKeys = new Set(
     message.site_ids.map((id) => {
       const site = sites.find((s) => s.id === id);
-      return site ? zoneConversationKey(site.group_id ?? null) : null;
+      return site ? zoneConversationKey(site.group_id) : null;
     }),
   );
   if (zoneKeys.size === 1) {
@@ -43,37 +43,38 @@ export function buildEmployeeConversations(
   relevantSiteIds: Set<number>,
   extraKeys: Set<string>,
 ): Conversation[] {
-  const groupOrder = new Map<number | null, number>();
+  const groupOrder = new Map<number, number>();
   groupes.forEach((g, i) => groupOrder.set(g.id, i));
-  groupOrder.set(null, groupes.length);
 
-  const zoneIds = new Set<number | null>();
+  const zoneIds = new Set<number>();
   for (const site of sites) {
-    if (relevantSiteIds.has(site.id)) zoneIds.add(site.group_id ?? null);
+    if (relevantSiteIds.has(site.id)) zoneIds.add(site.group_id);
   }
   for (const key of extraKeys) {
     if (key === 'tous' || key === NOTIFICATIONS_KEY) continue;
-    if (key === 'zone:none') zoneIds.add(null);
-    else if (key.startsWith('zone:')) {
+    if (key.startsWith('zone:')) {
       const id = Number(key.slice(5));
       if (Number.isFinite(id)) zoneIds.add(id);
     }
   }
 
-  const zoneConvs: Conversation[] = [...zoneIds].map((groupId) => {
-    const groupSites = sites.filter((s) => (s.group_id ?? null) === groupId);
-    return {
-      key: zoneConversationKey(groupId),
-      kind: 'zone' as const,
-      label: groupId === null ? 'Autres' : (groupes.find((g) => g.id === groupId)?.name ?? 'Autres'),
-      siteIds: groupSites.map((s) => s.id),
-      pinned: false,
-    };
+  const zoneConvs: Conversation[] = [...zoneIds].flatMap((groupId) => {
+    const groupe = groupes.find((g) => g.id === groupId);
+    if (!groupe) return [];
+    return [
+      {
+        key: zoneConversationKey(groupId),
+        kind: 'zone' as const,
+        label: groupe.name,
+        siteIds: sites.filter((s) => s.group_id === groupId).map((s) => s.id),
+        pinned: false,
+      },
+    ];
   });
 
   zoneConvs.sort((a, b) => {
-    const idA = a.key === 'zone:none' ? null : Number(a.key.slice(5));
-    const idB = b.key === 'zone:none' ? null : Number(b.key.slice(5));
+    const idA = Number(a.key.slice(5));
+    const idB = Number(b.key.slice(5));
     return (groupOrder.get(idA) ?? 99) - (groupOrder.get(idB) ?? 99);
   });
 
@@ -109,9 +110,10 @@ export function lastMessage(list: StaffMessageWithAck[] | undefined): StaffMessa
   return list.reduce((a, b) => (a.publie_at > b.publie_at ? a : b));
 }
 
-export function chronological(messages: StaffMessageWithAck[]): StaffMessageWithAck[] {
+/** Plus récent en premier : canal unidirectionnel, le dernier reçu est visible sans scroll. */
+export function reverseChronological(messages: StaffMessageWithAck[]): StaffMessageWithAck[] {
   return [...messages].sort(
-    (a, b) => new Date(a.publie_at).getTime() - new Date(b.publie_at).getTime(),
+    (a, b) => new Date(b.publie_at).getTime() - new Date(a.publie_at).getTime(),
   );
 }
 
@@ -162,21 +164,10 @@ export function formatDaySeparator(dateIso: string): string {
   }).format(new Date(`${dateIso}T12:00:00`));
 }
 
-export const AVATAR_COLORS = [
-  'bg-[#00a884]',
-  'bg-[#53bdeb]',
-  'bg-violet-500',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-sky-500',
-  'bg-orange-500',
-  'bg-teal-600',
-] as const;
-
-export function avatarColorClass(key: string): string {
+export function hashKey(key: string, modulo: number): number {
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  return Math.abs(hash) % modulo;
 }
 
 export function conversationInitials(label: string): string {

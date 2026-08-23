@@ -7,7 +7,10 @@ import { SHADOW } from './design';
  */
 export const LOGO = {
   blue: '#292D82',
+  /** Bleu ciel — prochaine affectation / planning, contraste avec le navy. */
+  sky: '#1D9FD8',
   blueMuted: '#E8F1FA',
+  skyMuted: '#E3F5FC',
   orange: '#F7941D',
   orangeMuted: '#FEF4E8',
   red: '#E04A47',
@@ -33,7 +36,7 @@ function homeIconGradient(from: string, to: string) {
 export const HOME_BUTTON_ICON_GRADIENTS = {
   green: homeIconGradient('#6EEB7A', '#22A832'),
   red: homeIconGradient('#FF6B63', '#C62828'),
-  blue: homeIconGradient('#5BC8FF', '#1A2878'),
+  blue: homeIconGradient('#7AD4F2', '#1D9FD8'),
   yellow: homeIconGradient('#FFE14D', '#E8B020'),
   orange: homeIconGradient('#FFC46A', '#F7941D'),
   purple: homeIconGradient('#C060E0', '#6B1F9E'),
@@ -65,8 +68,8 @@ const BRAND = {
   SUCCESS: LOGO.green,
   SUCCESS_STRONG: LOGO.green,
   DANGER_STRONG: LOGO.red,
-  ACCENT_BLUE: LOGO.blue,
-  ACCENT_BLUE_MUTED: LOGO.blueMuted,
+  ACCENT_BLUE: LOGO.sky,
+  ACCENT_BLUE_MUTED: LOGO.skyMuted,
   ACCENT_ORANGE: LOGO.orange,
   ACCENT_ORANGE_MUTED: LOGO.orangeMuted,
   ACCENT_RED: LOGO.red,

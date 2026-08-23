@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import { RADIUS } from '../../constants/design';
+import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import type { PlanningWithColleague } from '../../database/types';
 import { formatDayMonth, formatWeekday } from '../../lib/formatDate';
 
@@ -20,17 +20,15 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
   const { t } = useTranslation();
   const router = useRouter();
 
-  const leftLabel = [formatWeekday(date), formatDayMonth(date), timeRange]
-    .filter(Boolean)
-    .join(' ')
-    .toUpperCase();
+  const dateLabel = `${formatWeekday(date)} ${formatDayMonth(date)}`.toUpperCase();
 
   return (
     <div
-      className="mx-4 mb-3 px-4 py-3"
+      className="mx-4 mb-2 flex items-center justify-between gap-2 px-3"
       style={{
+        minHeight: TOUCH_TARGET,
         backgroundColor: colors.SETTINGS_SECTION_BG,
-        borderRadius: RADIUS.md,
+        borderRadius: RADIUS.sm,
         boxShadow: colors.CARD_SHADOW,
         border: `1px solid ${isToday ? colors.ACCENT_GREEN : colors.BORDER}`,
         cursor: mission ? 'pointer' : undefined,
@@ -49,30 +47,37 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
           : undefined
       }
     >
-      <div className="flex items-center justify-between gap-3">
-        <p
-          className="min-w-0 truncate text-[13px] font-bold uppercase leading-tight tracking-wide"
-          style={{ color: colors.PRIMARY, fontFamily: 'var(--font-display)' }}
+      <p
+        className="min-w-0 truncate text-[16px] font-semibold uppercase leading-tight"
+        style={{ color: colors.PRIMARY, fontFamily: 'var(--font-body)', fontSize: 16 }}
+      >
+        {dateLabel}
+      </p>
+      {mission ? (
+        <span
+          className="flex min-w-0 max-w-[62%] shrink items-center px-2.5 font-semibold leading-tight"
+          style={{
+            color: colors.TEXT_INVERSE,
+            backgroundColor: colors.ACCENT_GREEN,
+            borderRadius: RADIUS.sm,
+            fontFamily: 'var(--font-body)',
+            fontSize: 16,
+            paddingTop: 4,
+            paddingBottom: 4,
+          }}
         >
-          {leftLabel}
-        </p>
-        {mission ? (
-          <p
-            className="min-w-0 max-w-[48%] truncate text-right text-[13px] font-bold uppercase leading-tight tracking-wide"
-            style={{ color: colors.PRIMARY, fontFamily: 'var(--font-display)' }}
-          >
-            {mission.site_name}
-          </p>
-        ) : (
-          <span
-            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-            style={{ backgroundColor: colors.ACCENT_RED_MUTED }}
-            aria-label={t('screens.planning.noMissionDay')}
-          >
-            <X size={16} color={colors.ACCENT_RED} strokeWidth={2.5} />
-          </span>
-        )}
-      </div>
+          <span className="min-w-0 truncate">{mission.site_name}</span>
+          {timeRange ? <span className="shrink-0">&nbsp;{t('screens.planning.atTime', { time: timeRange })}</span> : null}
+        </span>
+      ) : (
+        <span
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: colors.ACCENT_RED_MUTED }}
+          aria-label={t('screens.planning.noMissionDay')}
+        >
+          <X size={16} color={colors.ACCENT_RED} strokeWidth={2.5} />
+        </span>
+      )}
     </div>
   );
 }

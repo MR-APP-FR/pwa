@@ -2,6 +2,7 @@
 
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '../../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../../components/layout/FormPinnedPageHeader';
 import { TRAINING_THEMES, type TrainingThemeId } from '../../../constants/trainingThemes';
@@ -51,13 +52,13 @@ export default function TrainingThemeDetailPage() {
             pin="static"
             accent="gray"
             title={t('screens.training.title')}
-            subtitle={t(theme.labelKey)}
             showBack
             onBack={() => router.push('/training')}
           />
         </FormPinnedPageHeader>
+        <PageSectionTitle title={t(theme.labelKey)} />
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4">
+      <div className="flex-1 overflow-y-auto px-4 pb-8 pt-3">
         <div
           className="mb-4 flex items-center justify-center gap-3 p-4 text-center"
           style={{

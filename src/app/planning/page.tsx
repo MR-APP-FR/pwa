@@ -12,6 +12,7 @@ import type { PlanningWithColleague } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
@@ -31,7 +32,7 @@ function formatHeureCourte(raw: string | null | undefined): string | null {
   const h = Number(m[1]);
   const min = Number(m[2]);
   if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
-  return min === 0 ? `${h}H` : `${h}H${String(min).padStart(2, '0')}`;
+  return `${h}H${String(min).padStart(2, '0')}`;
 }
 
 /** Horaires du jour pour le site de la mission, dérivés de `site_infos.heures_semaine`. */
@@ -114,18 +115,18 @@ export default function PlanningPage() {
       <FormPinnedPageHeader>
         <PageHeader
           pin="static"
-          accent="primary"
+          accent="blue"
           title={t('screens.planning.title')}
-          subtitle={weekSubtitle}
           showBack
           onBack={() => router.push('/')}
         />
       </FormPinnedPageHeader>
+      <PageSectionTitle title={weekSubtitle} />
       <div className="grid w-full grid-cols-2 gap-2 px-4 py-3">
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="inline-flex w-full items-center justify-center gap-1 px-2 text-[13px] font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
+          className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
             minHeight: TOUCH_TARGET,
             borderRadius: RADIUS.sm,
@@ -133,6 +134,7 @@ export default function PlanningPage() {
             boxShadow: colors.CARD_SHADOW,
             color: colors.TEXT_PRIMARY,
             fontFamily: 'var(--font-body)',
+            fontSize: 16,
             fontWeight: 600,
           }}
         >
@@ -142,13 +144,14 @@ export default function PlanningPage() {
         <button
           type="button"
           onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="inline-flex w-full items-center justify-center gap-1 px-2 text-[13px] font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
+          className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
           style={{
             minHeight: TOUCH_TARGET,
             borderRadius: RADIUS.sm,
             backgroundColor: colors.PRIMARY,
             color: colors.TEXT_INVERSE,
             fontFamily: 'var(--font-body)',
+            fontSize: 16,
             fontWeight: 600,
           }}
         >

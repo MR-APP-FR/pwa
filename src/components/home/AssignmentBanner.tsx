@@ -225,8 +225,8 @@ export function AssignmentBanner({
       <AssignmentCard
         label={t('screens.home.nextAssignment')}
         mission={nextMission}
-        accentColor={colors.ACCENT_BLUE}
-        accentMuted={colors.ACCENT_BLUE_MUTED}
+        accentColor={colors.PRIMARY}
+        accentMuted={colors.PRIMARY_MUTED}
         dateLabel={nextDayLabel}
         emptyMessage={t('screens.home.noNextAssignment')}
         icon={CalendarDays}

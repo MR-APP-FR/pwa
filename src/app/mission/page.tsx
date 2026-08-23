@@ -9,6 +9,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDateLong } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
@@ -89,14 +90,13 @@ function MissionContent() {
       <FormPinnedPageHeader>
         <PageHeader
           pin="static"
-          accent="primary"
+          accent={isTodayMission ? 'red' : 'primary'}
           title={headerTitle}
-          subtitle={mission.site_name}
-          detail={dateLabel}
           showBack
         />
       </FormPinnedPageHeader>
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
+      <PageSectionTitle title={mission.site_name} detail={dateLabel} />
+      <div className="flex-1 overflow-y-auto px-5 pb-5 pt-3 space-y-3">
         {/* Site */}
         <div className="card-surface px-5 py-4 space-y-3">
           <div className="flex justify-between items-center gap-4">
