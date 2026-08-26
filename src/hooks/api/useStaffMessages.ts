@@ -8,7 +8,7 @@ import type { StaffMessageWithAck } from '../../database/types';
 /**
  * Liste des messages ciblant l'employé connecté (filtrage par la RLS de
  * `staff_message`, cf. Phase 0 §0.4), fusionnée avec son propre accusé de
- * lecture (`staff_message_ack`).
+ * lecture (`staff_message_ack`). Les canaux admin (`bureau`, `cr_auto`) sont exclus.
  */
 export function useStaffMessages() {
   const { data: currentUser } = useCurrentUser();
@@ -22,7 +22,8 @@ export function useStaffMessages() {
 
       const { data: messages, error } = await supabase
         .from('staff_message')
-        .select('id, titre, corps, source, require_ack, publie_at, expire_at, created_at, site_ids, user_ids')
+        .select('id, titre, corps, source, channel, require_ack, publie_at, expire_at, created_at, site_ids, user_ids')
+        .eq('channel', 'staff')
         .order('publie_at', { ascending: false })
         .limit(100);
       if (error) throw new Error(`useStaffMessages fetch failed: ${error.message}`);
@@ -35,16 +36,19 @@ export function useStaffMessages() {
 
       const ackByMessage = new Map((acks ?? []).map((a) => [a.message_id, a]));
 
-      return (messages ?? []).map((m) => {
-        const ack = ackByMessage.get(m.id);
-        return {
-          ...m,
-          site_ids: m.site_ids ?? [],
-          user_ids: m.user_ids ?? [],
-          read_at: ack?.read_at ?? null,
-          acked_at: ack?.acked_at ?? null,
-        };
-      });
+      return (messages ?? [])
+        .filter((m) => m.channel === 'staff')
+        .map((m) => {
+          const ack = ackByMessage.get(m.id);
+          return {
+            ...m,
+            site_ids: m.site_ids ?? [],
+            user_ids: m.user_ids ?? [],
+            channel: 'staff' as const,
+            read_at: ack?.read_at ?? null,
+            acked_at: ack?.acked_at ?? null,
+          };
+        });
     },
     staleTime: 30 * 1000,
   });

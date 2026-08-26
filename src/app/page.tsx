@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { AssignmentBanner } from '../components/home/AssignmentBanner';
+import { LateOpeningPrompt } from '../components/home/LateOpeningPrompt';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
 import { DispoDerniereMinuteToggle } from '../components/home/DispoDerniereMinuteToggle';
@@ -82,6 +83,7 @@ export default function HomePage() {
         todayWeather={todayWeather ?? null}
         onWeatherOpen={markWeatherBriefRead}
       />
+      <LateOpeningPrompt todayMission={todayMission} todayIso={todayIso} />
 
       {!hasTodayMission && <DispoDerniereMinuteToggle dateIso={todayIso} />}
 

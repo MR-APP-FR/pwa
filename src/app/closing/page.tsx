@@ -23,12 +23,16 @@ import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
 import { compressImageFile } from '../../lib/compressImageFile';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
+import { getDevDateOverride } from '../../lib/dev/dateOverrideClient';
+import { evaluateClosingForce, GEO_CLOSE_MAX_METERS, siteHasCoordinates } from '../../lib/geo';
+import { requestGeolocation, type GeoFix } from '../../lib/geolocation';
 import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { BottomSheetModal } from '../../components/common/BottomSheetModal';
 import { RADIUS } from '../../constants/design';
 
 function pad2(n: number): string {
@@ -172,6 +176,11 @@ function ClosingContent() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<ClosingFieldKey | 'photo' | null>(null);
   const [envelopeConfirmed, setEnvelopeConfirmed] = useState(false);
+  const [forceReason, setForceReason] = useState('');
+  const [forceModalOpen, setForceModalOpen] = useState(false);
+  const [forceReasonEmpty, setForceReasonEmpty] = useState(false);
+  const [geoFix, setGeoFix] = useState<GeoFix | null>(null);
+  const [forceRevealed, setForceRevealed] = useState(false);
   const [pending, startTransition] = useTransition();
 
   // X = espèces enveloppe ; Y = CB enveloppe (null → 0). Pas stockés en base.
@@ -187,25 +196,55 @@ function ClosingContent() {
 
   const missionDateIso = mission ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}` : null;
   const closingDeadline = missionDateIso ? closingDeadlineParisFromDateIso(missionDateIso) : null;
+  const hasSiteCoords = siteHasCoordinates(
+    mission?.site_details?.latitude,
+    mission?.site_details?.longitude,
+  );
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
+    setNow(getDevDateOverride() ?? new Date());
+  }, []);
+  useEffect(() => {
     if (!closingDeadline || now >= closingDeadline) return;
-    const id = setInterval(() => setNow(new Date()), 30_000);
+    const id = setInterval(() => setNow(getDevDateOverride() ?? new Date()), 30_000);
     return () => clearInterval(id);
   }, [closingDeadline, now]);
+
+  useEffect(() => {
+    if (!hasSiteCoords) return;
+    let cancelled = false;
+    void requestGeolocation().then((fix) => {
+      if (cancelled) return;
+      setGeoFix(fix);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hasSiteCoords, mission?.site_id]);
 
   const isBeforeClosingDeadline = closingDeadline !== null && now < closingDeadline;
   const remainingMinutes = isBeforeClosingDeadline
     ? Math.max(1, Math.ceil((closingDeadline!.getTime() - now.getTime()) / 60_000))
     : 0;
 
+  const forceCheck = evaluateClosingForce({
+    siteLatitude: mission?.site_details?.latitude,
+    siteLongitude: mission?.site_details?.longitude,
+    clientLatitude: geoFix?.ok ? geoFix.latitude : null,
+    clientLongitude: geoFix?.ok ? geoFix.longitude : null,
+    beforeDeadline: isBeforeClosingDeadline,
+  });
+  const needsForceUi =
+    forceCheck.early ||
+    forceRevealed ||
+    (geoFix?.ok === true && forceCheck.distanceM != null);
+
   const formValid =
     form.recetteTotale !== null &&
     photoFile !== null &&
     form.telecollectePhotoSource !== null &&
-    envelopeConfirmed &&
-    !isBeforeClosingDeadline;
+    envelopeConfirmed;
 
   function updateNumericField(key: ClosingFieldKey, value: number | null) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -300,42 +339,97 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.envelopeError'));
       return;
     }
-    if (isBeforeClosingDeadline) {
-      setSubmitError(t('forms.closing.deadlineBlocked'));
-      return;
-    }
 
     setFieldError(null);
 
-    const fd = new FormData();
-    fd.set('siteId', String(mission.site_id));
-    fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
+    if (needsForceUi) {
+      setForceReasonEmpty(false);
+      setForceModalOpen(true);
+      return;
+    }
 
-    for (const { key } of ALL_NUMERIC_FIELDS) {
-      const dataKey = FORM_FIELD_TO_FORMDATA_KEY[key];
-      if (!dataKey) continue;
-      const value = form[key];
-      fd.set(dataKey, value === null || value === undefined ? '' : String(value));
+    startClosingSubmit(null);
+  }
+
+  function handleForceConfirm() {
+    const reason = forceReason.trim();
+    if (reason.length === 0) {
+      setForceReasonEmpty(true);
+      return;
     }
-    fd.set('observations', form.observations);
-    fd.set('avisGoogleCount', form.avisGoogleCount === null ? '' : String(form.avisGoogleCount));
-    fd.set('checklist', JSON.stringify(checklist));
-    fd.set('photo', photoFile);
-    fd.set('photoSource', form.telecollectePhotoSource);
-    if (form.telecollectePhotoCapturedAtMs != null) {
-      fd.set('photoCapturedAtMs', String(form.telecollectePhotoCapturedAtMs));
-    }
+    setForceReasonEmpty(false);
+    startClosingSubmit(reason);
+  }
+
+  function startClosingSubmit(reason: string | null) {
+    if (!mission || !photoFile || !form.telecollectePhotoSource) return;
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
     const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
+    const siteLat = mission.site_details?.latitude;
+    const siteLng = mission.site_details?.longitude;
+    const photoToUpload = photoFile;
+    const photoSource = form.telecollectePhotoSource;
 
     startTransition(async () => {
       try {
+        let clientLat: number | null = null;
+        let clientLng: number | null = null;
+        if (siteHasCoordinates(siteLat, siteLng)) {
+          const fix = await requestGeolocation();
+          setGeoFix(fix);
+          if (fix.ok) {
+            clientLat = fix.latitude;
+            clientLng = fix.longitude;
+          }
+        }
+
+        const check = evaluateClosingForce({
+          siteLatitude: siteLat,
+          siteLongitude: siteLng,
+          clientLatitude: clientLat,
+          clientLongitude: clientLng,
+          beforeDeadline: isBeforeClosingDeadline,
+        });
+        if (check.needsForce) {
+          const trimmed = (reason ?? '').trim();
+          if (trimmed.length === 0) {
+            setForceRevealed(true);
+            setForceReasonEmpty(false);
+            setForceModalOpen(true);
+            return;
+          }
+        }
+
+        const fd = new FormData();
+        fd.set('siteId', String(mission.site_id));
+        fd.set('date', date);
+
+        for (const { key } of ALL_NUMERIC_FIELDS) {
+          const dataKey = FORM_FIELD_TO_FORMDATA_KEY[key];
+          if (!dataKey) continue;
+          const value = form[key];
+          fd.set(dataKey, value === null || value === undefined ? '' : String(value));
+        }
+        fd.set('observations', form.observations);
+        fd.set('avisGoogleCount', form.avisGoogleCount === null ? '' : String(form.avisGoogleCount));
+        fd.set('checklist', JSON.stringify(checklist));
+        fd.set('photo', photoToUpload);
+        fd.set('photoSource', photoSource);
+        if (form.telecollectePhotoCapturedAtMs != null) {
+          fd.set('photoCapturedAtMs', String(form.telecollectePhotoCapturedAtMs));
+        }
+        if (clientLat != null) fd.set('clientLat', String(clientLat));
+        if (clientLng != null) fd.set('clientLng', String(clientLng));
+        if (check.needsForce && reason) fd.set('forceReason', reason.trim());
+
         const result = await submitClosingForm(fd);
         if (!result.ok) {
           setSubmitError(result.error);
           return;
         }
+
+        setForceModalOpen(false);
 
         if (hasPannes) {
           // nettoyageVeille / carteParking / musiqueDisney omis (undefined) :
@@ -385,6 +479,7 @@ function ClosingContent() {
   }
 
   return (
+    <>
     <FormScrollLayout
       footer={
         <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
@@ -392,8 +487,9 @@ function ClosingContent() {
             onClick={handleSubmit}
             disabled={pending || !formValid}
             className="w-full py-4 text-base"
+            style={needsForceUi ? { backgroundColor: colors.DANGER } : undefined}
           >
-            {pending ? '...' : t('forms.closing.submit')}
+            {pending ? '...' : needsForceUi ? t('forms.closing.forceSubmit') : t('forms.closing.submit')}
           </PrimaryButton>
         </div>
       }
@@ -425,6 +521,35 @@ function ClosingContent() {
               role="status"
             >
               {t('forms.closing.deadlineCountdown', { minutes: String(remainingMinutes) })}
+            </div>
+          )}
+          {needsForceUi && forceCheck.distanceM != null && (
+            <div
+              className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: colors.DANGER,
+                color: colors.DANGER,
+                backgroundColor: colors.ACCENT_RED_MUTED,
+              }}
+              role="status"
+            >
+              {t('forms.closing.forceFar', {
+                meters: String(forceCheck.distanceM),
+                max: String(GEO_CLOSE_MAX_METERS),
+              })}
+            </div>
+          )}
+          {needsForceUi && forceRevealed && forceCheck.geoFailed && (
+            <div
+              className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: colors.DANGER,
+                color: colors.DANGER,
+                backgroundColor: colors.ACCENT_RED_MUTED,
+              }}
+              role="status"
+            >
+              {t('forms.closing.forceGeoFailed')}
             </div>
           )}
           <div className="card-surface space-y-4 px-4 py-4">
@@ -657,7 +782,7 @@ function ClosingContent() {
             </FormSection>
           </div>
 
-          {submitError && (
+          {submitError && !forceModalOpen && (
             <div
               className="mt-3 rounded-xl border px-3 py-2.5 text-sm"
               style={{ borderColor: colors.DANGER, color: colors.DANGER, backgroundColor: colors.ACCENT_RED_MUTED }}
@@ -668,6 +793,54 @@ function ClosingContent() {
         </div>
       </div>
     </FormScrollLayout>
+    <BottomSheetModal
+      isOpen={forceModalOpen}
+      onClose={() => setForceModalOpen(false)}
+      colors={colors}
+      title={t('forms.closing.forceReasonLabel')}
+      titleId="closing-force-reason-title"
+      closeAriaLabel={t('common.cancel')}
+      doneLabel={t('forms.closing.forceSubmit')}
+      hideDoneButton
+    >
+      <textarea
+        autoFocus
+        placeholder={t('forms.closing.forceReasonPlaceholder')}
+        value={forceReason}
+        onChange={(e) => {
+          setForceReason(e.target.value);
+          if (e.target.value.trim()) setForceReasonEmpty(false);
+        }}
+        maxLength={500}
+        rows={4}
+        className="min-h-[96px] w-full resize-none rounded-xl border px-3 py-3 text-base"
+        style={{
+          color: colors.TEXT_PRIMARY,
+          borderColor: forceReasonEmpty ? colors.DANGER : colors.BORDER,
+          backgroundColor: colors.BG_PRIMARY,
+          borderRadius: RADIUS.sm,
+        }}
+      />
+      {forceReasonEmpty && (
+        <p className="mt-2 text-sm font-semibold" style={{ color: colors.DANGER }} role="alert">
+          {t('forms.closing.forceReasonError')}
+        </p>
+      )}
+      {submitError && (
+        <p className="mt-2 text-sm" style={{ color: colors.DANGER }} role="alert">
+          {submitError}
+        </p>
+      )}
+      <PrimaryButton
+        onClick={handleForceConfirm}
+        disabled={pending || forceReason.trim().length === 0}
+        className="mt-4 w-full py-3.5 text-base"
+        style={{ backgroundColor: colors.DANGER }}
+      >
+        {pending ? '...' : t('forms.closing.forceSubmit')}
+      </PrimaryButton>
+    </BottomSheetModal>
+  </>
   );
 }
 

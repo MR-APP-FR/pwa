@@ -17,6 +17,17 @@ export interface OpeningFormRow {
   submitted_at: string;
 }
 
+export interface OpeningLateAlertRow {
+  site_id: number;
+  date: string;
+  teneur_user_id: number | null;
+  push_sent_at: string | null;
+  reported_at: string | null;
+  report_user_id: number | null;
+  report_reason: string | null;
+  created_at: string;
+}
+
 export interface ClosingFormRow {
   id: number;
   site_id: number;

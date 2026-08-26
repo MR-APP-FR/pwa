@@ -70,6 +70,7 @@ export default function MessagesPage() {
       titre: weatherBriefTitle(todayWeather, t),
       corps: weatherBriefBody(todayWeather, t),
       source: 'appli',
+      channel: 'staff',
       require_ack: false,
       publie_at: published.toISOString(),
       expire_at: null,

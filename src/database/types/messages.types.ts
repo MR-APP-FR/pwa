@@ -1,6 +1,7 @@
 /** Types DB pour `staff_message` / `staff_message_ack` (GRE vague 1, chantier B5). */
 
 export type StaffMessageSource = 'bureau' | 'appli';
+export type StaffMessageChannel = 'staff' | 'bureau' | 'cr_auto';
 
 /** 👧🏻 saisi par le bureau · 🤖 automatique (météo, plus tard recap hebdo / mensuel CA). */
 export const MESSAGE_SOURCE_ICON: Record<StaffMessageSource, string> = {
@@ -13,6 +14,8 @@ export interface StaffMessageRow {
   titre: string;
   corps: string;
   source: StaffMessageSource;
+  /** staff = employés ; bureau / cr_auto = canaux internes CRM, jamais exposés à la PWA. */
+  channel: StaffMessageChannel;
   require_ack: boolean;
   publie_at: string;
   expire_at: string | null;

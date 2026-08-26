@@ -52,6 +52,9 @@ export interface UserInfo {
   notification_anniversaire: boolean;
   created_at: string;
   updated_at: string;
+  cni_numero: string | null;
+  cni_url: string | null;
+  avatar_url: string | null;
 }
 
 export interface UserInfoSite {

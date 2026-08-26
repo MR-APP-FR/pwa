@@ -164,3 +164,14 @@ export function getExpectedOpeningDeadline(
   const jour = heures[key];
   return openingDeadlineParisFromDateIso(dateIso, jour?.ouvre ?? null);
 }
+
+export function formatHeureOuvertureDisplay(value: string | null | undefined): string {
+  if (value == null || String(value).trim() === '') return '';
+  const s = String(value).trim();
+  const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(s);
+  if (!m) return s;
+  const h = Number.parseInt(m[1], 10);
+  const min = m[2];
+  if (min === '00') return `${h}h`;
+  return `${h}h${min}`;
+}

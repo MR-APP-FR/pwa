@@ -17,6 +17,8 @@ interface BottomSheetModalProps {
   titleId: string;
   closeAriaLabel: string;
   doneLabel: string;
+  /** Si true, pas de bouton « Terminer » : le contenu gère sa propre action. */
+  hideDoneButton?: boolean;
   children: React.ReactNode | ((api: BottomSheetModalCloseApi) => React.ReactNode);
 }
 
@@ -28,6 +30,7 @@ export function BottomSheetModal({
   titleId,
   closeAriaLabel,
   doneLabel,
+  hideDoneButton = false,
   children,
 }: BottomSheetModalProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -118,9 +121,11 @@ export function BottomSheetModal({
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           {content}
-          <PrimaryButton onClick={handleClose} className="mt-4 w-full py-3.5 text-base">
-            {doneLabel}
-          </PrimaryButton>
+          {!hideDoneButton && (
+            <PrimaryButton onClick={handleClose} className="mt-4 w-full py-3.5 text-base">
+              {doneLabel}
+            </PrimaryButton>
+          )}
         </div>
       </div>
     </div>,

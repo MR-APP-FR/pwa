@@ -18,9 +18,10 @@ export function zoneConversationKey(groupId: number): string {
 }
 
 export function matchMessageConversationKey(
-  message: { site_ids: number[]; source?: 'bureau' | 'appli' },
+  message: { site_ids: number[]; source?: 'bureau' | 'appli'; channel?: 'staff' | 'bureau' | 'cr_auto' },
   sites: Site[],
 ): string {
+  if (message.channel && message.channel !== 'staff') return '__hidden_admin__';
   if (message.source === 'appli') return NOTIFICATIONS_KEY;
   if (!message.site_ids || message.site_ids.length === 0) return 'tous';
 
@@ -51,7 +52,7 @@ export function buildEmployeeConversations(
     if (relevantSiteIds.has(site.id)) zoneIds.add(site.group_id);
   }
   for (const key of extraKeys) {
-    if (key === 'tous' || key === NOTIFICATIONS_KEY) continue;
+    if (key === 'tous' || key === NOTIFICATIONS_KEY || key.startsWith('__')) continue;
     if (key.startsWith('zone:')) {
       const id = Number(key.slice(5));
       if (Number.isFinite(id)) zoneIds.add(id);

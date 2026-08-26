@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { User, X, Search, MapPin, Check, LogOut } from 'lucide-react';
+import { X, Search, MapPin, Check, LogOut } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
@@ -15,6 +15,7 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
 import { PushSettingsRow } from '../../components/pwa/PushSettingsRow';
 import { updatePreferredSites } from './actions';
+import { ProfileMediaCard } from '../../components/profil/ProfileMediaCard';
 
 function EditSitesModal({
   isOpen,
@@ -257,10 +258,18 @@ export default function ProfilPage() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: currentUserData, isLoading: isUserLoading } = useCurrentUser();
   const preferredSites = currentUserData?.sites ?? [];
   const [isEditSitesOpen, setIsEditSitesOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const [cniPath, setCniPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAvatarPath(currentUserData?.userInfo?.avatar_url ?? null);
+    setCniPath(currentUserData?.userInfo?.cni_url ?? null);
+  }, [currentUserData?.userInfo?.avatar_url, currentUserData?.userInfo?.cni_url]);
 
   const fullname = useMemo(() => {
     if (currentUserData?.user?.fullname) return currentUserData.user.fullname;
@@ -290,17 +299,19 @@ export default function ProfilPage() {
       >
         {t('settings.profile.title')}
       </p>
+      <ProfileMediaCard
+        kind="avatar"
+        path={avatarPath}
+        onUploaded={(nextPath) => {
+          setAvatarPath(nextPath);
+          void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        }}
+      />
       <div
-        className="mx-5 overflow-hidden rounded-2xl"
+        className="mx-5 mt-3 overflow-hidden rounded-2xl"
         style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
       >
         <div className="flex items-center px-5 py-4">
-          <div
-            className="mr-4 flex h-12 w-12 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: colors.PRIMARY_MUTED }}
-          >
-            <User size={20} color={colors.PRIMARY} strokeWidth={2.25} />
-          </div>
           <div className="flex-1">
             <p className="text-lg font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
               {isUserLoading ? '...' : fullname}
@@ -310,6 +321,17 @@ export default function ProfilPage() {
             {ville && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{ville}</p>}
           </div>
         </div>
+      </div>
+
+      <div className="mt-3">
+        <ProfileMediaCard
+          kind="cni"
+          path={cniPath}
+          onUploaded={(nextPath) => {
+            setCniPath(nextPath);
+            void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+          }}
+        />
       </div>
 
       <div className="flex items-center justify-between px-5 pt-7 pb-2">

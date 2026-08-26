@@ -2,12 +2,15 @@
 
 import { requireEmployeeSession } from '../../lib/auth/employee';
 import type { PhotoSource } from '../../database/types';
+import { evaluateClosingForce } from '../../lib/geo';
 import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
 import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
 
 /**
  * Submit fermeture : upload photo télécollecte puis upsert `closing_form`.
  * `user_id` dérivé de la session, jamais du client.
+ * Distance / horaire recalculés côté serveur : une fermeture hors site ou
+ * avant 20h05 n'est acceptée qu'avec une raison, et alerte le canal bureau.
  */
 
 export type SubmitClosingResult =
@@ -21,6 +24,13 @@ function nullableNumber(formData: FormData, key: string): number | null {
   if (raw === null || raw === '') return null;
   const n = Number(raw);
   return Number.isFinite(n) ? n : null;
+}
+
+function optionalCoord(formData: FormData, key: string, min: number, max: number): number | null {
+  const n = nullableNumber(formData, key);
+  if (n === null) return null;
+  if (n < min || n > max) return null;
+  return n;
 }
 
 function nullableText(formData: FormData, key: string): string | null {
@@ -69,21 +79,42 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     return { ok: false, error: 'Source de la photo invalide.' };
   }
 
-  // Blocage horaire 20h05 Europe/Paris — garde serveur, ne pas se fier au seul client.
-  const deadline = closingDeadlineParisFromDateIso(date);
-  const effectiveNow = (await getDevOverrideNow()) ?? new Date();
-  if (deadline && effectiveNow < deadline) {
-    return {
-      ok: false,
-      error: 'La fermeture ne peut être validée qu\'à partir de 20h05.',
-    };
-  }
-
   const session = await requireEmployeeSession();
   if (!session.ok) {
     return { ok: false, error: session.error };
   }
   const { userId, supabase } = session;
+
+  const { data: siteRow } = await supabase
+    .from('site')
+    .select('latitude, longitude')
+    .eq('id', siteId)
+    .maybeSingle();
+
+  const deadline = closingDeadlineParisFromDateIso(date);
+  const effectiveNow = (await getDevOverrideNow()) ?? new Date();
+  const beforeDeadline = deadline !== null && effectiveNow < deadline;
+
+  const forceCheck = evaluateClosingForce({
+    siteLatitude: siteRow?.latitude,
+    siteLongitude: siteRow?.longitude,
+    clientLatitude: optionalCoord(formData, 'clientLat', -90, 90),
+    clientLongitude: optionalCoord(formData, 'clientLng', -180, 180),
+    beforeDeadline,
+  });
+
+  const forceReason = nullableText(formData, 'forceReason');
+  if (forceCheck.needsForce) {
+    if (!forceReason) {
+      return {
+        ok: false,
+        error: 'Indique une raison pour forcer la fermeture.',
+      };
+    }
+    if (forceReason.length > 500) {
+      return { ok: false, error: 'Raison trop longue (500 caractères max).' };
+    }
+  }
 
   const photoCapturedAtIso =
     typeof photoCapturedAtMsRaw === 'string' && photoCapturedAtMsRaw.length > 0
@@ -154,6 +185,23 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
 
   if (error) {
     return { ok: false, error: `Enregistrement closing_form a échoué : ${error.message}` };
+  }
+
+  if (forceCheck.needsForce && forceReason) {
+    const { error: rpcError } = await supabase.rpc('report_forced_closing_to_bureau', {
+      p_site_id: siteId,
+      p_date: date,
+      p_reason: forceReason,
+      p_distance_m: forceCheck.distanceM,
+      p_early: forceCheck.early,
+      p_geo_failed: forceCheck.geoFailed,
+    });
+    if (rpcError) {
+      return {
+        ok: false,
+        error: `Fermeture enregistrée, mais l'alerte bureau a échoué : ${rpcError.message}`,
+      };
+    }
   }
 
   return { ok: true, id: data.id, photoPath };
