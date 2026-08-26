@@ -59,15 +59,8 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   if (!Number.isFinite(siteId) || siteId <= 0) return { ok: false, error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'Date invalide.' };
   if (!Number.isFinite(recetteTotale)) return { ok: false, error: 'Recette totale manquante.' };
-  // Garde-fou valeurs aberrantes — cf. audit 2026-08-18 §3.6 (incident mars 2026 :
-  // 2229 enfants saisis pour 29 réels). Ne bloque pas les gros sites, juste les
-  // erreurs de saisie manifestes (chiffre collé, virgule ratée).
-  if (recetteTotale < 0 || recetteTotale > 10000) {
-    return { ok: false, error: 'Recette totale invraisemblable — vérifie la saisie.' };
-  }
-  const nbEnfantsCheck = nullableNumber(formData, 'nbEnfants');
-  if (nbEnfantsCheck !== null && (nbEnfantsCheck < 0 || nbEnfantsCheck > 500)) {
-    return { ok: false, error: "Nombre d'enfants invraisemblable — vérifie la saisie." };
+  if (recetteTotale < 0) {
+    return { ok: false, error: 'Recette totale invalide.' };
   }
   if (!(photo instanceof File) || photo.size === 0) {
     return { ok: false, error: 'Photo de télécollecte manquante.' };
