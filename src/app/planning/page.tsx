@@ -1,14 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useSitesHeuresOuverture } from '../../hooks/api/useSitesHeuresOuverture';
+import { useStaffMessages } from '../../hooks/api/useStaffMessages';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
+import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -17,6 +19,7 @@ import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import { dateIsoToJourSemaineKey, toIsoDateString, type HeuresSemaine } from '../../lib/parisTime';
+import { markMessagesRead } from '../messages/actions';
 
 interface WeekDay {
   date: Date;
@@ -108,6 +111,23 @@ export default function PlanningPage() {
   const weekSubtitle = t('screens.planning.planningWeekTitle', {
     date: formatDayMonthYear(viewedWeekStart),
   });
+
+  const { data: staffMessages } = useStaffMessages();
+  const markedPlanningReadRef = useRef(false);
+
+  useEffect(() => {
+    if (markedPlanningReadRef.current || !staffMessages?.length) return;
+    const unreadPlanningIds = staffMessages
+      .filter(
+        (m) =>
+          m.titre === PLANNING_ASSIGNED_MESSAGE_TITLE &&
+          (m.require_ack ? m.acked_at === null : m.read_at === null),
+      )
+      .map((m) => m.id);
+    if (unreadPlanningIds.length === 0) return;
+    markedPlanningReadRef.current = true;
+    void markMessagesRead(unreadPlanningIds);
+  }, [staffMessages]);
 
   return (
     <FormScrollLayout>

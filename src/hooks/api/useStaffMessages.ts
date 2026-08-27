@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
 import { useCurrentUser } from './useCurrentUser';
 import type { StaffMessageWithAck } from '../../database/types';
+import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
 
 /**
  * Liste des messages ciblant l'employé connecté (filtrage par la RLS de
@@ -59,4 +60,14 @@ export function useUnreadStaffMessageCount(): number {
   const { data: messages } = useStaffMessages();
   return (messages ?? []).filter((m) => (m.require_ack ? m.acked_at === null : m.read_at === null))
     .length;
+}
+
+/** Badge planning : message « Planning semaine prochaine » non lu. */
+export function useUnreadPlanningAssignedCount(): number {
+  const { data: messages } = useStaffMessages();
+  return (messages ?? []).filter(
+    (m) =>
+      m.titre === PLANNING_ASSIGNED_MESSAGE_TITLE &&
+      (m.require_ack ? m.acked_at === null : m.read_at === null),
+  ).length;
 }

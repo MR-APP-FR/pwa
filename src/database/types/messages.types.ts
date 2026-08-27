@@ -39,3 +39,7 @@ export interface StaffMessageWithAck extends StaffMessageRow {
 
 /** Brief météo du jour injecté dans Messages (pas une ligne `staff_message`). */
 export const WEATHER_BRIEF_MESSAGE_ID = -1;
+
+/** Titres des messages automatiques / bureau (badges accueil). */
+export const AVAILABILITY_REMINDER_TITLE = 'Disponibilités';
+export const PLANNING_ASSIGNED_MESSAGE_TITLE = 'Planning semaine prochaine';

@@ -9,13 +9,17 @@ import { HomeFooter } from '../components/home/HomeFooter';
 import { DispoDerniereMinuteToggle } from '../components/home/DispoDerniereMinuteToggle';
 import { usePlanning } from '../hooks/api/usePlanning';
 import { useSiteWeather } from '../hooks/api/useSiteWeather';
-import { useUnreadStaffMessageCount } from '../hooks/api/useStaffMessages';
+import {
+  useUnreadPlanningAssignedCount,
+  useUnreadStaffMessageCount,
+} from '../hooks/api/useStaffMessages';
+import { useAvailability } from '../hooks/api/useAvailability';
 import { useCurrentUser } from '../hooks/api/useCurrentUser';
 import { useWeatherBriefRead } from '../hooks/useWeatherBriefRead';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
-import { toIsoDateString } from '../lib/parisTime';
+import { isAvailabilityReminderWindow, toIsoDateString } from '../lib/parisTime';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -73,6 +77,19 @@ export default function HomePage() {
   const unreadMessageCount =
     unreadStaffCount + (todayWeather && !weatherBriefRead ? 1 : 0);
 
+  const nextWeekStartIso = toIsoDateString(nextWeekStart);
+  const nextWeekEndIso = toIsoDateString(nextWeekEnd);
+  const { data: nextWeekAvailability } = useAvailability(nextWeekStartIso, nextWeekEndIso);
+  const unreadPlanningCount = useUnreadPlanningAssignedCount();
+
+  const availabilityBadgeCount = useMemo(() => {
+    if (!isAvailabilityReminderWindow()) return 0;
+    const filledDays = new Set((nextWeekAvailability ?? []).map((row) => row.date)).size;
+    return filledDays >= 7 ? 0 : 1;
+  }, [nextWeekAvailability]);
+
+  const planningBadgeCount = unreadPlanningCount > 0 ? 1 : 0;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="flex min-h-full flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
@@ -110,15 +127,17 @@ export default function HomePage() {
           icon="calendar-outline"
           label={t('screens.home.planningButton')}
           onPress={() => router.push('/planning')}
+          badgeCount={planningBadgeCount}
         />
         <HomeButton
           icon="hand-left-outline"
           label={t('screens.home.availabilityButton')}
           onPress={() =>
             router.push(
-              `/availability?startDate=${toIsoDateString(nextWeekStart)}&endDate=${toIsoDateString(nextWeekEnd)}`,
+              `/availability?startDate=${nextWeekStartIso}&endDate=${nextWeekEndIso}`,
             )
           }
+          badgeCount={availabilityBadgeCount}
         />
         <HomeButton
           icon="messages-outline"

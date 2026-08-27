@@ -144,6 +144,32 @@ export function getParisHour(date: Date = new Date()): number {
   return Number(parts.find((p) => p.type === 'hour')?.value ?? NaN);
 }
 
+/**
+ * Fenêtre de rappel dispos : mercredi 9h → dimanche inclus (heure Paris).
+ * Lundi/mardi : pas de badge ; mercredi avant 9h : pas encore.
+ */
+export function isAvailabilityReminderWindow(instant: Date = new Date()): boolean {
+  const today = toParisLocalDate(instant);
+  const dateIso = toIsoDateString(today);
+  const jour = dateIsoToJourSemaineKey(dateIso);
+  if (jour === '1' || jour === '2') return false;
+  if (jour === '3') return getParisHour(instant) >= 9;
+  return true;
+}
+
+/** Lundi ISO de la semaine N+1 à partir du jour calendaire Paris courant. */
+export function getNextWeekStartFromParisToday(instant: Date = new Date()): Date {
+  const today = toParisLocalDate(instant);
+  const dateIso = toIsoDateString(today);
+  const jour = Number(dateIsoToJourSemaineKey(dateIso));
+  const mondayOffset = jour - 1;
+  const currentMonday = new Date(today);
+  currentMonday.setDate(today.getDate() - mondayOffset);
+  const nextMonday = new Date(currentMonday);
+  nextMonday.setDate(currentMonday.getDate() + 7);
+  return nextMonday;
+}
+
 /** Lundi = '1' … dimanche = '7', pour le jour calendaire Europe/Paris de `dateIso`. */
 export function dateIsoToJourSemaineKey(dateIso: string): JourSemaineKey {
   const parsed = parseDateIsoParts(dateIso);
