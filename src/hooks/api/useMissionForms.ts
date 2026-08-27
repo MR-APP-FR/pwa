@@ -6,12 +6,15 @@ import { useCurrentUser } from './useCurrentUser';
 
 /**
  * Indique si ouverture / fermeture déjà soumises pour une mission
- * (site + date + employé connecté).
+ * (une ligne par site + date, modèle site-jour).
+ * `openingLat` / `openingLng` = GPS capté à l'ouverture, ancre des 200 m.
  */
 
 export interface MissionFormsStatus {
   hasOpening: boolean;
   hasClosing: boolean;
+  openingLat: number | null;
+  openingLng: number | null;
 }
 
 export function useMissionForms(siteId: number | undefined, dateIso: string | undefined) {
@@ -23,23 +26,21 @@ export function useMissionForms(siteId: number | undefined, dateIso: string | un
     enabled: employeeId !== null && siteId != null && !!dateIso,
     queryFn: async () => {
       if (employeeId === null || siteId == null || !dateIso) {
-        return { hasOpening: false, hasClosing: false };
+        return { hasOpening: false, hasClosing: false, openingLat: null, openingLng: null };
       }
       const supabase = createClient();
       const [openRes, closeRes] = await Promise.all([
         supabase
           .from('opening_form')
-          .select('id')
+          .select('id, client_lat, client_lng')
           .eq('site_id', siteId)
           .eq('date', dateIso)
-          .eq('user_id', employeeId)
           .maybeSingle(),
         supabase
           .from('closing_form')
           .select('id')
           .eq('site_id', siteId)
           .eq('date', dateIso)
-          .eq('user_id', employeeId)
           .maybeSingle(),
       ]);
 
@@ -50,7 +51,21 @@ export function useMissionForms(siteId: number | undefined, dateIso: string | un
         throw new Error(`useMissionForms closing fetch failed: ${closeRes.error.message}`);
       }
 
-      return { hasOpening: openRes.data != null, hasClosing: closeRes.data != null };
+      const openingLat =
+        typeof openRes.data?.client_lat === 'number' && Number.isFinite(openRes.data.client_lat)
+          ? openRes.data.client_lat
+          : null;
+      const openingLng =
+        typeof openRes.data?.client_lng === 'number' && Number.isFinite(openRes.data.client_lng)
+          ? openRes.data.client_lng
+          : null;
+
+      return {
+        hasOpening: openRes.data != null,
+        hasClosing: closeRes.data != null,
+        openingLat,
+        openingLng,
+      };
     },
     staleTime: 0,
   });

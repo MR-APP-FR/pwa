@@ -11,6 +11,7 @@ import {
   dateIsoToJourSemaineKey,
   formatHeureOuvertureDisplay,
   getExpectedOpeningDeadline,
+  lateOpeningPromptCutoffFromDateIso,
 } from '../../lib/parisTime';
 import { BottomSheetModal } from '../common/BottomSheetModal';
 import { PrimaryButton } from '../common/PrimaryButton';
@@ -66,6 +67,11 @@ export function LateOpeningPrompt({
       setOpen(false);
       return;
     }
+    const cutoff = lateOpeningPromptCutoffFromDateIso(todayIso);
+    if (!cutoff || now.getTime() >= cutoff.getTime()) {
+      setOpen(false);
+      return;
+    }
 
     const raw = heures?.[dateIsoToJourSemaineKey(todayIso)]?.ouvre ?? null;
     const label = formatHeureOuvertureDisplay(raw) || '10h';
@@ -73,31 +79,49 @@ export function LateOpeningPrompt({
 
     let cancelled = false;
     const supabase = createClient();
+    const siteId = todayMission.site_id;
     void Promise.all([
       supabase
         .from('opening_form')
         .select('id')
-        .eq('site_id', todayMission.site_id)
+        .eq('site_id', siteId)
+        .eq('date', todayIso)
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('closing_form')
+        .select('id')
+        .eq('site_id', siteId)
         .eq('date', todayIso)
         .limit(1)
         .maybeSingle(),
       supabase
         .from('opening_late_alert')
         .select('reported_at')
-        .eq('site_id', todayMission.site_id)
+        .eq('site_id', siteId)
         .eq('date', todayIso)
         .maybeSingle(),
-    ]).then(([openRes, alertRes]) => {
+    ]).then(([openRes, closeRes, alertRes]) => {
       if (cancelled) return;
-      if (openRes.data || alertRes.data?.reported_at) {
+      if (openRes.error || closeRes.error || alertRes.error) {
+        setOpen(false);
+        return;
+      }
+      if (openRes.data || closeRes.data || alertRes.data?.reported_at) {
         setOpen(false);
         return;
       }
       setOpen(true);
+    }).catch(() => {
+      if (!cancelled) setOpen(false);
     });
+
+    const msUntilCutoff = cutoff.getTime() - now.getTime();
+    const hideAtCutoff = window.setTimeout(() => setOpen(false), msUntilCutoff);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(hideAtCutoff);
     };
   }, [todayMission, todayIso, heures, heuresFetched, currentUser?.user]);
 

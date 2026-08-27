@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo, Suspense, useTransition } from 'react';
+import { useState, useMemo, Suspense, useTransition, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
@@ -21,6 +21,7 @@ import { useAppDate } from '../../hooks/useAppDate';
 import { submitOpeningForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
+import { requestGeolocation } from '../../lib/geolocation';
 import { formatMissionDate } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
@@ -106,6 +107,10 @@ function OpeningContent() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<OpeningFieldError | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    void requestGeolocation();
+  }, []);
 
   type PunctualityStatus = 'avance' | 'aLheure' | 'retard';
   const PUNCTUALITY_TOLERANCE_MS = 5 * 60 * 1000;
@@ -220,6 +225,12 @@ function OpeningContent() {
 
     startTransition(async () => {
       try {
+        const geo = await requestGeolocation();
+        if (geo.ok) {
+          fd.set('clientLat', String(geo.latitude));
+          fd.set('clientLng', String(geo.longitude));
+        }
+
         const result = await submitOpeningForm(fd);
         if (!result.ok) {
           setSubmitError(result.error);

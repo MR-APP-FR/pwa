@@ -15,6 +15,8 @@ export interface OpeningFormRow {
   fond_caisse_100: boolean;
   observations: string | null;
   submitted_at: string;
+  client_lat: number | null;
+  client_lng: number | null;
 }
 
 export interface OpeningLateAlertRow {
@@ -51,6 +53,14 @@ export interface ClosingFormRow {
   submitted_at: string;
   checklist: Record<string, boolean>;
   avis_google_count: number;
+  force_reason: string | null;
+  force_early: boolean;
+  force_distance_m: number | null;
+  force_geo_failed: boolean;
+  force_client_lat: number | null;
+  force_client_lng: number | null;
+  client_lat: number | null;
+  client_lng: number | null;
 }
 
 export interface DailyInfoRow {

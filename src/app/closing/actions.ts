@@ -9,8 +9,9 @@ import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
 /**
  * Submit fermeture : upload photo télécollecte puis upsert `closing_form`.
  * `user_id` dérivé de la session, jamais du client.
- * Distance / horaire recalculés côté serveur : une fermeture hors site ou
- * avant 20h05 n'est acceptée qu'avec une raison, et alerte le canal bureau.
+ * Distance / horaire recalculés côté serveur : une fermeture loin de
+ * l'ouverture ou avant 20h05 n'est acceptée qu'avec une raison, et alerte
+ * le canal bureau.
  */
 
 export type SubmitClosingResult =
@@ -85,21 +86,24 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   }
   const { userId, supabase } = session;
 
-  const { data: siteRow } = await supabase
-    .from('site')
-    .select('latitude, longitude')
-    .eq('id', siteId)
+  const { data: openingRow } = await supabase
+    .from('opening_form')
+    .select('client_lat, client_lng')
+    .eq('site_id', siteId)
+    .eq('date', date)
     .maybeSingle();
 
   const deadline = closingDeadlineParisFromDateIso(date);
   const effectiveNow = (await getDevOverrideNow()) ?? new Date();
   const beforeDeadline = deadline !== null && effectiveNow < deadline;
 
+  const clientLat = optionalCoord(formData, 'clientLat', -90, 90);
+  const clientLng = optionalCoord(formData, 'clientLng', -180, 180);
   const forceCheck = evaluateClosingForce({
-    siteLatitude: siteRow?.latitude,
-    siteLongitude: siteRow?.longitude,
-    clientLatitude: optionalCoord(formData, 'clientLat', -90, 90),
-    clientLongitude: optionalCoord(formData, 'clientLng', -180, 180),
+    anchorLatitude: openingRow?.client_lat,
+    anchorLongitude: openingRow?.client_lng,
+    clientLatitude: clientLat,
+    clientLongitude: clientLng,
     beforeDeadline,
   });
 
@@ -177,6 +181,15 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         photo_captured_at: photoCapturedAtIso,
         checklist: parseChecklist(formData),
         avis_google_count: nullableNumber(formData, 'avisGoogleCount') ?? 0,
+        force_reason: forceCheck.needsForce ? forceReason : null,
+        force_early: Boolean(forceCheck.needsForce && forceCheck.early),
+        force_distance_m: forceCheck.needsForce ? forceCheck.distanceM : null,
+        force_geo_failed: Boolean(forceCheck.needsForce && forceCheck.geoFailed),
+        force_client_lat: forceCheck.needsForce && !forceCheck.geoFailed ? clientLat : null,
+        force_client_lng: forceCheck.needsForce && !forceCheck.geoFailed ? clientLng : null,
+        ...(clientLat != null && clientLng != null
+          ? { client_lat: clientLat, client_lng: clientLng }
+          : {}),
       },
       { onConflict: 'site_id,date' },
     )
@@ -195,6 +208,8 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
       p_distance_m: forceCheck.distanceM,
       p_early: forceCheck.early,
       p_geo_failed: forceCheck.geoFailed,
+      p_client_lat: forceCheck.geoFailed ? null : (clientLat ?? null),
+      p_client_lng: forceCheck.geoFailed ? null : (clientLng ?? null),
     });
     if (rpcError) {
       return {

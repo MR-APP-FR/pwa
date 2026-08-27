@@ -115,6 +115,21 @@ export function closingDeadlineParisFromDateIso(dateIso: string): Date | null {
   return parisWallClockToDate(dateIso, { hour: 20, minute: 5, second: 0 });
 }
 
+/**
+ * Au-delà de 16h Europe/Paris, plus de prompt « tu n'as pas ouvert ».
+ * Aligné sur la fin des relances bureau (10h–12h / 13h–15h) : le soir, la
+ * personne est en fermeture, pas en retard d'ouverture.
+ */
+export const LATE_OPENING_PROMPT_CUTOFF_HOUR = 16;
+
+export function lateOpeningPromptCutoffFromDateIso(dateIso: string): Date | null {
+  return parisWallClockToDate(dateIso, {
+    hour: LATE_OPENING_PROMPT_CUTOFF_HOUR,
+    minute: 0,
+    second: 0,
+  });
+}
+
 export function formatParisTime(value: Date): string {
   return value.toLocaleTimeString('fr-FR', {
     hour: '2-digit',

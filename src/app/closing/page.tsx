@@ -11,6 +11,7 @@ import { FormNumberInput } from '../../components/forms/FormNumberInput';
 import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import { useSujets } from '../../hooks/api/useSujets';
+import { useMissionForms } from '../../hooks/api/useMissionForms';
 import {
   useSiteClosingChecklist,
   type ClosingChecklistItemKey,
@@ -24,7 +25,7 @@ import { isBrowserOffline } from '../../lib/offline';
 import { compressImageFile } from '../../lib/compressImageFile';
 import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
 import { getDevDateOverride } from '../../lib/dev/dateOverrideClient';
-import { evaluateClosingForce, GEO_CLOSE_MAX_METERS, siteHasCoordinates } from '../../lib/geo';
+import { evaluateClosingForce, GEO_CLOSE_MAX_METERS } from '../../lib/geo';
 import { requestGeolocation, type GeoFix } from '../../lib/geolocation';
 import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -143,9 +144,11 @@ function ClosingContent() {
 
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
+  const missionDateIso = mission ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}` : null;
 
   const { data: sujets } = useSujets(mission?.site_id);
   const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
+  const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
 
   const [form, setForm] = useState<ClosingFormData>({
     missionId,
@@ -194,12 +197,7 @@ function ClosingContent() {
   const enveloppeCb = form.carteBleue ?? 0;
   const enveloppeAnomaly = enveloppeEspeces < 0;
 
-  const missionDateIso = mission ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}` : null;
   const closingDeadline = missionDateIso ? closingDeadlineParisFromDateIso(missionDateIso) : null;
-  const hasSiteCoords = siteHasCoordinates(
-    mission?.site_details?.latitude,
-    mission?.site_details?.longitude,
-  );
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -212,7 +210,6 @@ function ClosingContent() {
   }, [closingDeadline, now]);
 
   useEffect(() => {
-    if (!hasSiteCoords) return;
     let cancelled = false;
     void requestGeolocation().then((fix) => {
       if (cancelled) return;
@@ -221,7 +218,7 @@ function ClosingContent() {
     return () => {
       cancelled = true;
     };
-  }, [hasSiteCoords, mission?.site_id]);
+  }, [mission?.site_id, missionDateIso]);
 
   const isBeforeClosingDeadline = closingDeadline !== null && now < closingDeadline;
   const remainingMinutes = isBeforeClosingDeadline
@@ -229,16 +226,27 @@ function ClosingContent() {
     : 0;
 
   const forceCheck = evaluateClosingForce({
-    siteLatitude: mission?.site_details?.latitude,
-    siteLongitude: mission?.site_details?.longitude,
+    anchorLatitude: formsStatus?.openingLat,
+    anchorLongitude: formsStatus?.openingLng,
     clientLatitude: geoFix?.ok ? geoFix.latitude : null,
     clientLongitude: geoFix?.ok ? geoFix.longitude : null,
     beforeDeadline: isBeforeClosingDeadline,
   });
-  const needsForceUi =
-    forceCheck.early ||
-    forceRevealed ||
-    (geoFix?.ok === true && forceCheck.distanceM != null);
+  const isFar = geoFix?.ok === true && forceCheck.distanceM != null;
+  // Avant 20h05 on laisse remplir le formulaire : la validation classique
+  // attend l'heure. « Forcer » seulement si trop loin, GPS KO déjà révélé,
+  // ou choix explicite de fermer le site plus tôt.
+  const needsForceUi = forceRevealed || isFar;
+  const forceModalTitleKey = isFar
+    ? 'forms.closing.forceReasonLabelFar'
+    : forceCheck.geoFailed
+      ? 'forms.closing.forceReasonLabelGeo'
+      : 'forms.closing.forceReasonLabelEarly';
+  const forceModalPlaceholderKey = isFar
+    ? 'forms.closing.forceReasonPlaceholderFar'
+    : forceCheck.geoFailed
+      ? 'forms.closing.forceReasonPlaceholderGeo'
+      : 'forms.closing.forceReasonPlaceholderEarly';
 
   const formValid =
     form.recetteTotale !== null &&
@@ -310,37 +318,40 @@ function ClosingContent() {
       ? formatDateTime(new Date(form.telecollectePhotoCapturedAtMs))
       : null;
 
-  function handleSubmit() {
+  function assertClosingFormReady(): boolean {
     setSubmitError(null);
-
     if (!mission) {
       setSubmitError('Mission introuvable.');
-      return;
+      return false;
     }
     if (!currentUser?.user) {
       setSubmitError('Session invalide. Reconnecte-toi.');
-      return;
+      return false;
     }
     if (isBrowserOffline()) {
       setSubmitError(t('forms.common.errorOffline'));
-      return;
+      return false;
     }
     if (form.recetteTotale === null) {
       setFieldError('recetteTotale');
       setSubmitError(t('forms.closing.step1Error'));
-      return;
+      return false;
     }
     if (!photoFile || !form.telecollectePhotoSource) {
       setFieldError('photo');
       setSubmitError(t('forms.closing.errorPhoto'));
-      return;
+      return false;
     }
     if (!envelopeConfirmed) {
       setSubmitError(t('forms.closing.envelopeError'));
-      return;
+      return false;
     }
-
     setFieldError(null);
+    return true;
+  }
+
+  function handleSubmit() {
+    if (!assertClosingFormReady()) return;
 
     if (needsForceUi) {
       setForceReasonEmpty(false);
@@ -348,7 +359,17 @@ function ClosingContent() {
       return;
     }
 
+    if (isBeforeClosingDeadline) {
+      return;
+    }
+
     startClosingSubmit(null);
+  }
+
+  function handleCloseEarly() {
+    if (!assertClosingFormReady()) return;
+    setForceReasonEmpty(false);
+    setForceModalOpen(true);
   }
 
   function handleForceConfirm() {
@@ -366,8 +387,8 @@ function ClosingContent() {
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
     const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
-    const siteLat = mission.site_details?.latitude;
-    const siteLng = mission.site_details?.longitude;
+    const openingLat = formsStatus?.openingLat;
+    const openingLng = formsStatus?.openingLng;
     const photoToUpload = photoFile;
     const photoSource = form.telecollectePhotoSource;
 
@@ -375,18 +396,16 @@ function ClosingContent() {
       try {
         let clientLat: number | null = null;
         let clientLng: number | null = null;
-        if (siteHasCoordinates(siteLat, siteLng)) {
-          const fix = await requestGeolocation();
-          setGeoFix(fix);
-          if (fix.ok) {
-            clientLat = fix.latitude;
-            clientLng = fix.longitude;
-          }
+        const fix = await requestGeolocation();
+        setGeoFix(fix);
+        if (fix.ok) {
+          clientLat = fix.latitude;
+          clientLng = fix.longitude;
         }
 
         const check = evaluateClosingForce({
-          siteLatitude: siteLat,
-          siteLongitude: siteLng,
+          anchorLatitude: openingLat,
+          anchorLongitude: openingLng,
           clientLatitude: clientLat,
           clientLongitude: clientLng,
           beforeDeadline: isBeforeClosingDeadline,
@@ -485,12 +504,29 @@ function ClosingContent() {
         <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
           <PrimaryButton
             onClick={handleSubmit}
-            disabled={pending || !formValid}
+            disabled={pending || !formValid || (isBeforeClosingDeadline && !needsForceUi)}
             className="w-full py-4 text-base"
             style={needsForceUi ? { backgroundColor: colors.DANGER } : undefined}
           >
-            {pending ? '...' : needsForceUi ? t('forms.closing.forceSubmit') : t('forms.closing.submit')}
+            {pending
+              ? '...'
+              : needsForceUi
+                ? t('forms.closing.forceSubmit')
+                : isBeforeClosingDeadline
+                  ? t('forms.closing.waitSubmit')
+                  : t('forms.closing.submit')}
           </PrimaryButton>
+          {isBeforeClosingDeadline && !needsForceUi && (
+            <button
+              type="button"
+              onClick={handleCloseEarly}
+              disabled={pending || !formValid}
+              className="mt-2 min-h-[44px] w-full text-sm font-semibold underline-offset-2 hover:underline disabled:opacity-40"
+              style={{ color: colors.TEXT_SECONDARY }}
+            >
+              {t('forms.closing.closeEarly')}
+            </button>
+          )}
         </div>
       }
     >
@@ -797,7 +833,7 @@ function ClosingContent() {
       isOpen={forceModalOpen}
       onClose={() => setForceModalOpen(false)}
       colors={colors}
-      title={t('forms.closing.forceReasonLabel')}
+      title={t(forceModalTitleKey)}
       titleId="closing-force-reason-title"
       closeAriaLabel={t('common.cancel')}
       doneLabel={t('forms.closing.forceSubmit')}
@@ -805,7 +841,7 @@ function ClosingContent() {
     >
       <textarea
         autoFocus
-        placeholder={t('forms.closing.forceReasonPlaceholder')}
+        placeholder={t(forceModalPlaceholderKey)}
         value={forceReason}
         onChange={(e) => {
           setForceReason(e.target.value);

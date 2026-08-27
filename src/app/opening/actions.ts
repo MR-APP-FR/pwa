@@ -20,6 +20,16 @@ interface SubmitOpeningInput {
   ticketsOuverture: number;
   fondCaisse100: boolean;
   observations: string | null;
+  clientLat: number | null;
+  clientLng: number | null;
+}
+
+function optionalCoord(formData: FormData, key: string, min: number, max: number): number | null {
+  const raw = formData.get(key);
+  if (raw === null || raw === '') return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < min || n > max) return null;
+  return n;
 }
 
 function parseInput(formData: FormData): SubmitOpeningInput | { error: string } {
@@ -31,6 +41,12 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
   const fondCaisse100 = formData.get('fondCaisse100') === '1';
   const observationsRaw = String(formData.get('observations') ?? '').trim();
   const observations = observationsRaw.length === 0 ? null : observationsRaw;
+  const clientLat = optionalCoord(formData, 'clientLat', -90, 90);
+  const clientLng = optionalCoord(formData, 'clientLng', -180, 180);
+  const clientPair =
+    clientLat != null && clientLng != null
+      ? { clientLat, clientLng }
+      : { clientLat: null, clientLng: null };
 
   if (!Number.isFinite(siteId) || siteId <= 0) return { error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Date invalide.' };
@@ -39,7 +55,7 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
     return { error: "Nombre de tickets d'ouverture manquant" };
   }
 
-  return { siteId, date, feuillesDeJour, ticketsOuverture, fondCaisse100, observations };
+  return { siteId, date, feuillesDeJour, ticketsOuverture, fondCaisse100, observations, ...clientPair };
 }
 
 export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeningResult> {
@@ -56,6 +72,8 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
   // Upsert idempotent : une seule ligne par (site, jour) — modèle arbitré le
   // 2026-08-18 (audit §Lot 1). Le dernier soumetteur (teneur ou double) devient
   // user_id ; ça évite l'échec 23505 du second teneur d'un binôme.
+  // GPS : on n'écrit client_lat/lng que s'ils sont présents, pour ne pas
+  // écraser une position déjà captée si le GPS est refusé au second envoi.
   const { data, error } = await session.supabase
     .from('opening_form')
     .upsert(
@@ -67,6 +85,9 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
         tickets_ouverture: parsed.ticketsOuverture,
         fond_caisse_100: parsed.fondCaisse100,
         observations: parsed.observations,
+        ...(parsed.clientLat != null && parsed.clientLng != null
+          ? { client_lat: parsed.clientLat, client_lng: parsed.clientLng }
+          : {}),
       },
       { onConflict: 'site_id,date' },
     )

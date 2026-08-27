@@ -1,4 +1,4 @@
-/** Distance max (m) pour une fermeture classique quand le site a des coordonnées. */
+/** Distance max (m) pour une fermeture classique vs la position d'ouverture. */
 export const GEO_CLOSE_MAX_METERS = 200;
 
 export function haversineMeters(
@@ -37,8 +37,9 @@ export interface ClosingForceCheck {
 }
 
 export function evaluateClosingForce(input: {
-  siteLatitude: number | null | undefined;
-  siteLongitude: number | null | undefined;
+  /** Ancre du jour : GPS d'ouverture (pas les coords catalogue du site). */
+  anchorLatitude: number | null | undefined;
+  anchorLongitude: number | null | undefined;
   clientLatitude: number | null | undefined;
   clientLongitude: number | null | undefined;
   beforeDeadline: boolean;
@@ -47,7 +48,7 @@ export function evaluateClosingForce(input: {
   let distanceM: number | null = null;
   let geoFailed = false;
 
-  if (siteHasCoordinates(input.siteLatitude, input.siteLongitude)) {
+  if (siteHasCoordinates(input.anchorLatitude, input.anchorLongitude)) {
     const lat = input.clientLatitude;
     const lng = input.clientLongitude;
     if (
@@ -59,7 +60,12 @@ export function evaluateClosingForce(input: {
       geoFailed = true;
     } else {
       const meters = Math.round(
-        haversineMeters(lat, lng, input.siteLatitude as number, input.siteLongitude as number),
+        haversineMeters(
+          lat,
+          lng,
+          input.anchorLatitude as number,
+          input.anchorLongitude as number,
+        ),
       );
       if (meters > GEO_CLOSE_MAX_METERS) distanceM = meters;
     }
