@@ -34,6 +34,7 @@
       "trainingVideoButton": "Training video",
       "sitesMapButton": "Points of sale map",
       "settingsButton": "Settings",
+      "settingsTodoBadge": "Settings, %{count} to complete",
       "comingSoon": "Soon",
       "dispoDerniereMinute": "Available today if needed?",
       "dispoDerniereMinuteOn": "Yes ✅",
@@ -185,8 +186,10 @@
   "settings": {
     "profile": {
       "title": "My profile",
-      "preferredSitesTitle": "Preferred sites",
-      "noPreferredSites": "No preferred sites yet",
+      "preferredSitesTitle": "Accessible sites",
+      "noPreferredSites": "No accessible sites yet",
+      "phone": "Phone",
+      "phoneMissing": "No number",
       "photoTitle": "Profile photo",
       "photoMissing": "Add a round photo, like a profile picture.",
       "photoHint": "You can retake it anytime.",
@@ -248,6 +251,8 @@
     "common": {
       "placeholderAmount": "Enter amount",
       "placeholderCount": "Enter number",
+      "durationMinutes": "min",
+      "durationSeconds": "s",
       "optional": "Optional",
       "errorRequired": "Fill in this field to continue",
       "noJustificationPlaceholder": "Explain why…",
@@ -267,6 +272,7 @@
       "sectionNotes": "Notes",
       "feuilleDuJour": "Number of day sheets",
       "ticketsOuverture": "Number of tickets at opening",
+      "chrono": "Timer",
       "fondDeCaisse": "Is the cash float 100€?",
       "fondDeCaisseYes": "Yes",
       "fondDeCaisseNo": "No",
@@ -276,15 +282,25 @@
       "submit": "Confirm opening",
       "errorFeuilleDuJour": "Enter the number of day sheets",
       "errorTicketsOuverture": "Enter the number of tickets at opening",
+      "errorChrono": "Enter the timer (minutes and seconds)",
       "errorFondDeCaisse": "Indicate whether the cash float is 100€",
       "errorNettoyageVeille": "Indicate whether yesterday's cleaning was done",
+      "carteParkingCaisse": "Is there a parking card in the till this morning?",
+      "errorCarteParking": "Indicate whether the parking card is in the till",
+      "panneCheckin": {
+        "title": "Some breakdowns are still open",
+        "help": "For each ticket, tell us if the issue is still there or fixed. It helps the office track repairs.",
+        "progress": "{{done}} / {{total}} checked",
+        "stillBroken": "Still broken",
+        "resolved": "Fixed",
+        "other": "Other",
+        "urgent": "Urgent",
+        "scheduled": "Scheduled",
+        "reportedAt": "Reported on {{date}}",
+        "errorIncomplete": "Check every open breakdown before submitting opening"
+      },
       "successTitle": "Opening saved",
-      "successDescription": "Your opening information has been saved",
-      "punctuality": {
-        "avance": "Opened early ⏱️",
-        "aLheure": "Opened on time ✅",
-        "retard": "Opening recorded late ⚠️"
-      }
+      "successDescription": "Your opening information has been saved"
     },
     "closing": {
       "title": "Closing",

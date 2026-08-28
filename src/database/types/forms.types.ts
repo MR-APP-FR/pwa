@@ -17,6 +17,7 @@ export interface OpeningFormRow {
   submitted_at: string;
   client_lat: number | null;
   client_lng: number | null;
+  chrono_seconds: number | null;
 }
 
 export interface OpeningLateAlertRow {

@@ -30,3 +30,4 @@ export type { PushSubscriptionRow } from './push.types';
 export type { AvailabilityRow } from './availability.types';
 export type { WeekStaffDispatchRow } from './week-staff-dispatch.types';
 export type { Sujet } from './sujet.types';
+export type { OpenSiteIntervention, OpenInterventionStatus, PanneCheckinAnswer } from './intervention.types';

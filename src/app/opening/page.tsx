@@ -6,19 +6,29 @@ import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
-import { useSiteHeuresOuverture } from '../../hooks/api/useSiteHeuresOuverture';
-import { getExpectedOpeningDeadline } from '../../lib/parisTime';
+import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
+import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { FormNumberInput } from '../../components/forms/FormNumberInput';
+import { FormDurationInput, type DurationValue } from '../../components/forms/FormDurationInput';
 import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
+import {
+  OpenPannesCheckin,
+  allPanneCheckinsAnswered,
+  excludedSujetIdsFromStillOpen,
+  resolvedInterventionIds,
+  shouldExcludeAutrePanne,
+} from '../../components/forms/OpenPannesCheckin';
 import { useSujets } from '../../hooks/api/useSujets';
+import { useOpenSiteInterventions } from '../../hooks/api/useOpenSiteInterventions';
+import type { PanneCheckinAnswer } from '../../database/types/intervention.types';
 import type { OpeningFormData } from '../../types/form.types';
 import { useAppDate } from '../../hooks/useAppDate';
-import { submitOpeningForm } from './actions';
+import { resolvePannesFromOpening, submitOpeningForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
 import { requestGeolocation } from '../../lib/geolocation';
@@ -33,12 +43,14 @@ import { RADIUS } from '../../constants/design';
 type OpeningFieldError =
   | 'feuilleDuJour'
   | 'ticketsOuverture'
+  | 'chrono'
   | 'fondDeCaisse100'
   | 'fondDeCaisse100Justification'
   | 'nettoyageVeille'
   | 'nettoyageVeilleJustification'
-  | 'carteParkingJustification'
-  | 'musiqueDisneyJustification';
+  | 'carteParking'
+  | 'musiqueDisneyJustification'
+  | 'panneCheckin';
 
 function needsNoJustification(value: boolean | null, justification: string): boolean {
   return value === false && justification.trim().length === 0;
@@ -63,6 +75,11 @@ function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+function durationToSeconds(value: DurationValue): number | null {
+  if (value.minutes === null || value.seconds === null) return null;
+  return value.minutes * 60 + value.seconds;
+}
+
 function OpeningContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -76,11 +93,24 @@ function OpeningContent() {
   const missionId = Number(searchParams.get('id'));
   const mission = planningData?.planning.find((m) => m.id === missionId);
 
+  const missionDateIso = useMemo(() => {
+    if (!mission) return null;
+    return `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
+  }, [mission]);
+
   const { data: sujets } = useSujets(mission?.site_id);
+  const { data: openInterventions } = useOpenSiteInterventions(mission?.site_id, missionDateIso);
+  const openTickets = openInterventions ?? [];
   const { data: questions } = useSiteDailyInfoQuestions(mission?.site_id);
-  const { data: heuresSemaine } = useSiteHeuresOuverture(mission?.site_id);
-  const showCarteParking = useMemo(() => questions?.includes('carte_parking') ?? false, [questions]);
+  const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
+  const showCarteParking = carteParkingConfig?.enabled === true;
+  const carteParkingLabel =
+    carteParkingConfig?.questionLabel ?? t('forms.opening.carteParkingCaisse');
   const showMusiqueDisney = useMemo(() => questions?.includes('musique_disney') ?? false, [questions]);
+  const showChrono = useMemo(
+    () => (missionDateIso ? dateIsoToJourSemaineKey(missionDateIso) === '3' : false),
+    [missionDateIso],
+  );
 
   const [form, setForm] = useState<OpeningFormData>({
     missionId,
@@ -97,13 +127,15 @@ function OpeningContent() {
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
   const [sujetReasons, setSujetReasons] = useState<SujetReasons>({});
   const [pannesAutre, setPannesAutre] = useState('');
+  const [panneCheckinAnswers, setPanneCheckinAnswers] = useState<
+    Record<number, PanneCheckinAnswer | undefined>
+  >({});
   const [carteParking, setCarteParking] = useState<boolean | null>(null);
-  const [carteParkingJustification, setCarteParkingJustification] = useState('');
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
+  const [chrono, setChrono] = useState<DurationValue>({ minutes: null, seconds: null });
 
   const [submitted, setSubmitted] = useState(false);
-  const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<OpeningFieldError | null>(null);
   const [pending, startTransition] = useTransition();
@@ -112,35 +144,23 @@ function OpeningContent() {
     void requestGeolocation();
   }, []);
 
-  type PunctualityStatus = 'avance' | 'aLheure' | 'retard';
-  const PUNCTUALITY_TOLERANCE_MS = 5 * 60 * 1000;
-  function computePunctualityStatus(): PunctualityStatus | null {
-    if (!submittedAt || !mission) return null;
-    const dateIso = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
-    const expected = getExpectedOpeningDeadline(dateIso, heuresSemaine ?? null);
-    if (!expected) return null;
-    const diffMs = submittedAt.getTime() - expected.getTime();
-    if (diffMs < -PUNCTUALITY_TOLERANCE_MS) return 'avance';
-    if (diffMs > PUNCTUALITY_TOLERANCE_MS) return 'retard';
-    return 'aLheure';
-  }
-  const punctualityStatus = computePunctualityStatus();
-
   const isFormValid =
     form.feuilleDuJour !== null &&
     form.ticketsOuverture !== null &&
+    (!showChrono || durationToSeconds(chrono) !== null) &&
     form.fondDeCaisse100 !== null &&
     !needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification) &&
     nettoyageVeille !== null &&
     !needsNoJustification(nettoyageVeille, nettoyageVeilleJustification) &&
-    (!showCarteParking ||
-      (carteParking !== null && !needsNoJustification(carteParking, carteParkingJustification))) &&
+    (!showCarteParking || carteParking !== null) &&
     (!showMusiqueDisney ||
-      (musiqueDisney !== null && !needsNoJustification(musiqueDisney, musiqueDisneyJustification)));
+      (musiqueDisney !== null && !needsNoJustification(musiqueDisney, musiqueDisneyJustification))) &&
+    allPanneCheckinsAnswered(openTickets, panneCheckinAnswers);
 
   function getFirstMissingField(): OpeningFieldError | null {
     if (form.feuilleDuJour === null) return 'feuilleDuJour';
     if (form.ticketsOuverture === null) return 'ticketsOuverture';
+    if (showChrono && durationToSeconds(chrono) === null) return 'chrono';
     if (form.fondDeCaisse100 === null) return 'fondDeCaisse100';
     if (needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification)) {
       return 'fondDeCaisse100Justification';
@@ -149,11 +169,12 @@ function OpeningContent() {
     if (needsNoJustification(nettoyageVeille, nettoyageVeilleJustification)) {
       return 'nettoyageVeilleJustification';
     }
-    if (showCarteParking && needsNoJustification(carteParking, carteParkingJustification)) {
-      return 'carteParkingJustification';
-    }
+    if (showCarteParking && carteParking === null) return 'carteParking';
     if (showMusiqueDisney && needsNoJustification(musiqueDisney, musiqueDisneyJustification)) {
       return 'musiqueDisneyJustification';
+    }
+    if (!allPanneCheckinsAnswered(openTickets, panneCheckinAnswers)) {
+      return 'panneCheckin';
     }
     return null;
   }
@@ -164,15 +185,20 @@ function OpeningContent() {
         return t('forms.opening.errorFeuilleDuJour');
       case 'ticketsOuverture':
         return t('forms.opening.errorTicketsOuverture');
+      case 'chrono':
+        return t('forms.opening.errorChrono');
       case 'fondDeCaisse100':
         return t('forms.opening.errorFondDeCaisse');
       case 'fondDeCaisse100Justification':
       case 'nettoyageVeilleJustification':
-      case 'carteParkingJustification':
+      case 'carteParking':
+        return t('forms.opening.errorCarteParking');
       case 'musiqueDisneyJustification':
         return t('forms.common.errorNoJustification');
       case 'nettoyageVeille':
         return t('forms.opening.errorNettoyageVeille');
+      case 'panneCheckin':
+        return t('forms.opening.panneCheckin.errorIncomplete');
     }
   }
 
@@ -206,15 +232,18 @@ function OpeningContent() {
     fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
     fd.set('feuillesDeJour', String(form.feuilleDuJour));
     fd.set('ticketsOuverture', String(form.ticketsOuverture));
+    if (showChrono) {
+      const chronoSeconds = durationToSeconds(chrono);
+      if (chronoSeconds !== null) {
+        fd.set('chronoSeconds', String(chronoSeconds));
+      }
+    }
     fd.set('fondCaisse100', form.fondDeCaisse100 ? '1' : '0');
     fd.set(
       'observations',
       buildObservationsWithJustifications(form.observations, [
         { label: t('forms.opening.fondDeCaisse'), value: form.fondDeCaisse100, justification: fondDeCaisseJustification },
         { label: t('forms.dailyInfo.nettoyageVeille'), value: nettoyageVeille, justification: nettoyageVeilleJustification },
-        ...(showCarteParking
-          ? [{ label: t('forms.dailyInfo.carteParking'), value: carteParking, justification: carteParkingJustification }]
-          : []),
         ...(showMusiqueDisney
           ? [{ label: t('forms.dailyInfo.musiqueDisney'), value: musiqueDisney, justification: musiqueDisneyJustification }]
           : []),
@@ -237,13 +266,32 @@ function OpeningContent() {
           return;
         }
 
+        const resolvedIds = resolvedInterventionIds(openTickets, panneCheckinAnswers);
+        if (resolvedIds.length > 0) {
+          const resolveResult = await resolvePannesFromOpening(mission.site_id, date, resolvedIds);
+          if (!resolveResult.ok) {
+            setSubmitError(resolveResult.error);
+            return;
+          }
+        }
+
+        const excludedSujetIds = new Set(
+          excludedSujetIdsFromStillOpen(openTickets, panneCheckinAnswers),
+        );
+        const filteredSujetIds = selectedSujetIds.filter((id) => !excludedSujetIds.has(id));
+        const filteredSujetReasons = Object.fromEntries(
+          Object.entries(sujetReasons).filter(([id]) => filteredSujetIds.includes(Number(id))),
+        ) as SujetReasons;
+        const excludeAutre = shouldExcludeAutrePanne(openTickets, panneCheckinAnswers);
+        const filteredPannesAutre = excludeAutre ? null : pannesAutre.trim() || null;
+
         const dailyResult = await submitDailyInfo({
           siteId: mission.site_id,
           date,
           nettoyageVeille,
-          panneSujetIds: selectedSujetIds,
-          pannesAutre: pannesAutre.trim() || null,
-          pannes: buildPannesDetail(selectedSujetIds, sujetReasons, sujets ?? []),
+          panneSujetIds: filteredSujetIds,
+          pannesAutre: filteredPannesAutre,
+          pannes: buildPannesDetail(filteredSujetIds, filteredSujetReasons, sujets ?? []),
           carteParking: showCarteParking ? carteParking : null,
           musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
           nettoyagePhoto: nettoyagePhoto?.file ?? null,
@@ -257,7 +305,7 @@ function OpeningContent() {
         }
 
         queryClient.invalidateQueries({ queryKey: ['missionForms'] });
-        setSubmittedAt(new Date());
+        queryClient.invalidateQueries({ queryKey: ['openSiteInterventions'] });
         setSubmitted(true);
       } catch {
         setSubmitError(t('forms.common.errorSubmit'));
@@ -279,18 +327,6 @@ function OpeningContent() {
           <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
             {t('forms.opening.successDescription')}
           </p>
-          {punctualityStatus && (
-            <div
-              className="rounded-xl px-4 py-2 text-sm font-semibold"
-              style={{
-                backgroundColor:
-                  punctualityStatus === 'retard' ? colors.ACCENT_RED_MUTED : colors.ACCENT_GREEN_MUTED,
-                color: punctualityStatus === 'retard' ? colors.ACCENT_RED : colors.ACCENT_GREEN,
-              }}
-            >
-              {t(`forms.opening.punctuality.${punctualityStatus}`)}
-            </div>
-          )}
           <PrimaryButton onClick={() => router.back()} className="mt-4 px-6 py-3 text-base">
             Retour au planning
           </PrimaryButton>
@@ -355,6 +391,18 @@ function OpeningContent() {
               error={fieldError === 'ticketsOuverture'}
               inputMode="numeric"
             />
+            {showChrono && (
+              <FormDurationInput
+                label={t('forms.opening.chrono')}
+                value={chrono}
+                onChange={(v) => {
+                  setChrono(v);
+                  if (fieldError === 'chrono') setFieldError(null);
+                }}
+                required
+                error={fieldError === 'chrono'}
+              />
+            )}
           </FormSection>
 
           <FormSection title={t('forms.opening.sectionChecks')}>
@@ -411,6 +459,16 @@ function OpeningContent() {
           </FormSection>
 
           <FormSection title={t('forms.opening.sectionPannes')}>
+            <OpenPannesCheckin
+              tickets={openTickets}
+              answers={panneCheckinAnswers}
+              onAnswer={(ticketId, answer) => {
+                setPanneCheckinAnswers((prev) => ({ ...prev, [ticketId]: answer }));
+                if (fieldError === 'panneCheckin') setFieldError(null);
+              }}
+              error={fieldError === 'panneCheckin'}
+            />
+
             <PannesSection
               siteId={mission?.site_id}
               selectedSujetIds={selectedSujetIds}
@@ -434,22 +492,16 @@ function OpeningContent() {
 
             {showCarteParking && (
               <ConditionalQuestion
-                label={t('forms.dailyInfo.carteParking')}
+                label={carteParkingLabel}
                 value={carteParking}
                 onChange={(v) => {
                   setCarteParking(v);
-                  if (v) setCarteParkingJustification('');
-                  if (fieldError === 'carteParkingJustification') setFieldError(null);
+                  if (fieldError === 'carteParking') setFieldError(null);
                 }}
                 yesLabel={t('forms.opening.fondDeCaisseYes')}
                 noLabel={t('forms.opening.fondDeCaisseNo')}
-                noJustification={carteParkingJustification}
-                onNoJustificationChange={(v) => {
-                  setCarteParkingJustification(v);
-                  if (fieldError === 'carteParkingJustification') setFieldError(null);
-                }}
-                noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
-                noJustificationError={fieldError === 'carteParkingJustification'}
+                required
+                error={fieldError === 'carteParking'}
               />
             )}
 

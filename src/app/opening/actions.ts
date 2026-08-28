@@ -1,6 +1,7 @@
 'use server';
 
 import { requireEmployeeSession } from '../../lib/auth/employee';
+import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
 
 /**
  * Submit du formulaire d'ouverture → `public.opening_form`.
@@ -22,6 +23,7 @@ interface SubmitOpeningInput {
   observations: string | null;
   clientLat: number | null;
   clientLng: number | null;
+  chronoSeconds: number | null;
 }
 
 function optionalCoord(formData: FormData, key: string, min: number, max: number): number | null {
@@ -48,6 +50,20 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
       ? { clientLat, clientLng }
       : { clientLat: null, clientLng: null };
 
+  const isWednesday = dateIsoToJourSemaineKey(date) === '3';
+  let chronoSeconds: number | null = null;
+  if (isWednesday) {
+    const chronoRaw = formData.get('chronoSeconds');
+    if (chronoRaw === null || chronoRaw === '') {
+      return { error: 'Chrono manquant.' };
+    }
+    const parsedChrono = Number(chronoRaw);
+    if (!Number.isInteger(parsedChrono) || parsedChrono < 0 || parsedChrono > 5999) {
+      return { error: 'Chrono invalide.' };
+    }
+    chronoSeconds = parsedChrono;
+  }
+
   if (!Number.isFinite(siteId) || siteId <= 0) return { error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Date invalide.' };
   if (feuillesDeJour.length === 0) return { error: 'Feuilles de jour manquantes.' };
@@ -55,7 +71,16 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
     return { error: "Nombre de tickets d'ouverture manquant" };
   }
 
-  return { siteId, date, feuillesDeJour, ticketsOuverture, fondCaisse100, observations, ...clientPair };
+  return {
+    siteId,
+    date,
+    feuillesDeJour,
+    ticketsOuverture,
+    fondCaisse100,
+    observations,
+    ...clientPair,
+    chronoSeconds,
+  };
 }
 
 export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeningResult> {
@@ -88,6 +113,7 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
         ...(parsed.clientLat != null && parsed.clientLng != null
           ? { client_lat: parsed.clientLat, client_lng: parsed.clientLng }
           : {}),
+        ...(parsed.chronoSeconds != null ? { chrono_seconds: parsed.chronoSeconds } : {}),
       },
       { onConflict: 'site_id,date' },
     )
@@ -99,4 +125,33 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
   }
 
   return { ok: true, id: data.id };
+}
+
+export type ResolvePannesResult = { ok: true } | { ok: false; error: string };
+
+export async function resolvePannesFromOpening(
+  siteId: number,
+  dateIso: string,
+  interventionIds: number[],
+): Promise<ResolvePannesResult> {
+  if (!Number.isFinite(siteId) || siteId <= 0) return { ok: false, error: 'Site invalide.' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return { ok: false, error: 'Date invalide.' };
+
+  const session = await requireEmployeeSession();
+  if (!session.ok) return { ok: false, error: session.error };
+
+  if (interventionIds.length === 0) return { ok: true };
+
+  const uniqueIds = [...new Set(interventionIds.filter((id) => Number.isFinite(id) && id > 0))];
+  if (uniqueIds.length === 0) return { ok: true };
+
+  const { error } = await session.supabase.rpc('resolve_pannes_from_opening', {
+    p_site_id: siteId,
+    p_date: dateIso,
+    p_intervention_ids: uniqueIds,
+  });
+  if (error) {
+    return { ok: false, error: `Clôture des pannes échouée : ${error.message}` };
+  }
+  return { ok: true };
 }
