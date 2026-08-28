@@ -1,45 +1,26 @@
 'use client';
 
 import { Bell } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import {
-  canUseWebPush,
-  isIosDevice,
-  isStandalonePwa,
-  subscribeAndSave,
-} from '../../lib/push/client';
+import { notifyPushStatusChanged, usePushStatus } from '../../hooks/usePushStatus';
+import { subscribeAndSave } from '../../lib/push/client';
 import { PrimaryButton } from '../common/PrimaryButton';
 
-type PushStatus = 'loading' | 'need-install' | 'unsupported' | 'default' | 'granted' | 'denied';
-
-export function PushSettingsRow() {
+export function PushSettingsRow({ className }: { className?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const [status, setStatus] = useState<PushStatus>('loading');
+  const { status, refresh } = usePushStatus();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    if (isIosDevice() && !isStandalonePwa()) {
-      setStatus('need-install');
-      return;
-    }
-    if (!canUseWebPush()) {
-      setStatus('unsupported');
-      return;
-    }
-    setStatus(Notification.permission);
-  }, []);
-
   useEffect(() => {
-    refresh();
-    if (canUseWebPush() && Notification.permission === 'granted') {
-      void subscribeAndSave();
-    }
-  }, [refresh]);
+    if (status !== 'granted') return;
+    void subscribeAndSave();
+  }, [status]);
+
+  // Si déjà autorisé, on (re)enregistre l'abonnement sans bloquer l'écran.
 
   async function handleEnable() {
     setPending(true);
@@ -47,6 +28,7 @@ export function PushSettingsRow() {
     const result = await subscribeAndSave();
     setPending(false);
     refresh();
+    notifyPushStatusChanged();
     if (!result.ok) setError(result.error);
   }
 
@@ -63,7 +45,7 @@ export function PushSettingsRow() {
 
   return (
     <div
-      className="mx-5 mt-7 overflow-hidden rounded-2xl px-5 py-4"
+      className={`mx-5 overflow-hidden rounded-2xl px-5 py-4 ${className ?? 'mt-7'}`}
       style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
     >
       <div className="flex items-start gap-3">

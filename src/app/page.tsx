@@ -7,6 +7,7 @@ import { LateOpeningPrompt } from '../components/home/LateOpeningPrompt';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
 import { DispoDerniereMinuteToggle } from '../components/home/DispoDerniereMinuteToggle';
+import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { usePlanning } from '../hooks/api/usePlanning';
 import { useSiteWeather } from '../hooks/api/useSiteWeather';
 import {
@@ -93,6 +94,7 @@ export default function HomePage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="flex min-h-full flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
+      <PushEnableBanner />
       <AssignmentBanner
         todayMission={todayMission}
         nextMission={nextMission}

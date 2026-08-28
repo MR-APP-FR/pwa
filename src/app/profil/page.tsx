@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, Search, MapPin, Check, LogOut } from 'lucide-react';
+import { X, Search, MapPin, Check, LogOut, Phone } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
+import { isPushAttentionNeeded, usePushStatus } from '../../hooks/usePushStatus';
 import { useSites } from '../../hooks/api/useSites';
 import { createClient } from '../../lib/supabase/client';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -260,6 +261,8 @@ export default function ProfilPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: currentUserData, isLoading: isUserLoading } = useCurrentUser();
+  const { status: pushStatus } = usePushStatus();
+  const showPushOnTop = isPushAttentionNeeded(pushStatus);
   const preferredSites = currentUserData?.sites ?? [];
   const [isEditSitesOpen, setIsEditSitesOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -293,34 +296,59 @@ export default function ProfilPage() {
   return (
     <div className="flex-1 flex flex-col overflow-y-auto pb-10" style={{ backgroundColor: colors.BG_SECONDARY }}>
       <PageHeader accent="primary" title={t('screens.profil.title')} />
+
+      {showPushOnTop ? <PushSettingsRow className="mt-3" /> : null}
+
       <p
         className="text-xs font-semibold uppercase tracking-wider px-5 pt-7 pb-2"
         style={{ color: colors.TEXT_SECONDARY }}
       >
         {t('settings.profile.title')}
       </p>
-      <ProfileMediaCard
-        kind="avatar"
-        path={avatarPath}
-        onUploaded={(nextPath) => {
-          setAvatarPath(nextPath);
-          void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        }}
-      />
+      <div
+        className="mx-5 overflow-hidden rounded-2xl"
+        style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+      >
+        <div className="px-5 py-4">
+          <p className="text-lg font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+            {isUserLoading ? '...' : fullname}
+          </p>
+          {email && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{email}</p>}
+          {ville && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{ville}</p>}
+        </div>
+      </div>
+
       <div
         className="mx-5 mt-3 overflow-hidden rounded-2xl"
         style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
       >
-        <div className="flex items-center px-5 py-4">
-          <div className="flex-1">
-            <p className="text-lg font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-              {isUserLoading ? '...' : fullname}
+        <div className="flex items-center gap-3 px-5 py-4">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: colors.PRIMARY_MUTED }}
+          >
+            <Phone size={18} color={colors.PRIMARY} strokeWidth={2.25} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('settings.profile.phone')}
             </p>
-            {email && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{email}</p>}
-            {telephone && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{telephone}</p>}
-            {ville && <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>{ville}</p>}
+            <p className="text-base font-medium" style={{ color: telephone ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY }}>
+              {telephone || t('settings.profile.phoneMissing')}
+            </p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-3">
+        <ProfileMediaCard
+          kind="avatar"
+          path={avatarPath}
+          onUploaded={(nextPath) => {
+            setAvatarPath(nextPath);
+            void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+          }}
+        />
       </div>
 
       <div className="mt-3">
@@ -376,7 +404,7 @@ export default function ProfilPage() {
         )}
       </div>
 
-      <PushSettingsRow />
+      {showPushOnTop ? null : <PushSettingsRow />}
 
       <DevToolsPanel colors={colors} />
 

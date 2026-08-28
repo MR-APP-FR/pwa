@@ -5,7 +5,9 @@ import Image from 'next/image';
 import { Settings } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useSettingsTodoCount } from '../../hooks/useSettingsTodoCount';
 import { RADIUS } from '../../constants/design';
+import { NotificationBadge } from '../common/NotificationBadge';
 
 interface HeaderProps {
   variant?: 'sticky' | 'static';
@@ -14,6 +16,7 @@ interface HeaderProps {
 export function Header({ variant = 'sticky' }: HeaderProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const settingsTodoCount = useSettingsTodoCount();
 
   return (
     <header
@@ -41,14 +44,19 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
 
         <Link
           href="/profil"
-          className="flex h-10 w-10 shrink-0 items-center justify-center transition-transform active:scale-95"
+          className="relative flex h-10 w-10 shrink-0 items-center justify-center transition-transform active:scale-95"
           style={{
             borderRadius: RADIUS.sm,
             backgroundColor: colors.SECONDARY_MUTED,
           }}
-          aria-label={t('screens.home.settingsButton')}
+          aria-label={
+            settingsTodoCount > 0
+              ? t('screens.home.settingsTodoBadge', { count: String(settingsTodoCount) })
+              : t('screens.home.settingsButton')
+          }
         >
           <Settings size={20} color={colors.SECONDARY} strokeWidth={2.25} />
+          <NotificationBadge count={settingsTodoCount} />
         </Link>
       </div>
     </header>

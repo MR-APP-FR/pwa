@@ -6,7 +6,6 @@ import { useState, type ReactNode } from 'react';
 import { Header } from '../components/layout/Header';
 import { isBarePath, showsShellHeader } from '../components/layout/pageChrome';
 import { InstallBanner } from '../components/pwa/InstallBanner';
-import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 function AppShell({ children }: { children: ReactNode }) {
@@ -33,7 +32,6 @@ function AppShell({ children }: { children: ReactNode }) {
     >
       {shellHeader ? <Header /> : null}
       <main className="flex flex-1 flex-col">{children}</main>
-      <PushEnableBanner />
       <InstallBanner />
     </div>
   );

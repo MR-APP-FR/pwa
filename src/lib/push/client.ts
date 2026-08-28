@@ -41,35 +41,40 @@ export async function subscribeAndSave(): Promise<{ ok: true } | { ok: false; er
     return { ok: false, error: "Les notifications ne sont pas disponibles sur cet appareil." };
   }
 
-  const permission =
-    Notification.permission === 'granted'
-      ? 'granted'
-      : await Notification.requestPermission();
-  if (permission !== 'granted') {
-    return { ok: false, error: 'Notifications refusées.' };
-  }
+  try {
+    const permission =
+      Notification.permission === 'granted'
+        ? 'granted'
+        : await Notification.requestPermission();
+    if (permission !== 'granted') {
+      return { ok: false, error: 'Notifications refusées.' };
+    }
 
-  const registration = await navigator.serviceWorker.ready;
-  let subscription = await registration.pushManager.getSubscription();
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+
+    const json = subscription.toJSON();
+    const endpoint = json.endpoint;
+    const p256dh = json.keys?.p256dh;
+    const auth = json.keys?.auth;
+    if (!endpoint || !p256dh || !auth) {
+      return { ok: false, error: 'Abonnement incomplet.' };
+    }
+
+    return savePushSubscription({
+      endpoint,
+      p256dh,
+      auth,
+      userAgent: navigator.userAgent,
     });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Les notifications n'ont pas pu être activées.";
+    return { ok: false, error: message };
   }
-
-  const json = subscription.toJSON();
-  const endpoint = json.endpoint;
-  const p256dh = json.keys?.p256dh;
-  const auth = json.keys?.auth;
-  if (!endpoint || !p256dh || !auth) {
-    return { ok: false, error: 'Abonnement incomplet.' };
-  }
-
-  return savePushSubscription({
-    endpoint,
-    p256dh,
-    auth,
-    userAgent: navigator.userAgent,
-  });
 }

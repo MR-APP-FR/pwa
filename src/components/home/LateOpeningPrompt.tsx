@@ -19,10 +19,6 @@ import { RADIUS } from '../../constants/design';
 import { reportLateOpeningToBureau } from '../../app/opening/late-opening-actions';
 import type { PlanningWithColleague } from '../../database/types';
 
-function dismissKey(dateIso: string, siteId: number): string {
-  return `late-opening-dismissed:${dateIso}:${siteId}`;
-}
-
 export function LateOpeningPrompt({
   todayMission,
   todayIso,
@@ -50,12 +46,6 @@ export function LateOpeningPrompt({
       return;
     }
     if (!heuresFetched) return;
-    if (typeof sessionStorage !== 'undefined') {
-      if (sessionStorage.getItem(dismissKey(todayIso, todayMission.site_id))) {
-        setOpen(false);
-        return;
-      }
-    }
 
     const deadline = getExpectedOpeningDeadline(todayIso, heures ?? null);
     if (!deadline) {
@@ -129,7 +119,6 @@ export function LateOpeningPrompt({
   const mission = todayMission;
 
   function handleClose() {
-    sessionStorage.setItem(dismissKey(todayIso, mission.site_id), '1');
     setOpen(false);
   }
 
@@ -152,7 +141,6 @@ export function LateOpeningPrompt({
         setError(result.error);
         return;
       }
-      sessionStorage.setItem(dismissKey(todayIso, mission.site_id), '1');
       setOpen(false);
     });
   }
