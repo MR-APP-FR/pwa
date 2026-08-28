@@ -251,8 +251,8 @@
     "common": {
       "placeholderAmount": "Saisir le montant",
       "placeholderCount": "Saisir le nombre",
-      "durationMinutes": "min",
-      "durationSeconds": "s",
+      "durationMinutes": "minutes",
+      "durationSeconds": "secondes",
       "optional": "Optionnel",
       "errorRequired": "Renseigne ce champ pour continuer",
       "noJustificationPlaceholder": "Précisez la raison…",

@@ -79,7 +79,7 @@ export function FormDurationInput({
             type="text"
             inputMode="numeric"
             value={value.seconds === null ? '' : String(value.seconds)}
-            placeholder="0"
+            placeholder={t('forms.common.placeholderCount')}
             onChange={(e) => {
               const parsed = parseNonNegativeInt(e.target.value);
               if (parsed === null) {

@@ -251,8 +251,8 @@
     "common": {
       "placeholderAmount": "Enter amount",
       "placeholderCount": "Enter number",
-      "durationMinutes": "min",
-      "durationSeconds": "s",
+      "durationMinutes": "minutes",
+      "durationSeconds": "seconds",
       "optional": "Optional",
       "errorRequired": "Fill in this field to continue",
       "noJustificationPlaceholder": "Explain why…",
