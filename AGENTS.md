@@ -25,7 +25,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 | Web Push | [src/lib/push/AGENTS.md](src/lib/push/AGENTS.md) |
 | Crons / Edge Functions | [supabase/functions/AGENTS.md](supabase/functions/AGENTS.md) |
 | Ops (APIs, pg_cron) | [docs/OPS.md](docs/OPS.md) |
-| Architecture transverse | [CLAUDE.md](CLAUDE.md) |
+| Architecture transverse | [../AGENTS.md](../AGENTS.md) (workspace) |
 | Audit août 2026 | [docs/AUDIT-2026-08.md](docs/AUDIT-2026-08.md) |
 
 ## Règles globales (toujours)
@@ -59,7 +59,7 @@ Sans qu’on te le demande, mets à jour la doc **dans le même PR / commit** qu
 | Changement | Fichiers |
 |---|---|
 | Route, action, hook, table touchée | `AGENTS.md` du dossier ([index ci-dessus](#avant-de-coder)) + [src/app/AGENTS.md](src/app/AGENTS.md) si nouvelle route |
-| Migration / RLS / trigger | Section + [CLAUDE.md](CLAUDE.md) parent si l’autre app (CRM) consomme la table |
+| Migration / RLS / trigger | Section + [../AGENTS.md](../AGENTS.md) § tables si CRM impacté |
 | Edge Function, pg_cron, env secret | [docs/OPS.md](docs/OPS.md), [supabase/functions/AGENTS.md](supabase/functions/AGENTS.md) |
 | Feature notable août+ | Une ligne [docs/AUDIT-2026-08.md](docs/AUDIT-2026-08.md) |
 

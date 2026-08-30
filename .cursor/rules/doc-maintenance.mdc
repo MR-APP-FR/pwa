@@ -11,4 +11,4 @@ Si tu modifies routes, server actions, hooks, migrations, Edge Functions ou tabl
 - Crons / APIs → [docs/OPS.md](../docs/OPS.md), [supabase/functions/AGENTS.md](../supabase/functions/AGENTS.md).
 - Impact CRM (lecture formulaires, RLS) → [CLAUDE.md](../CLAUDE.md) ou rappeler MAJ côté `admin-desktop-app/`.
 
-**Proactif**, même commit que le code — sans attendre qu’on te le demande.
+**Proactif**, même commit que le code — sans attendre qu’on te le demande. Ne pas écrire dans `CLAUDE.md` (redirect seulement).

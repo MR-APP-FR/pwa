@@ -72,47 +72,21 @@ mais `submitDailyInfo` (`lib/actions/daily-info.ts`) **ne les écrit pas** et n'
 
 ## Étape 3 — Reflet du statut & idempotence + contrôle enveloppe fermeture
 
-### 3a — Statut & idempotence — ✅ LIVRÉE
+### 3a — Statut & idempotence — ✅ LIVRÉE (modèle site × jour)
 
-Migration `20260722130000_gre_form_idempotence.sql` appliquée. Validé en base réelle :
-double soumission d'une même mission → 1 seule ligne (upsert), champs mis à jour, page
-mission affiche « ✓ Ouverture faite » / « ✓ Fermeture faite » en vert dès que la ligne
-existe.
+Migration `20260722130000_gre_form_idempotence.sql`, puis **Lot 1 audit 2026-08-19** :
+`20260819000002_gre_terrain_forms_site_day_model.sql`.
 
-1. **Contrainte d'unicité** `unique (site_id, date, user_id)` sur `opening_form` et
-   `closing_form`. **`daily_info` volontairement exclue** : l'ouverture ET la fermeture y
-   écrivent des lignes distinctes (nettoyage/pannes ouverture vs pannes de fin de
-   journée) — c'est un journal multi-lignes par mission, pas un formulaire unique.
-2. Actions `submitOpeningForm` / `submitClosingForm` passées en `upsert(onConflict:
-   'site_id,date,user_id')`.
-3. **Piège RLS rencontré** : passer un `insert` en `upsert` déclenche un `UPDATE` en cas
-   de conflit — `opening_form`/`closing_form` n'avaient que des policies INSERT/SELECT
-   (l'insert seul suffisait avant l'idempotence). Ajout de policies UPDATE symétriques
-   (employé `current_employee_id()` + démo anon), cf. migration. **À retenir pour toute
-   future table qui passe en upsert : vérifier qu'une policy UPDATE existe.**
-4. **Hook** `hooks/api/useMissionForms.ts` : lit l'existence de `opening_form` /
-   `closing_form` pour (site, date, employé sélectionné).
-5. **UI mission** (`app/mission/page.tsx`) : bouton vert « ✓ Ouverture/Fermeture faite »
-   si déjà soumis. `queryClient.invalidateQueries(['missionForms'])` après chaque submit
-   pour rafraîchir immédiatement.
-6. **Reste à faire (non bloquant)** : `closing_form.partner_user_id` — le type l'attend,
-   l'action ne le renseigne pas → le brancher depuis le collègue (`double_id`) de la
-   mission.
+**Modèle actuel** — une ligne par `(site_id, date)` sur `opening_form`, `closing_form`, `daily_info` :
 
-> **Mise à jour 2026-08-19 (audit du 2026-08-18, Lot 1)** — l'hypothèse du point 1
-> était fausse : `daily_info` porte bien une contrainte unique `(site_id, date)`
-> (`daily_info_unique_site_date`), posée dans une migration antérieure. L'ouverture ET
-> la fermeture appelant toutes deux `submitDailyInfo` en `insert`, toute fermeture avec
-> panne sur un site déjà ouvert levait une violation de contrainte 23505 — la panne
-> était perdue, aucune intervention créée. Le modèle a été revu : **une ligne par
-> (site, jour)** pour les trois tables (`opening_form`, `closing_form`, `daily_info`),
-> cohérent avec cette contrainte déjà existante. `daily_info` est passée en upsert
-> `onConflict: 'site_id,date'` avec fusion partielle (les champs omis par un appelant
-> ne sont pas réinitialisés par l'autre — cf. `pwa/src/lib/actions/daily-info.ts`).
-> La contrainte concurrente `(site_id,date,user_id)` sur `opening_form`/`closing_form`
-> a été supprimée. Le point 6 est fait : `partner_user_id` est renseigné depuis
-> `planning.double_id`. Migration :
-> `pwa/supabase/migrations/20260819000002_gre_terrain_forms_site_day_model.sql`.
+1. **Upsert** `onConflict: 'site_id,date'` (plus `(site_id, date, user_id)`).
+2. Dernier soumetteur = `user_id` ; `closing_form.partner_user_id` depuis `planning.double_id`.
+3. RLS binôme planifié (`planning.user_id` / `double_id`) SELECT/UPDATE.
+4. **Policy UPDATE** obligatoire dès qu’une table passe en upsert (sinon conflit silencieux).
+5. Hook `useMissionForms` + UI mission « ✓ fait » ; invalidate après submit.
+6. `daily_info` : upsert avec fusion partielle — voir `pwa/src/lib/actions/daily-info.ts`.
+
+Piège historique corrigé : double `insert` ouverture/fermeture sur `daily_info` perdait les pannes (23505).
 
 ### 3b — Payes + contrôle enveloppe (fermeture) — ✅ LIVRÉE
 
