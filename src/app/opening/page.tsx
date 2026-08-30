@@ -134,7 +134,7 @@ function OpeningContent() {
   const [carteParking, setCarteParking] = useState<boolean | null>(null);
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
-  const [chrono, setChrono] = useState<DurationValue>({ minutes: null, seconds: null });
+  const [chrono, setChrono] = useState<DurationValue>({ minutes: 0, seconds: 0 });
   const [chronoOutOfRangeAttempts, setChronoOutOfRangeAttempts] = useState(0);
 
   const [submitted, setSubmitted] = useState(false);
@@ -416,32 +416,6 @@ function OpeningContent() {
             />
           </FormSection>
 
-          {showChrono && (
-            <FormSection title={t('forms.opening.sectionChrono')} danger={chronoOutOfRangeAttempts > 0}>
-              <p
-                className="whitespace-pre-line text-sm leading-relaxed"
-                style={{ color: chronoOutOfRangeAttempts > 0 ? colors.DANGER : colors.TEXT_PRIMARY }}
-              >
-                {t('forms.opening.chronoIntro')}
-              </p>
-              <FormDurationInput
-                label={t('forms.opening.chrono')}
-                value={chrono}
-                onChange={(v) => {
-                  setChrono(v);
-                  if (fieldError === 'chrono') setFieldError(null);
-                }}
-                required
-                error={fieldError === 'chrono' || chronoOutOfRangeAttempts > 0}
-              />
-              {chronoOutOfRangeAttempts > 0 && (
-                <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
-                  {t('forms.opening.chronoRetry')}
-                </p>
-              )}
-            </FormSection>
-          )}
-
           <FormSection title={t('forms.opening.sectionChecks')}>
             <ConditionalQuestion
               label={t('forms.opening.fondDeCaisse')}
@@ -564,6 +538,27 @@ function OpeningContent() {
             )}
           </FormSection>
 
+          {showChrono && (
+            <FormSection title={t('forms.opening.sectionChrono')} danger={chronoOutOfRangeAttempts > 0}>
+              <p
+                className="whitespace-pre-line text-sm leading-relaxed"
+                style={{ color: chronoOutOfRangeAttempts > 0 ? colors.DANGER : colors.TEXT_PRIMARY }}
+              >
+                {t('forms.opening.chronoIntro')}
+              </p>
+              <FormDurationInput
+                label={t('forms.opening.chrono')}
+                value={chrono}
+                onChange={(v) => {
+                  setChrono(v);
+                  if (fieldError === 'chrono') setFieldError(null);
+                }}
+                required
+                error={fieldError === 'chrono' || chronoOutOfRangeAttempts > 0}
+              />
+            </FormSection>
+          )}
+
           <FormSection
             title={t('forms.opening.sectionNotes')}
             optional
@@ -587,8 +582,8 @@ function OpeningContent() {
           </FormSection>
 
           <div
-            className="rounded-xl px-3.5 py-2.5 text-sm font-medium"
-            style={{ backgroundColor: '#FDF6E3', color: '#8A6D00' }}
+            className="rounded-xl px-3.5 py-3 text-base font-bold"
+            style={{ backgroundColor: '#FFD000', color: '#FFFFFF' }}
           >
             {t('forms.opening.googleReviewReminder')}
           </div>

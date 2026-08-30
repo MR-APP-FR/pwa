@@ -75,7 +75,10 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
           >
             {t('forms.opening.panneCheckin.title')}
           </p>
-          <p className="mt-0.5 text-sm leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
+          <p
+            className="mt-0.5 whitespace-pre-line text-sm leading-relaxed"
+            style={{ color: colors.TEXT_PRIMARY }}
+          >
             {t('forms.opening.panneCheckin.help')}
           </p>
           <p className="mt-2 text-xs font-semibold" style={{ color: colors.TEXT_SECONDARY }}>

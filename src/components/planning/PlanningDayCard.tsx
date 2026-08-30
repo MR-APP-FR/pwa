@@ -72,10 +72,10 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
       ) : (
         <span
           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-          style={{ backgroundColor: colors.ACCENT_RED_MUTED }}
+          style={{ backgroundColor: colors.ACCENT_RED }}
           aria-label={t('screens.planning.noMissionDay')}
         >
-          <X size={16} color={colors.ACCENT_RED} strokeWidth={2.5} />
+          <X size={16} color={colors.TEXT_INVERSE} strokeWidth={2.5} />
         </span>
       )}
     </div>

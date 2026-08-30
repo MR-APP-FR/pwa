@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { AssignmentBanner } from '../components/home/AssignmentBanner';
 import { LateOpeningPrompt } from '../components/home/LateOpeningPrompt';
+import { HomeAssistantCard } from '../components/home/HomeAssistantCard';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
-import { DispoDerniereMinuteToggle } from '../components/home/DispoDerniereMinuteToggle';
+import { useHomeAssistantTodos } from '../hooks/useHomeAssistantTodos';
 import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { usePlanning } from '../hooks/api/usePlanning';
 import { useSiteWeather } from '../hooks/api/useSiteWeather';
@@ -90,6 +91,13 @@ export default function HomePage() {
   }, [nextWeekAvailability]);
 
   const planningBadgeCount = unreadPlanningCount > 0 ? 1 : 0;
+  const nextWeekAvailabilityHref = `/availability?startDate=${nextWeekStartIso}&endDate=${nextWeekEndIso}`;
+  const assistantTodos = useHomeAssistantTodos({
+    unreadMessageCount,
+    planningBadgeCount,
+    availabilityBadgeCount,
+    nextWeekAvailabilityHref,
+  });
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -103,8 +111,6 @@ export default function HomePage() {
         onWeatherOpen={markWeatherBriefRead}
       />
       <LateOpeningPrompt todayMission={todayMission} todayIso={todayIso} />
-
-      {!hasTodayMission && <DispoDerniereMinuteToggle dateIso={todayIso} />}
 
       <div className="grid grid-cols-2 gap-2.5">
         <HomeButton
@@ -134,11 +140,7 @@ export default function HomePage() {
         <HomeButton
           icon="hand-left-outline"
           label={t('screens.home.availabilityButton')}
-          onPress={() =>
-            router.push(
-              `/availability?startDate=${nextWeekStartIso}&endDate=${nextWeekEndIso}`,
-            )
-          }
+          onPress={() => router.push(nextWeekAvailabilityHref)}
           badgeCount={availabilityBadgeCount}
         />
         <HomeButton
@@ -163,6 +165,8 @@ export default function HomePage() {
           onPress={() => router.push('/sites-map')}
         />
       </div>
+
+      <HomeAssistantCard todos={assistantTodos} />
 
       <HomeFooter />
       </div>

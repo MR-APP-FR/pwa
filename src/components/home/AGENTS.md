@@ -2,7 +2,7 @@
 
 ## Métier
 
-Écran d’atterrissage après login. L’employé voit son affectation du jour, la météo encourageante, les raccourcis mission, les badges (messages, planning assigné, dispos), le toggle « dispo dernière minute », la bannière push et la relance ouverture tardive.
+Écran d’atterrissage après login. L’employé voit son affectation du jour, la météo encourageante, les raccourcis mission, les badges (messages, planning assigné, dispos), la bannière push et la relance ouverture tardive.
 
 ## Fichiers
 
@@ -13,7 +13,7 @@
 | [WeatherEncourageBanner.tsx](WeatherEncourageBanner.tsx) | Popup météo (toujours positif) |
 | [LateOpeningPrompt.tsx](LateOpeningPrompt.tsx) | Relance si ouverture manquante |
 | [HomeButton.tsx](HomeButton.tsx) | Tuiles navigation |
-| [DispoDerniereMinuteToggle.tsx](DispoDerniereMinuteToggle.tsx) | Flag dispo immédiate |
+| [HomeAssistantCard.tsx](HomeAssistantCard.tsx) | Carte bas d’écran : robot zzz si rien à faire, sinon liste des actions badge |
 | [../pwa/PushEnableBanner.tsx](../pwa/PushEnableBanner.tsx) | Activation Web Push |
 
 ## Hooks / données
@@ -23,6 +23,7 @@
 - `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount`
 - `useAvailability` + `isAvailabilityReminderWindow` — badge dispos mercredi
 - `useWeatherBriefRead` — sync brief météo ↔ messages
+- `useHomeAssistantTodos` — même sources que les badges (messages + météo, planning, dispos, photo, CNI, push)
 
 ## Transverse
 

@@ -14,13 +14,12 @@ export function NotificationBadge({ count }: NotificationBadgeProps) {
   return (
     <span
       aria-hidden
-      className="absolute -right-1.5 -top-1.5 z-[100] flex min-w-[20px] items-center justify-center px-1 text-[11px] font-bold"
+      className="absolute -right-2 -top-2 z-[100] flex min-w-7 items-center justify-center px-1.5 text-[13px] font-bold leading-none"
       style={{
-        height: 20,
+        height: 28,
         borderRadius: 9999,
         backgroundColor: colors.DANGER,
         color: colors.TEXT_INVERSE,
-        boxShadow: `0 0 0 2px ${colors.SETTINGS_SECTION_BG}`,
       }}
     >
       {count > 9 ? '9+' : count}

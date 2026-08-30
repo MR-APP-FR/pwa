@@ -93,15 +93,19 @@ export function ProfileMediaCard({ kind, path, onUploaded }: ProfileMediaCardPro
   return (
     <div
       className="mx-5 overflow-hidden rounded-2xl px-5 py-4"
-      style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+      style={{
+        backgroundColor: colors.SETTINGS_SECTION_BG,
+        boxShadow: colors.CARD_SHADOW,
+        border: missing ? `2px solid ${colors.DANGER}` : `2px solid transparent`,
+      }}
     >
       <div className="flex items-start gap-3">
         {isAvatar ? (
           <div
             className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full"
             style={{
-              backgroundColor: colors.PRIMARY_MUTED,
-              boxShadow: missing ? `inset 0 0 0 1.5px ${colors.TEXT_SECONDARY}35` : undefined,
+              backgroundColor: missing ? colors.ACCENT_RED_MUTED : colors.PRIMARY_MUTED,
+              boxShadow: missing ? `inset 0 0 0 2px ${colors.DANGER}` : undefined,
             }}
           >
             {signedUrl ? (
@@ -117,8 +121,8 @@ export function ProfileMediaCard({ kind, path, onUploaded }: ProfileMediaCardPro
           <div
             className="relative h-[72px] w-[114px] shrink-0 overflow-hidden rounded-lg"
             style={{
-              backgroundColor: colors.PRIMARY_MUTED,
-              boxShadow: missing ? `inset 0 0 0 1.5px dashed ${colors.TEXT_SECONDARY}50` : undefined,
+              backgroundColor: missing ? colors.ACCENT_RED_MUTED : colors.PRIMARY_MUTED,
+              boxShadow: missing ? `inset 0 0 0 2px ${colors.DANGER}` : undefined,
             }}
           >
             {signedUrl && !isPdf ? (
@@ -135,9 +139,19 @@ export function ProfileMediaCard({ kind, path, onUploaded }: ProfileMediaCardPro
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-            {title}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+              {title}
+            </p>
+            {missing ? (
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide"
+                style={{ backgroundColor: colors.ACCENT_RED_MUTED, color: colors.DANGER }}
+              >
+                {t('settings.profile.todo')}
+              </span>
+            ) : null}
+          </div>
           <p className="mt-0.5 text-sm" style={{ color: colors.TEXT_SECONDARY }}>
             {isPending ? t('settings.profile.uploading') : hint}
           </p>

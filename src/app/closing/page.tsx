@@ -533,15 +533,14 @@ function ClosingContent() {
                   : t('forms.closing.submit')}
           </PrimaryButton>
           {isBeforeClosingDeadline && !needsForceUi && (
-            <button
-              type="button"
+            <PrimaryButton
               onClick={handleCloseEarly}
               disabled={pending || !formValid}
-              className="mt-2 min-h-[44px] w-full text-sm font-semibold underline-offset-2 hover:underline disabled:opacity-40"
-              style={{ color: colors.TEXT_SECONDARY }}
+              className="mt-2 w-full py-4 text-base"
+              style={{ backgroundColor: colors.DANGER }}
             >
               {t('forms.closing.closeEarly')}
-            </button>
+            </PrimaryButton>
           )}
         </div>
       }

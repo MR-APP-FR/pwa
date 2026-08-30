@@ -4,7 +4,7 @@ import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import { notifyPushStatusChanged, usePushStatus } from '../../hooks/usePushStatus';
+import { isPushAttentionNeeded, notifyPushStatusChanged, usePushStatus } from '../../hooks/usePushStatus';
 import { subscribeAndSave } from '../../lib/push/client';
 import { PrimaryButton } from '../common/PrimaryButton';
 
@@ -32,6 +32,8 @@ export function PushSettingsRow({ className }: { className?: string }) {
     if (!result.ok) setError(result.error);
   }
 
+  const attention = isPushAttentionNeeded(status);
+
   const hint =
     status === 'need-install'
       ? t('settings.push.needInstall')
@@ -46,19 +48,35 @@ export function PushSettingsRow({ className }: { className?: string }) {
   return (
     <div
       className={`mx-5 overflow-hidden rounded-2xl px-5 py-4 ${className ?? 'mt-7'}`}
-      style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+      style={{
+        backgroundColor: colors.SETTINGS_SECTION_BG,
+        boxShadow: colors.CARD_SHADOW,
+        border: attention ? `2px solid ${colors.DANGER}` : `2px solid transparent`,
+      }}
     >
       <div className="flex items-start gap-3">
         <div
           className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
-          style={{ backgroundColor: colors.PRIMARY_MUTED }}
+          style={{
+            backgroundColor: attention ? colors.ACCENT_RED_MUTED : colors.PRIMARY_MUTED,
+          }}
         >
-          <Bell size={18} color={colors.PRIMARY} strokeWidth={2.25} />
+          <Bell size={18} color={attention ? colors.DANGER : colors.PRIMARY} strokeWidth={2.25} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
-            {t('settings.push.title')}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+              {t('settings.push.title')}
+            </p>
+            {attention ? (
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide"
+                style={{ backgroundColor: colors.ACCENT_RED_MUTED, color: colors.DANGER }}
+              >
+                {t('settings.profile.todo')}
+              </span>
+            ) : null}
+          </div>
           <p className="mt-0.5 text-sm" style={{ color: colors.TEXT_SECONDARY }}>
             {hint}
           </p>

@@ -36,9 +36,6 @@
       "settingsButton": "Settings",
       "settingsTodoBadge": "Settings, %{count} to complete",
       "comingSoon": "Soon",
-      "dispoDerniereMinute": "Available today if needed?",
-      "dispoDerniereMinuteOn": "Yes ✅",
-      "dispoDerniereMinuteOff": "No",
       "suggestionsButton": "Suggestion box",
       "googleReviewReminder": "Remember to ask satisfied customers for a Google review before closing 🌟",
       "weatherPopupTitle": "Today's weather",
@@ -70,7 +67,20 @@
       "weatherEncourageQuietSun": "Quieter day. Use it to look after every customer and be extra welcoming ☀️",
       "weatherEncourageQuietRain": "Quieter day. Warm welcome for those who come, be extra welcoming ☔",
       "weatherEncourageQuietSnow": "Snow and a quieter day. Look after every visitor, be extra welcoming ❄️",
-      "weatherEncourageQuietNormal": "Quieter day. Perfect for a great welcome and looking after every customer 🌤️"
+      "weatherEncourageQuietNormal": "Quieter day. Perfect for a great welcome and looking after every customer 🌤️",
+      "assistantIdleTitle": "Nothing to do… zzz",
+      "assistantIdleSubtitle": "I'm asleep. Your notifications are up to date.",
+      "assistantBusyTitle": "To do",
+      "assistantBusySubtitle": "%{count} pending action(s)",
+      "assistantPhoto": "Don't forget to add your profile photo in settings",
+      "assistantCni": "Add a photo of your ID card in settings",
+      "assistantPush": "Turn on notifications in settings",
+      "assistantMessagesOne": "You have an unread message",
+      "assistantMessagesMany": "You have %{count} unread messages",
+      "assistantPlanning": "A new day was added to your planning",
+      "assistantAvailability": "Fill in your availability for next week",
+      "assistantAriaIdle": "Assistant, nothing to do",
+      "assistantAriaBusy": "Assistant, %{count} action(s) to do"
     },
     "sitesMap": {
       "title": "Points of sale map",
@@ -201,7 +211,8 @@
       "chooseFile": "Gallery",
       "uploading": "Uploading…",
       "uploadError": "Upload failed. Try again.",
-      "offline": "You're offline. Reconnect to upload."
+      "offline": "You're offline. Reconnect to upload.",
+      "todo": "To do"
     },
     "push": {
       "title": "Notifications",
@@ -292,7 +303,7 @@
       "errorCarteParking": "Indicate whether the parking card is in the till",
       "panneCheckin": {
         "title": "Some breakdowns are still open",
-        "help": "For each ticket, tell us if the issue is still there or fixed. It helps the office track repairs.",
+        "help": "For each ticket, tell us if the issue is still there or fixed.\nIt helps the office track repairs.",
         "progress": "{{done}} / {{total}} checked",
         "stillBroken": "Still broken",
         "resolved": "Fixed",

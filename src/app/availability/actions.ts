@@ -55,39 +55,3 @@ export async function submitAvailability(
 
   return { ok: true, count: rows.length };
 }
-
-/**
- * Bascule la dispo « dernière minute » du jour même (B4).
- * Distincte de la saisie hebdomadaire (qui vise toujours la semaine N+1) :
- * upsert ciblé sur `(user_id, date)`, ne touche pas `note`.
- */
-export async function submitDispoDerniereMinute(
-  date: string,
-  value: boolean,
-): Promise<SubmitAvailabilityResult> {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { ok: false, error: `Date invalide : ${date}` };
-  }
-
-  const session = await requireEmployeeSession();
-  if (!session.ok) {
-    return { ok: false, error: session.error };
-  }
-
-  const { error } = await session.supabase.from('availability').upsert(
-    {
-      user_id: session.userId,
-      date,
-      available: true,
-      dispo_derniere_minute: value,
-      dispo_derniere_minute_at: value ? new Date().toISOString() : null,
-    },
-    { onConflict: 'user_id,date' },
-  );
-
-  if (error) {
-    return { ok: false, error: `Enregistrement de la dispo dernière minute échoué : ${error.message}` };
-  }
-
-  return { ok: true, count: 1 };
-}

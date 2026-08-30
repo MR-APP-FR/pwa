@@ -25,11 +25,20 @@ function yesNoOptionStyle(
 
   const isYes = tone === 'yes';
   const positive = invertSelectedColors ? !isYes : isYes;
+  if (positive) {
+    return {
+      borderRadius: RADIUS.sm,
+      backgroundColor: colors.ACCENT_GREEN_MUTED,
+      color: colors.ACCENT_GREEN,
+      boxShadow: `inset 0 0 0 2px ${colors.ACCENT_GREEN}`,
+      fontFamily: 'var(--font-display)',
+    } as const;
+  }
   return {
     borderRadius: RADIUS.sm,
-    backgroundColor: positive ? colors.ACCENT_GREEN_MUTED : colors.ACCENT_RED_MUTED,
-    color: positive ? colors.ACCENT_GREEN : colors.ACCENT_RED,
-    boxShadow: `inset 0 0 0 2px ${positive ? colors.ACCENT_GREEN : colors.ACCENT_RED}`,
+    backgroundColor: colors.DANGER,
+    color: colors.TEXT_INVERSE,
+    boxShadow: 'none',
     fontFamily: 'var(--font-display)',
   } as const;
 }

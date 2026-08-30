@@ -17,4 +17,6 @@ export interface Site {
   group_id: number;
   daily_info_questions?: string[];
   closing_checklist_items?: string[];
+  /** Path Storage bucket `site-photos`, jamais une URL publique. */
+  photo_url?: string | null;
 }

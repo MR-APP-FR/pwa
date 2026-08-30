@@ -18,7 +18,7 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 | Tables | `user_info`, `user_info_sites`, Storage documents |
 | RLS | Own via `current_employee_id()` |
 | Flag | `user.must_change_password` → redirect 1re connexion |
-| Badge profil | Compteur non-lus / alertes (page.tsx) |
+| Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». |
 
 Uploads : path en colonne, bucket privé (lecture CRM admin).
 

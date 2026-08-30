@@ -6,6 +6,4 @@ export interface AvailabilityRow {
   available: boolean;
   note: string | null;
   submitted_at: string;
-  dispo_derniere_minute: boolean | null;
-  dispo_derniere_minute_at: string | null;
 }

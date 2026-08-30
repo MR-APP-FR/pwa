@@ -39,7 +39,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 7. **Mutations** : server actions dans `src/app/*/actions.ts` ou `src/lib/actions/`.
 8. **Lectures** : TanStack Query dans `src/hooks/api/*`.
 9. **Pas de sync Open-Meteo** dans Next — lecture `site_weather` seulement.
-10. **Photos** : bucket privé `telecollecte-photos` — stocker le **path**, pas une URL publique.
+10. **Photos** : buckets privés `telecollecte-photos` (terrain) et `site-photos` (fiche manège) — stocker le **path**, pas une URL publique.
 11. **Impact écosystème** : toute modif terrain / DB → proposer aussi CRM (dialogs, types, boards) — voir [../AGENTS.md](../AGENTS.md) § Impact écosystème.
 
 ## Commandes

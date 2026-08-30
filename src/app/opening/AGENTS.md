@@ -14,7 +14,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | Élément | Détail |
 |---|---|
 | Action | [actions.ts](actions.ts) → `submitOpeningForm` |
-| Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s |
+| Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s ; section juste avant remarques ; roulette min/s |
 | Retard | [late-opening-actions.ts](late-opening-actions.ts) |
 | Table | `opening_form` — upsert `onConflict: site_id,date` |
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking |

@@ -90,7 +90,7 @@ Non exhaustif ; les messages de commit sont la trace fine.
 - Auth CRM email+password (CRM `6eeac95`) ; mot de passe temporaire forcé (PWA `414376c`) ; provision Auth à la création employé (CRM `58874a7`)
 
 **Terrain PWA**
-- Météo bandeau, messages, dispos dernière minute (`1126ada`)
+- Météo bandeau, messages (`1126ada`)
 - Carte Google Maps, headers (`fff0caa`)
 - GPS ouverture/fermeture, ouverture tardive, fiche staff (`b9d6a42`, `09b7a36`)
 - Zone unique messages (`fe3babc`)

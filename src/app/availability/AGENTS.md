@@ -21,7 +21,7 @@ Chaque employé déclare ses dispos pour la **semaine prochaine** (créneaux par
 
 ## Transverse
 
-- CRM planning : grille dispos semaine + panel mobilisables.
+- CRM planning : grille dispos semaine.
 - Table suivi envois : `week_staff_dispatch` (CRM écrit).
 
 ## Ne pas casser

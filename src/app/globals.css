@@ -73,3 +73,81 @@ textarea {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+@keyframes home-assistant-orb {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(41, 45, 130, 0.12);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 10px rgba(41, 45, 130, 0);
+  }
+}
+
+@keyframes home-assistant-zzz {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translate(0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(3px, -6px);
+  }
+}
+
+@keyframes home-assistant-awake {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(8deg);
+  }
+  50% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(6deg);
+  }
+}
+
+@keyframes home-assistant-awake-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(247, 148, 29, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(247, 148, 29, 0);
+  }
+}
+
+.home-assistant-awake {
+  animation: home-assistant-awake 1.6s ease-in-out infinite;
+}
+
+.home-assistant-awake-halo {
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #fef4e8 0%, #fde8c8 75%);
+  animation: home-assistant-awake-glow 1.6s ease-in-out infinite;
+}
+
+.home-assistant-orb {
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #e8f1fa 0%, #d4e4f5 70%);
+  animation: home-assistant-orb 3.4s ease-in-out infinite;
+}
+
+.home-assistant-zzz {
+  position: absolute;
+  top: -2px;
+  right: -10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #292d82;
+  font-family: var(--font-display);
+  animation: home-assistant-zzz 2.2s ease-in-out infinite;
+}

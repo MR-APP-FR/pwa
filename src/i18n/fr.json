@@ -36,9 +36,6 @@
       "settingsButton": "Paramètres",
       "settingsTodoBadge": "Paramètres, %{count} à compléter",
       "comingSoon": "Bientôt",
-      "dispoDerniereMinute": "Dispo aujourd'hui si besoin ?",
-      "dispoDerniereMinuteOn": "Oui ✅",
-      "dispoDerniereMinuteOff": "Non",
       "suggestionsButton": "Boîte à idées",
       "googleReviewReminder": "Pense à demander un avis Google aux clients satisfaits avant la fermeture 🌟",
       "weatherPopupTitle": "Météo du jour",
@@ -70,7 +67,20 @@
       "weatherEncourageQuietSun": "Passage plus calme. Profitez-en pour chouchouter chaque client et être au top de l'accueil ☀️",
       "weatherEncourageQuietRain": "Journée plus calme. Accueil chaleureux pour ceux qui viennent, soyez extra accueillants ☔",
       "weatherEncourageQuietSnow": "Neige et passage plus calme. Chouchoutez chaque visiteur, soyez extra accueillants ❄️",
-      "weatherEncourageQuietNormal": "Passage plus calme. Idéal pour un accueil au top et bien s'occuper de chaque client 🌤️"
+      "weatherEncourageQuietNormal": "Passage plus calme. Idéal pour un accueil au top et bien s'occuper de chaque client 🌤️",
+      "assistantIdleTitle": "Rien à faire… zzz",
+      "assistantIdleSubtitle": "Je dors. Tes notifs sont à jour.",
+      "assistantBusyTitle": "À faire",
+      "assistantBusySubtitle": "%{count} action(s) en attente",
+      "assistantPhoto": "N'oublie pas de remplir ta photo de profil dans les paramètres",
+      "assistantCni": "Ajoute une photo de ta CNI dans les paramètres",
+      "assistantPush": "Active les notifications dans les paramètres",
+      "assistantMessagesOne": "Tu as reçu un message que tu n'as pas lu",
+      "assistantMessagesMany": "Tu as %{count} messages non lus",
+      "assistantPlanning": "Un nouveau jour a été ajouté à ton planning",
+      "assistantAvailability": "Remplis tes disponibilités pour la semaine prochaine",
+      "assistantAriaIdle": "Assistant, rien à faire",
+      "assistantAriaBusy": "Assistant, %{count} action(s) à faire"
     },
     "sitesMap": {
       "title": "Carte des points de vente",
@@ -201,7 +211,8 @@
       "chooseFile": "Galerie",
       "uploading": "Envoi en cours…",
       "uploadError": "Envoi impossible. Réessaie.",
-      "offline": "Tu es hors ligne. Reconnecte-toi pour envoyer."
+      "offline": "Tu es hors ligne. Reconnecte-toi pour envoyer.",
+      "todo": "À faire"
     },
     "push": {
       "title": "Notifications",
@@ -292,7 +303,7 @@
       "errorCarteParking": "Indique si la carte parking est dans la caisse",
       "panneCheckin": {
         "title": "Des pannes sont encore ouvertes",
-        "help": "Pour chaque ticket, dis-nous si le problème est toujours là ou si c'est réglé. Merci, ça aide le bureau à suivre les réparations.",
+        "help": "Pour chaque ticket, dis-nous si le problème est toujours là ou si c'est réglé.\nMerci, ça aide le bureau à suivre les réparations.",
         "progress": "{{done}} / {{total}} vérifiées",
         "stillBroken": "En panne",
         "resolved": "Réparé",
