@@ -7,10 +7,11 @@ interface FormSectionProps {
   title: string;
   optional?: boolean;
   optionalLabel?: string;
+  danger?: boolean;
   children: React.ReactNode;
 }
 
-export function FormSection({ title, optional, optionalLabel, children }: FormSectionProps) {
+export function FormSection({ title, optional, optionalLabel, danger, children }: FormSectionProps) {
   const { colors } = useThemeColors();
 
   return (
@@ -18,7 +19,7 @@ export function FormSection({ title, optional, optionalLabel, children }: FormSe
       <div className="flex items-center gap-2">
         <h3
           className="text-xs font-bold uppercase tracking-wide"
-          style={{ color: colors.PRIMARY, fontFamily: 'var(--font-display)' }}
+          style={{ color: danger ? colors.DANGER : colors.PRIMARY, fontFamily: 'var(--font-display)' }}
         >
           {title}
         </h3>
@@ -31,7 +32,11 @@ export function FormSection({ title, optional, optionalLabel, children }: FormSe
       </div>
       <div
         className="space-y-4 rounded-xl px-4 py-4"
-        style={{ backgroundColor: colors.BG_TERTIARY, borderRadius: RADIUS.md }}
+        style={{
+          backgroundColor: danger ? colors.ACCENT_RED_MUTED : colors.BG_TERTIARY,
+          borderRadius: RADIUS.md,
+          border: danger ? `1px solid ${colors.DANGER}` : undefined,
+        }}
       >
         {children}
       </div>

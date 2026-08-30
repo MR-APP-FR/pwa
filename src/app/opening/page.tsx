@@ -8,6 +8,7 @@ import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
 import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
 import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
+import { CHRONO_WEEKDAY_KEY, isChronoInExpectedRange } from './chrono';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
@@ -108,7 +109,7 @@ function OpeningContent() {
     carteParkingConfig?.questionLabel ?? t('forms.opening.carteParkingCaisse');
   const showMusiqueDisney = useMemo(() => questions?.includes('musique_disney') ?? false, [questions]);
   const showChrono = useMemo(
-    () => (missionDateIso ? dateIsoToJourSemaineKey(missionDateIso) === '3' : false),
+    () => (missionDateIso ? dateIsoToJourSemaineKey(missionDateIso) === CHRONO_WEEKDAY_KEY : false),
     [missionDateIso],
   );
 
@@ -134,6 +135,7 @@ function OpeningContent() {
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
   const [chrono, setChrono] = useState<DurationValue>({ minutes: null, seconds: null });
+  const [chronoOutOfRangeAttempts, setChronoOutOfRangeAttempts] = useState(0);
 
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -186,7 +188,9 @@ function OpeningContent() {
       case 'ticketsOuverture':
         return t('forms.opening.errorTicketsOuverture');
       case 'chrono':
-        return t('forms.opening.errorChrono');
+        return chronoOutOfRangeAttempts > 0
+          ? t('forms.opening.chronoRetry')
+          : t('forms.opening.errorChrono');
       case 'fondDeCaisse100':
         return t('forms.opening.errorFondDeCaisse');
       case 'fondDeCaisse100Justification':
@@ -227,15 +231,28 @@ function OpeningContent() {
 
     setFieldError(null);
 
+    let chronoSeconds: number | null = null;
+    if (showChrono) {
+      chronoSeconds = durationToSeconds(chrono);
+      if (chronoSeconds !== null && !isChronoInExpectedRange(chronoSeconds)) {
+        if (chronoOutOfRangeAttempts === 0) {
+          setChronoOutOfRangeAttempts(1);
+          setFieldError('chrono');
+          setSubmitError(t('forms.opening.chronoRetry'));
+          return;
+        }
+      }
+    }
+
     const fd = new FormData();
     fd.set('siteId', String(mission.site_id));
     fd.set('date', `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`);
     fd.set('feuillesDeJour', String(form.feuilleDuJour));
     fd.set('ticketsOuverture', String(form.ticketsOuverture));
-    if (showChrono) {
-      const chronoSeconds = durationToSeconds(chrono);
-      if (chronoSeconds !== null) {
-        fd.set('chronoSeconds', String(chronoSeconds));
+    if (showChrono && chronoSeconds !== null) {
+      fd.set('chronoSeconds', String(chronoSeconds));
+      if (!isChronoInExpectedRange(chronoSeconds)) {
+        fd.set('chronoConfirmOutOfRange', '1');
       }
     }
     fd.set('fondCaisse100', form.fondDeCaisse100 ? '1' : '0');
@@ -262,6 +279,12 @@ function OpeningContent() {
 
         const result = await submitOpeningForm(fd);
         if (!result.ok) {
+          if (result.code === 'chrono_retry') {
+            setChronoOutOfRangeAttempts((n) => Math.max(n, 1));
+            setFieldError('chrono');
+            setSubmitError(t('forms.opening.chronoRetry'));
+            return;
+          }
           setSubmitError(result.error);
           return;
         }
@@ -391,7 +414,16 @@ function OpeningContent() {
               error={fieldError === 'ticketsOuverture'}
               inputMode="numeric"
             />
-            {showChrono && (
+          </FormSection>
+
+          {showChrono && (
+            <FormSection title={t('forms.opening.sectionChrono')} danger={chronoOutOfRangeAttempts > 0}>
+              <p
+                className="whitespace-pre-line text-sm leading-relaxed"
+                style={{ color: chronoOutOfRangeAttempts > 0 ? colors.DANGER : colors.TEXT_PRIMARY }}
+              >
+                {t('forms.opening.chronoIntro')}
+              </p>
               <FormDurationInput
                 label={t('forms.opening.chrono')}
                 value={chrono}
@@ -400,10 +432,15 @@ function OpeningContent() {
                   if (fieldError === 'chrono') setFieldError(null);
                 }}
                 required
-                error={fieldError === 'chrono'}
+                error={fieldError === 'chrono' || chronoOutOfRangeAttempts > 0}
               />
-            )}
-          </FormSection>
+              {chronoOutOfRangeAttempts > 0 && (
+                <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
+                  {t('forms.opening.chronoRetry')}
+                </p>
+              )}
+            </FormSection>
+          )}
 
           <FormSection title={t('forms.opening.sectionChecks')}>
             <ConditionalQuestion

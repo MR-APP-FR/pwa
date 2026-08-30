@@ -267,6 +267,9 @@
     "opening": {
       "title": "Ouverture",
       "sectionCounts": "Comptages",
+      "sectionChrono": "Chronomètre",
+      "chronoIntro": "Comme chaque lundi, merci de vérifier que la durée du chronomètre est bien réglée sur 2 min 30.\n⏱️ Pensez à bien enclencher le chrono au moment où vous lancez le tour, puis à l'arrêter lorsque le tour s'arrête.\nMerci pour ta vigilance 🙂",
+      "chronoRetry": "Peux-tu réessayer une deuxième fois et confirmer le chrono ?",
       "sectionChecks": "Vérifications",
       "sectionPannes": "Pannes & informations",
       "sectionNotes": "Remarques",

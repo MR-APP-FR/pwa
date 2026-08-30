@@ -2,6 +2,10 @@
 
 import { requireEmployeeSession } from '../../lib/auth/employee';
 import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
+import {
+  CHRONO_WEEKDAY_KEY,
+  isChronoInExpectedRange,
+} from './chrono';
 
 /**
  * Submit du formulaire d'ouverture → `public.opening_form`.
@@ -10,7 +14,7 @@ import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
 
 export type SubmitOpeningResult =
   | { ok: true; id: number }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code?: 'chrono_retry' };
 
 interface SubmitOpeningInput {
   siteId: number;
@@ -24,6 +28,7 @@ interface SubmitOpeningInput {
   clientLat: number | null;
   clientLng: number | null;
   chronoSeconds: number | null;
+  chronoConfirmOutOfRange: boolean;
 }
 
 function optionalCoord(formData: FormData, key: string, min: number, max: number): number | null {
@@ -50,9 +55,9 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
       ? { clientLat, clientLng }
       : { clientLat: null, clientLng: null };
 
-  const isWednesday = dateIsoToJourSemaineKey(date) === '3';
+  const isChronoDay = dateIsoToJourSemaineKey(date) === CHRONO_WEEKDAY_KEY;
   let chronoSeconds: number | null = null;
-  if (isWednesday) {
+  if (isChronoDay) {
     const chronoRaw = formData.get('chronoSeconds');
     if (chronoRaw === null || chronoRaw === '') {
       return { error: 'Chrono manquant.' };
@@ -80,6 +85,7 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
     observations,
     ...clientPair,
     chronoSeconds,
+    chronoConfirmOutOfRange: formData.get('chronoConfirmOutOfRange') === '1',
   };
 }
 
@@ -92,6 +98,16 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
   const session = await requireEmployeeSession();
   if (!session.ok) {
     return { ok: false, error: session.error };
+  }
+
+  const chronoOutOfRange =
+    parsed.chronoSeconds != null && !isChronoInExpectedRange(parsed.chronoSeconds);
+  if (chronoOutOfRange && !parsed.chronoConfirmOutOfRange) {
+    return {
+      ok: false,
+      error: 'chrono_retry',
+      code: 'chrono_retry',
+    };
   }
 
   // Upsert idempotent : une seule ligne par (site, jour) — modèle arbitré le
@@ -122,6 +138,20 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
 
   if (error) {
     return { ok: false, error: `Enregistrement opening_form a échoué : ${error.message}` };
+  }
+
+  if (chronoOutOfRange && parsed.chronoSeconds != null) {
+    const { error: rpcError } = await session.supabase.rpc('report_chrono_out_of_range', {
+      p_site_id: parsed.siteId,
+      p_date: parsed.date,
+      p_chrono_seconds: parsed.chronoSeconds,
+    });
+    if (rpcError) {
+      return {
+        ok: false,
+        error: `Ouverture enregistrée, mais l'alerte chrono a échoué : ${rpcError.message}`,
+      };
+    }
   }
 
   return { ok: true, id: data.id };

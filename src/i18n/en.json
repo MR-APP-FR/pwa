@@ -267,6 +267,9 @@
     "opening": {
       "title": "Opening",
       "sectionCounts": "Counts",
+      "sectionChrono": "Timer",
+      "chronoIntro": "As every Monday, please check that the ride timer is set to 2 min 30.\n⏱️ Start the timer when you launch the ride, and stop it when the ride stops.\nThanks for staying on it 🙂",
+      "chronoRetry": "Can you try a second time and confirm the timer?",
       "sectionChecks": "Checks",
       "sectionPannes": "Breakdowns & info",
       "sectionNotes": "Notes",

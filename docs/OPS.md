@@ -42,6 +42,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Envoi planning semaine N+1 | CRM | Messages ciblés + Web Push (`week_staff_dispatch`) |
 | Création / envoi message staff | CRM | Web Push immédiat |
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
+| Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau + intervention urgente |
 | Création employé | CRM | provision `auth.users` |
 | `npm run provision:auth-users` | PWA local | sync Auth ← `public.user` |
 | `npm run weather:sync` / `backfill` / `enrich` | CRM local | même recette météo, service role |
@@ -53,6 +54,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `create_intervention_from_panne` | `daily_info` INSERT/UPDATE | ticket `intervention` (dédup `daily_info_id, sujet`) |
 | `sync_closing_form_to_data` | `closing_form` | alimente `data` (CA) |
 | fermeture forcée → Bureau | `closing_form` | message canal Bureau |
+| `report_chrono_out_of_range` | ouverture lundi (RPC) | message Bureau + intervention urgente |
 | `staff_message_site_ids_one_zone` | `staff_message` | un message = Tous ou une zone |
 | `set_updated_at` | plusieurs tables | `updated_at` |
 
@@ -99,5 +101,5 @@ Non exhaustif ; les messages de commit sont la trace fine.
 - Messages chat, fiche staff (`8079943`)
 - Canaux Bureau, crons d’alerte (`bb0ba35`)
 - Envoi planning N+1 + push (`2600d13`)
-- Chrono mercredi ouvertures (`52ccda1`)
+- Chrono mercredi ouvertures (`52ccda1`) ; passé au lundi + alerte hors borne (août 2026)
 - Toolbars, badge fermetures tardives (`667a574`)

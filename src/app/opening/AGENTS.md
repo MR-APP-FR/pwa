@@ -2,7 +2,7 @@
 
 ## Métier
 
-Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse, observations, GPS, chrono (dont ouverture tardive), option carte parking si configurée sur le site.
+Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse, observations, GPS, chrono **lundi** (2 min 25–35, sinon retry puis alerte Bureau + intervention urgente), option carte parking si configurée sur le site.
 
 ## Écran
 
@@ -13,10 +13,12 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 
 | Élément | Détail |
 |---|---|
-| Action | [actions.ts](actions.ts) → `submitOpening` |
+| Action | [actions.ts](actions.ts) → `submitOpeningForm` |
+| Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s |
 | Retard | [late-opening-actions.ts](late-opening-actions.ts) |
 | Table | `opening_form` — upsert `onConflict: site_id,date` |
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking |
+| RPC | `report_chrono_out_of_range` — message canal `bureau` + `intervention` urgente |
 | Config site | `site_infos` / hook `useSiteCarteParking` |
 | RLS | Binôme planifié (`planning.user_id` / `double_id`) |
 
@@ -32,5 +34,5 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 
 - Toujours upsert, jamais insert seul.
 - Coords GPS : validation serveur dans `actions.ts`.
-- Chrono : secondes entières ; libellés i18n minutes/secondes.
+- Chrono : **lundi** seulement ; secondes entières ; 1er hors borne = retry UI ; 2e = Bureau + ticket « chrono mal calibré à XminYsec ».
 - Date mission = ISO Paris, pas `new Date()` brut côté serveur.
