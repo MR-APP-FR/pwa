@@ -1,0 +1,14 @@
+---
+description: Mettre à jour AGENTS.md et OPS quand le code PWA change
+alwaysApply: true
+---
+
+# Maintenance documentation (PWA)
+
+Si tu modifies routes, server actions, hooks, migrations, Edge Functions ou tables :
+
+- Mets à jour le `AGENTS.md` du dossier touché + [AGENTS.md](../AGENTS.md) si nouvelle entrée index.
+- Crons / APIs → [docs/OPS.md](../docs/OPS.md), [supabase/functions/AGENTS.md](../supabase/functions/AGENTS.md).
+- Impact CRM (lecture formulaires, RLS) → [CLAUDE.md](../CLAUDE.md) ou rappeler MAJ côté `admin-desktop-app/`.
+
+**Proactif**, même commit que le code — sans attendre qu’on te le demande.

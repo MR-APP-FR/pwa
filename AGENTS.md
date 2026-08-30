@@ -51,3 +51,16 @@ cd pwa && npm run provision:auth-users  # local, SERVICE_ROLE
 ```
 
 Projet Supabase : `ooirydwzxltdtvlyhqar`. Changement schéma = migration dans `supabase/migrations/` + appliquer via MCP.
+
+## Maintenance doc (obligatoire)
+
+Sans qu’on te le demande, mets à jour la doc **dans le même PR / commit** que le code :
+
+| Changement | Fichiers |
+|---|---|
+| Route, action, hook, table touchée | `AGENTS.md` du dossier ([index ci-dessus](#avant-de-coder)) + [src/app/AGENTS.md](src/app/AGENTS.md) si nouvelle route |
+| Migration / RLS / trigger | Section + [CLAUDE.md](CLAUDE.md) parent si l’autre app (CRM) consomme la table |
+| Edge Function, pg_cron, env secret | [docs/OPS.md](docs/OPS.md), [supabase/functions/AGENTS.md](supabase/functions/AGENTS.md) |
+| Feature notable août+ | Une ligne [docs/AUDIT-2026-08.md](docs/AUDIT-2026-08.md) |
+
+Changement aussi côté CRM → rappeler dans le commit que l’autre dépôt doit être aligné (deux repos).
