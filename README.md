@@ -5,7 +5,8 @@ fermeture, disponibilités). Données persistées sur Supabase ; lecture admin d
 `admin-desktop-app`.
 
 Projet Supabase : [ooirydwzxltdtvlyhqar](https://app.supabase.com/project/ooirydwzxltdtvlyhqar)  
-Cadrage prod : [`docs/CADRAGE-PROD-PWA.md`](docs/CADRAGE-PROD-PWA.md)
+Cadrage prod : [`docs/CADRAGE-PROD-PWA.md`](docs/CADRAGE-PROD-PWA.md)  
+Crons, Edge Functions, APIs (météo, Maps, Web Push) : [`docs/OPS.md`](docs/OPS.md)
 
 ## Prérequis
 
@@ -73,5 +74,5 @@ Projet Vercel `pwa` — env Production / Preview / Development :
 supabase --workdir . migration list --linked
 ```
 
-Migrations GRE récentes : disponibilités, idempotence formulaires, RLS stricte
-(`supabase/migrations/202607221*`).
+Migrations dans `supabase/migrations/` (source de vérité schéma + pg_cron).
+Ops (jobs, APIs) : [`docs/OPS.md`](docs/OPS.md).
