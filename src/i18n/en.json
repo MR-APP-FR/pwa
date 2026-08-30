@@ -358,6 +358,12 @@
       "musiqueDisney": "Disney music on?"
     }
   },
+  "camera": {
+    "starting": "Starting camera…",
+    "capture": "Capture",
+    "unsupported": "Camera is not available on this device or browser.",
+    "errorPermission": "Camera access denied. Allow the camera in your browser settings."
+  },
   "common": {
     "edit": "Edit",
     "cancel": "Cancel",
