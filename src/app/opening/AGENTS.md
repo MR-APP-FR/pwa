@@ -20,13 +20,14 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking |
 | RPC | `report_chrono_out_of_range` — message canal `bureau` + `intervention` urgente |
 | Config site | `site_infos` / hook `useSiteCarteParking` |
+| Carte parking | Non à l’ouverture → RPC `report_parking_card_missing` (canal Bureau) |
 | RLS | Binôme planifié (`planning.user_id` / `double_id`) |
 
 `user_id` = dernier soumetteur via `requireEmployeeSession()`.
 
 ## Transverse
 
-- CRM : day-board [ouverture](../../../admin-desktop-app/app/(dashboard)/crm/ouverture/) + historique forms.
+- CRM : day-board [ouverture](../../../admin-desktop-app/app/(dashboard)/crm/ouverture/) + historique forms ; alerte « Parking absent » si Non.
 - Cron Edge `opening-late` : push si créneau matin/après-midi sans ouverture.
 - Résolution panne depuis ouverture : migration `gre_resolve_panne_from_opening`.
 

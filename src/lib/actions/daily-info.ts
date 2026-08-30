@@ -170,5 +170,19 @@ export async function submitDailyInfo(
   if (error) {
     return { ok: false, error: `Enregistrement daily_info a échoué : ${error.message}` };
   }
+
+  if (input.carteParking === false) {
+    const { error: rpcError } = await supabase.rpc('report_parking_card_missing', {
+      p_site_id: input.siteId,
+      p_date: input.date,
+    });
+    if (rpcError) {
+      return {
+        ok: false,
+        error: `Info-jour enregistrée, mais l'alerte carte parking a échoué : ${rpcError.message}`,
+      };
+    }
+  }
+
   return { ok: true, id: data.id };
 }

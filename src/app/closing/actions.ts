@@ -1,5 +1,6 @@
 'use server';
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { requireEmployeeSession } from '../../lib/auth/employee';
 import type { PhotoSource } from '../../database/types';
 import { evaluateClosingForce } from '../../lib/geo';
@@ -59,6 +60,36 @@ function parseChecklist(formData: FormData): Record<string, boolean> {
   return {};
 }
 
+async function siteRequiresParkingPhoto(
+  supabase: SupabaseClient,
+  siteId: number,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('site_infos')
+    .select('carte_parking')
+    .eq('site_id', siteId)
+    .maybeSingle();
+  return data?.carte_parking === true;
+}
+
+async function uploadClosingPhoto(
+  supabase: SupabaseClient,
+  photo: File,
+  pathPrefix: string,
+): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+  const ext = photo.name.includes('.') ? photo.name.split('.').pop() : 'jpg';
+  const objectPath = `${pathPrefix}/${Date.now()}.${ext}`;
+  const upload = await supabase.storage.from(PHOTO_BUCKET).upload(objectPath, photo, {
+    cacheControl: '3600',
+    contentType: photo.type || 'image/jpeg',
+    upsert: false,
+  });
+  if (upload.error) {
+    return { ok: false, error: upload.error.message };
+  }
+  return { ok: true, path: upload.data.path };
+}
+
 export async function submitClosingForm(formData: FormData): Promise<SubmitClosingResult> {
   const siteId = Number(formData.get('siteId'));
   const date = String(formData.get('date') ?? '');
@@ -66,6 +97,9 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   const photoSourceRaw = formData.get('photoSource');
   const photoCapturedAtMsRaw = formData.get('photoCapturedAtMs');
   const photo = formData.get('photo');
+  const parkingPhotoSourceRaw = formData.get('parkingPhotoSource');
+  const parkingPhotoCapturedAtMsRaw = formData.get('parkingPhotoCapturedAtMs');
+  const parkingPhoto = formData.get('parkingPhoto');
 
   if (!Number.isFinite(siteId) || siteId <= 0) return { ok: false, error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'Date invalide.' };
@@ -85,6 +119,16 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     return { ok: false, error: session.error };
   }
   const { userId, supabase } = session;
+
+  const parkingRequired = await siteRequiresParkingPhoto(supabase, siteId);
+  if (parkingRequired) {
+    if (!(parkingPhoto instanceof File) || parkingPhoto.size === 0) {
+      return { ok: false, error: 'Photo de la carte parking rangée manquante.' };
+    }
+    if (!isPhotoSource(parkingPhotoSourceRaw)) {
+      return { ok: false, error: 'Source de la photo parking invalide.' };
+    }
+  }
 
   const { data: openingRow } = await supabase
     .from('opening_form')
@@ -125,21 +169,35 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
       ? new Date(Number(photoCapturedAtMsRaw)).toISOString()
       : null;
 
-  const ext = photo.name.includes('.') ? photo.name.split('.').pop() : 'jpg';
-  const objectPath = `${date}/site-${siteId}/user-${userId}/${Date.now()}.${ext}`;
+  const parkingPhotoCapturedAtIso =
+    typeof parkingPhotoCapturedAtMsRaw === 'string' && parkingPhotoCapturedAtMsRaw.length > 0
+      ? new Date(Number(parkingPhotoCapturedAtMsRaw)).toISOString()
+      : null;
 
-  const upload = await supabase.storage.from(PHOTO_BUCKET).upload(objectPath, photo, {
-    cacheControl: '3600',
-    contentType: photo.type || 'image/jpeg',
-    upsert: false,
-  });
-  if (upload.error) {
-    return { ok: false, error: `Upload photo échoué : ${upload.error.message}` };
+  const photoUpload = await uploadClosingPhoto(
+    supabase,
+    photo,
+    `${date}/site-${siteId}/user-${userId}`,
+  );
+  if (!photoUpload.ok) {
+    return { ok: false, error: `Upload photo échoué : ${photoUpload.error}` };
   }
+  const photoPath = photoUpload.path;
 
-  // Bucket privé (audit 2026-08-18 §3.4) : on stocke le path, jamais une URL
-  // publique — le CRM résout une URL signée à l'affichage.
-  const photoPath = upload.data.path;
+  let parkingPhotoPath: string | null = null;
+  let parkingPhotoSource: PhotoSource | null = null;
+  if (parkingRequired && parkingPhoto instanceof File && isPhotoSource(parkingPhotoSourceRaw)) {
+    const parkingUpload = await uploadClosingPhoto(
+      supabase,
+      parkingPhoto,
+      `${date}/site-${siteId}/user-${userId}/parking`,
+    );
+    if (!parkingUpload.ok) {
+      return { ok: false, error: `Upload photo parking échoué : ${parkingUpload.error}` };
+    }
+    parkingPhotoPath = parkingUpload.path;
+    parkingPhotoSource = parkingPhotoSourceRaw;
+  }
 
   const [y, m, d] = date.split('-').map(Number);
   const { data: planningRow } = await supabase
@@ -179,6 +237,13 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         photo_url: photoPath,
         photo_source: photoSourceRaw,
         photo_captured_at: photoCapturedAtIso,
+        ...(parkingPhotoPath != null
+          ? {
+              photo_parking_url: parkingPhotoPath,
+              photo_parking_source: parkingPhotoSource,
+              photo_parking_captured_at: parkingPhotoCapturedAtIso,
+            }
+          : {}),
         checklist: parseChecklist(formData),
         avis_google_count: nullableNumber(formData, 'avisGoogleCount') ?? 0,
         force_reason: forceCheck.needsForce ? forceReason : null,

@@ -43,6 +43,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Création / envoi message staff | CRM | Web Push immédiat |
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
 | Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau + intervention urgente |
+| Carte parking absente (ouverture Non) | PWA | RPC `report_parking_card_missing` → canal Bureau |
 | Création employé | CRM | provision `auth.users` |
 | `npm run provision:auth-users` | PWA local | sync Auth ← `public.user` |
 | `npm run weather:sync` / `backfill` / `enrich` | CRM local | même recette météo, service role |
@@ -55,6 +56,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `sync_closing_form_to_data` | `closing_form` | alimente `data` (CA) |
 | fermeture forcée → Bureau | `closing_form` | message canal Bureau |
 | `report_chrono_out_of_range` | ouverture lundi (RPC) | message Bureau + intervention urgente |
+| `report_parking_card_missing` | ouverture (RPC) | message Bureau carte parking absente |
 | `staff_message_site_ids_one_zone` | `staff_message` | un message = Tous ou une zone |
 | `set_updated_at` | plusieurs tables | `updated_at` |
 

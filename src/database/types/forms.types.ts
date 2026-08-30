@@ -54,6 +54,9 @@ export interface ClosingFormRow {
   submitted_at: string;
   checklist: Record<string, boolean>;
   avis_google_count: number;
+  photo_parking_url: string | null;
+  photo_parking_source: PhotoSource | null;
+  photo_parking_captured_at: string | null;
   force_reason: string | null;
   force_early: boolean;
   force_distance_m: number | null;

@@ -12,10 +12,11 @@ import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import { useSujets } from '../../hooks/api/useSujets';
 import { useMissionForms } from '../../hooks/api/useMissionForms';
-import {
-  useSiteClosingChecklist,
+import { useSiteClosingChecklist,
   type ClosingChecklistItemKey,
 } from '../../hooks/api/useSiteClosingChecklist';
+import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
+import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
 import { useAppDate } from '../../hooks/useAppDate';
@@ -148,6 +149,8 @@ function ClosingContent() {
 
   const { data: sujets } = useSujets(mission?.site_id);
   const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
+  const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
+  const showParkingPhoto = carteParkingConfig?.enabled === true;
   const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
 
   const [form, setForm] = useState<ClosingFormData>({
@@ -175,9 +178,10 @@ function ClosingContent() {
   const [pannesAutre, setPannesAutre] = useState('');
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [parkingPhoto, setParkingPhoto] = useState<CapturedPhoto | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [fieldError, setFieldError] = useState<ClosingFieldKey | 'photo' | null>(null);
+  const [fieldError, setFieldError] = useState<ClosingFieldKey | 'photo' | 'parkingPhoto' | null>(null);
   const [envelopeConfirmed, setEnvelopeConfirmed] = useState(false);
   const [forceReason, setForceReason] = useState('');
   const [forceModalOpen, setForceModalOpen] = useState(false);
@@ -252,6 +256,7 @@ function ClosingContent() {
     form.recetteTotale !== null &&
     photoFile !== null &&
     form.telecollectePhotoSource !== null &&
+    (!showParkingPhoto || parkingPhoto !== null) &&
     envelopeConfirmed;
 
   function updateNumericField(key: ClosingFieldKey, value: number | null) {
@@ -342,6 +347,11 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.errorPhoto'));
       return false;
     }
+    if (showParkingPhoto && !parkingPhoto) {
+      setFieldError('parkingPhoto');
+      setSubmitError(t('forms.closing.errorParkingPhoto'));
+      return false;
+    }
     if (!envelopeConfirmed) {
       setSubmitError(t('forms.closing.envelopeError'));
       return false;
@@ -384,6 +394,7 @@ function ClosingContent() {
 
   function startClosingSubmit(reason: string | null) {
     if (!mission || !photoFile || !form.telecollectePhotoSource) return;
+    if (showParkingPhoto && !parkingPhoto) return;
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
     const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
@@ -437,6 +448,11 @@ function ClosingContent() {
         fd.set('photoSource', photoSource);
         if (form.telecollectePhotoCapturedAtMs != null) {
           fd.set('photoCapturedAtMs', String(form.telecollectePhotoCapturedAtMs));
+        }
+        if (showParkingPhoto && parkingPhoto) {
+          fd.set('parkingPhoto', parkingPhoto.file);
+          fd.set('parkingPhotoSource', parkingPhoto.source);
+          fd.set('parkingPhotoCapturedAtMs', String(parkingPhoto.capturedAtMs));
         }
         if (clientLat != null) fd.set('clientLat', String(clientLat));
         if (clientLng != null) fd.set('clientLng', String(clientLng));
@@ -639,6 +655,25 @@ function ClosingContent() {
                     </label>
                   ))}
                 </div>
+              </FormSection>
+            )}
+
+            {showParkingPhoto && (
+              <FormSection title={t('forms.closing.sectionParkingPhoto')}>
+                <PhotoCaptureField
+                  label={t('forms.closing.parkingPhoto')}
+                  value={parkingPhoto}
+                  onChange={(photo) => {
+                    setParkingPhoto(photo);
+                    if (fieldError === 'parkingPhoto') setFieldError(null);
+                  }}
+                  required
+                />
+                {fieldError === 'parkingPhoto' && (
+                  <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
+                    {t('forms.closing.errorParkingPhoto')}
+                  </p>
+                )}
               </FormSection>
             )}
 

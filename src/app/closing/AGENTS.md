@@ -17,13 +17,14 @@ Fin de journée : chiffres caisse (12 champs), checklist, photo télécollecte, 
 | Table | `closing_form` — upsert `onConflict: site_id,date` |
 | Geo | [../../lib/geo.ts](../../lib/geo.ts) `evaluateClosingForce` |
 | Deadline | [../../lib/parisTime.ts](../../lib/parisTime.ts) `closingDeadlineParisFromDateIso` |
-| Photo | Storage `telecollecte-photos` — path en DB |
+| Photo | Storage `telecollecte-photos` — path en DB (`photo_url`, `photo_parking_url`) |
+| Parking | Si `site_infos.carte_parking` : photo carte rangée obligatoire (`photo_parking_*`) |
 | Partenaire | `partner_user_id` depuis `planning.double_id` |
 | Trigger aval | `sync_closing_form_to_data` → table `data` (CA CRM) |
 
 ## Transverse
 
-- CRM lit fermeture + CA agrégé ; badge « fermetures tardives » sidebar.
+- CRM lit fermeture + CA agrégé ; badge « fermetures tardives » sidebar ; photo parking signée dans dialog fermeture.
 - Message Bureau auto si fermeture forcée (trigger SQL).
 
 ## Ne pas casser
