@@ -273,7 +273,9 @@
       "removePhoto": "Supprimer la photo",
       "photoNettoyage": "Photo du nettoyage (optionnel)",
       "errorOffline": "Tu es hors ligne. Reconnecte-toi pour envoyer le formulaire.",
-      "errorSubmit": "Envoi impossible. Réessaie."
+      "errorSubmit": "Envoi impossible. Réessaie.",
+      "missingFieldsTitle": "Pour valider, il manque encore :",
+      "missingNoJustification": "{{field}} — précise la raison du « Non »"
     },
     "opening": {
       "title": "Ouverture",
@@ -311,7 +313,8 @@
         "urgent": "Urgent",
         "scheduled": "Programmé",
         "reportedAt": "Signalé le {{date}}",
-        "errorIncomplete": "Vérifie chaque panne ouverte avant d'envoyer l'ouverture"
+        "errorIncomplete": "Vérifie chaque panne ouverte avant d'envoyer l'ouverture",
+        "missingTicket": "Panne : {{label}}"
       },
       "successTitle": "Ouverture enregistrée",
       "successDescription": "Vos informations d'ouverture ont été enregistrées"

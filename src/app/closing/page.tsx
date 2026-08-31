@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useRef, useEffect, Suspense, useTransition } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
@@ -34,6 +34,7 @@ import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { FormMissingFieldsHint } from '../../components/forms/FormMissingFieldsHint';
 import { BottomSheetModal } from '../../components/common/BottomSheetModal';
 import { RADIUS } from '../../constants/design';
 
@@ -258,6 +259,27 @@ function ClosingContent() {
     form.telecollectePhotoSource !== null &&
     (!showParkingPhoto || parkingPhoto !== null) &&
     envelopeConfirmed;
+
+  const missingFieldLabels = useMemo(() => {
+    const items: string[] = [];
+    if (form.recetteTotale === null) items.push(t('forms.closing.recetteTotale'));
+    if (photoFile === null || form.telecollectePhotoSource === null) {
+      items.push(t('forms.closing.telecollectePhoto'));
+    }
+    if (showParkingPhoto && parkingPhoto === null) {
+      items.push(t('forms.closing.parkingPhoto'));
+    }
+    if (!envelopeConfirmed) items.push(t('forms.closing.envelopeCheckbox'));
+    return items;
+  }, [
+    form.recetteTotale,
+    form.telecollectePhotoSource,
+    photoFile,
+    showParkingPhoto,
+    parkingPhoto,
+    envelopeConfirmed,
+    t,
+  ]);
 
   function updateNumericField(key: ClosingFieldKey, value: number | null) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -518,6 +540,9 @@ function ClosingContent() {
     <FormScrollLayout
       footer={
         <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
+          {!pending && !formValid && (
+            <FormMissingFieldsHint items={missingFieldLabels} />
+          )}
           <PrimaryButton
             onClick={handleSubmit}
             disabled={pending || !formValid || (isBeforeClosingDeadline && !needsForceUi)}

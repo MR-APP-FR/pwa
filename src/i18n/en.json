@@ -273,7 +273,9 @@
       "removePhoto": "Remove photo",
       "photoNettoyage": "Cleaning photo (optional)",
       "errorOffline": "You are offline. Reconnect to submit the form.",
-      "errorSubmit": "Could not submit. Please try again."
+      "errorSubmit": "Could not submit. Please try again.",
+      "missingFieldsTitle": "To submit, still missing:",
+      "missingNoJustification": "{{field}} — explain why you answered \"No\""
     },
     "opening": {
       "title": "Opening",
@@ -311,7 +313,8 @@
         "urgent": "Urgent",
         "scheduled": "Scheduled",
         "reportedAt": "Reported on {{date}}",
-        "errorIncomplete": "Check every open breakdown before submitting opening"
+        "errorIncomplete": "Check every open breakdown before submitting opening",
+        "missingTicket": "Breakdown: {{label}}"
       },
       "successTitle": "Opening saved",
       "successDescription": "Your opening information has been saved"

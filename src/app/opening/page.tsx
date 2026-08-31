@@ -21,6 +21,7 @@ import {
   OpenPannesCheckin,
   allPanneCheckinsAnswered,
   excludedSujetIdsFromStillOpen,
+  openPanneTicketHeadline,
   resolvedInterventionIds,
   shouldExcludeAutrePanne,
 } from '../../components/forms/OpenPannesCheckin';
@@ -39,6 +40,7 @@ import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { FormMissingFieldsHint } from '../../components/forms/FormMissingFieldsHint';
 import { RADIUS } from '../../constants/design';
 
 type OpeningFieldError =
@@ -158,6 +160,63 @@ function OpeningContent() {
     (!showMusiqueDisney ||
       (musiqueDisney !== null && !needsNoJustification(musiqueDisney, musiqueDisneyJustification))) &&
     allPanneCheckinsAnswered(openTickets, panneCheckinAnswers);
+
+  const missingFieldLabels = useMemo(() => {
+    const items: string[] = [];
+    if (form.feuilleDuJour === null) items.push(t('forms.opening.feuilleDuJour'));
+    if (form.ticketsOuverture === null) items.push(t('forms.opening.ticketsOuverture'));
+    if (showChrono && durationToSeconds(chrono) === null) items.push(t('forms.opening.chrono'));
+    if (form.fondDeCaisse100 === null) {
+      items.push(t('forms.opening.fondDeCaisse'));
+    } else if (needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification)) {
+      items.push(t('forms.common.missingNoJustification', { field: t('forms.opening.fondDeCaisse') }));
+    }
+    if (nettoyageVeille === null) {
+      items.push(t('forms.dailyInfo.nettoyageVeille'));
+    } else if (needsNoJustification(nettoyageVeille, nettoyageVeilleJustification)) {
+      items.push(
+        t('forms.common.missingNoJustification', { field: t('forms.dailyInfo.nettoyageVeille') }),
+      );
+    }
+    if (showCarteParking && carteParking === null) items.push(carteParkingLabel);
+    if (showMusiqueDisney) {
+      if (musiqueDisney === null) {
+        items.push(t('forms.dailyInfo.musiqueDisney'));
+      } else if (needsNoJustification(musiqueDisney, musiqueDisneyJustification)) {
+        items.push(
+          t('forms.common.missingNoJustification', { field: t('forms.dailyInfo.musiqueDisney') }),
+        );
+      }
+    }
+    for (const ticket of openTickets) {
+      if (panneCheckinAnswers[ticket.id] == null) {
+        items.push(
+          t('forms.opening.panneCheckin.missingTicket', {
+            label: openPanneTicketHeadline(ticket),
+          }),
+        );
+      }
+    }
+    return items;
+  }, [
+    form.feuilleDuJour,
+    form.ticketsOuverture,
+    form.fondDeCaisse100,
+    fondDeCaisseJustification,
+    showChrono,
+    chrono,
+    nettoyageVeille,
+    nettoyageVeilleJustification,
+    showCarteParking,
+    carteParking,
+    carteParkingLabel,
+    showMusiqueDisney,
+    musiqueDisney,
+    musiqueDisneyJustification,
+    openTickets,
+    panneCheckinAnswers,
+    t,
+  ]);
 
   function getFirstMissingField(): OpeningFieldError | null {
     if (form.feuilleDuJour === null) return 'feuilleDuJour';
@@ -362,6 +421,9 @@ function OpeningContent() {
     <FormScrollLayout
       footer={
         <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
+          {!pending && !isFormValid && (
+            <FormMissingFieldsHint items={missingFieldLabels} />
+          )}
           <PrimaryButton
             onClick={handleSubmit}
             disabled={pending || !isFormValid}

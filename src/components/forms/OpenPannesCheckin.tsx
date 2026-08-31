@@ -24,7 +24,7 @@ function formatReportedAt(iso: string, locale: string): string {
   });
 }
 
-function ticketHeadline(ticket: OpenSiteIntervention): string {
+export function openPanneTicketHeadline(ticket: OpenSiteIntervention): string {
   if (ticket.sujet_names.length > 0) return ticket.sujet_names.join(' · ');
   const other = ticket.pannes_autre?.trim();
   if (other) return other;
@@ -99,7 +99,7 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
       <div className="space-y-2">
         {tickets.map((ticket) => {
           const answer = answers[ticket.id];
-          const headline = ticketHeadline(ticket);
+          const headline = openPanneTicketHeadline(ticket);
           const subline = ticketSubline(ticket);
           const reportedLabel = formatReportedAt(ticket.reported_at, language);
 
