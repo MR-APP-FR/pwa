@@ -1,4 +1,4 @@
-const CACHE_NAME = 'manege-v2';
+const CACHE_NAME = 'manege-v3';
 const STATIC_ASSETS = ['/', '/planning', '/profil'];
 
 self.addEventListener('install', (event) => {

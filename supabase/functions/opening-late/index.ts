@@ -100,7 +100,7 @@ function formatOuvre(value: string) {
   const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(value.trim());
   if (!m) return value;
   const h = Number.parseInt(m[1], 10);
-  return m[2] === "00" ? `${h}h` : `${h}h${m[2]}`;
+  return `${h}H${m[2]}`;
 }
 
 function parseHeures(raw: unknown): Record<string, { ouvre?: string | null }> | null {

@@ -7,9 +7,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { notifyPushStatusChanged, usePushStatus } from '../../hooks/usePushStatus';
 import { RADIUS } from '../../constants/design';
 import { subscribeAndSave } from '../../lib/push/client';
+import { PWA_PUSH_BANNER_DISMISS_KEY } from '../../lib/pwa/cutover';
 import { PrimaryButton } from '../common/PrimaryButton';
-
-const DISMISS_KEY = 'pwa-push-banner-dismissed';
 
 export function PushEnableBanner() {
   const { colors } = useThemeColors();
@@ -19,7 +18,7 @@ export function PushEnableBanner() {
   const [error, setError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return Boolean(localStorage.getItem(DISMISS_KEY));
+    return Boolean(localStorage.getItem(PWA_PUSH_BANNER_DISMISS_KEY));
   });
 
   async function handleEnable() {
@@ -36,7 +35,7 @@ export function PushEnableBanner() {
 
   function handleDismiss() {
     setDismissed(true);
-    localStorage.setItem(DISMISS_KEY, 'true');
+    localStorage.setItem(PWA_PUSH_BANNER_DISMISS_KEY, 'true');
   }
 
   if (dismissed || status !== 'default') return null;

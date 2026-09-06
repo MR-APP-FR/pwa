@@ -49,6 +49,8 @@ cd pwa && npm run dev
 cd pwa && npm run build
 cd pwa && npm run lint
 cd pwa && npm run provision:auth-users  # local, SERVICE_ROLE
+# one-shot metro OSM (dry-run défaut ; --apply pour écrire) :
+# SUPABASE_SERVICE_ROLE_KEY=... node scripts/fill-site-metro-from-osm.mjs
 ```
 
 Projet Supabase : `ooirydwzxltdtvlyhqar`. Changement schéma = migration dans `supabase/migrations/` + appliquer via MCP.

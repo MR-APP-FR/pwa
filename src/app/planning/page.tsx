@@ -141,54 +141,60 @@ export default function PlanningPage() {
           onBack={() => router.push('/')}
         />
       </FormPinnedPageHeader>
-      <PageSectionTitle title={weekSubtitle} />
-      <div className="grid w-full grid-cols-2 gap-2 px-4 py-3">
-        <button
-          type="button"
-          onClick={() => setWeekOffset((offset) => offset - 1)}
-          className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
-          style={{
-            minHeight: TOUCH_TARGET,
-            borderRadius: RADIUS.sm,
-            backgroundColor: colors.SETTINGS_SECTION_BG,
-            boxShadow: colors.CARD_SHADOW,
-            color: colors.TEXT_PRIMARY,
-            fontFamily: 'var(--font-body)',
-            fontSize: 16,
-            fontWeight: 600,
-          }}
-        >
-          <ChevronLeft size={16} strokeWidth={2.5} className="shrink-0" />
-          {t('screens.planning.previousWeek')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setWeekOffset((offset) => offset + 1)}
-          className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
-          style={{
-            minHeight: TOUCH_TARGET,
-            borderRadius: RADIUS.sm,
-            backgroundColor: colors.PRIMARY,
-            color: colors.TEXT_INVERSE,
-            fontFamily: 'var(--font-body)',
-            fontSize: 16,
-            fontWeight: 600,
-          }}
-        >
-          {t('screens.planning.nextWeek')}
-          <ChevronRight size={16} strokeWidth={2.5} className="shrink-0" />
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto pb-8">
-        {weekDays.map((day) => (
-          <PlanningDayCard
-            key={day.date.toISOString()}
-            date={day.date}
-            mission={day.mission}
-            isToday={day.isToday}
-            timeRange={day.timeRange}
-          />
-        ))}
+      <div className="flex flex-col gap-3 px-0 pb-8 pt-4">
+        <PageSectionTitle title={weekSubtitle} flush />
+        <p className="px-5 text-center text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+          {t('screens.planning.availabilityReminder')}
+        </p>
+        <div className="grid w-full grid-cols-2 gap-2 px-4">
+          <button
+            type="button"
+            onClick={() => setWeekOffset((offset) => offset - 1)}
+            className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
+            style={{
+              minHeight: TOUCH_TARGET,
+              borderRadius: RADIUS.sm,
+              backgroundColor: colors.SETTINGS_SECTION_BG,
+              boxShadow: colors.CARD_SHADOW,
+              color: colors.TEXT_PRIMARY,
+              fontFamily: 'var(--font-body)',
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            <ChevronLeft size={16} strokeWidth={2.5} className="shrink-0" />
+            {t('screens.planning.previousWeek')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setWeekOffset((offset) => offset + 1)}
+            className="inline-flex w-full items-center justify-center gap-1 px-3 font-semibold whitespace-nowrap transition-all active:scale-[0.98]"
+            style={{
+              minHeight: TOUCH_TARGET,
+              borderRadius: RADIUS.sm,
+              backgroundColor: colors.SETTINGS_SECTION_BG,
+              boxShadow: colors.CARD_SHADOW,
+              color: colors.TEXT_PRIMARY,
+              fontFamily: 'var(--font-body)',
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            {t('screens.planning.nextWeek')}
+            <ChevronRight size={16} strokeWidth={2.5} className="shrink-0" />
+          </button>
+        </div>
+        <div className="flex flex-col gap-3 px-4">
+          {weekDays.map((day) => (
+            <PlanningDayCard
+              key={day.date.toISOString()}
+              date={day.date}
+              mission={day.mission}
+              isToday={day.isToday}
+              timeRange={day.timeRange}
+            />
+          ))}
+        </div>
       </div>
     </div>
     </FormScrollLayout>

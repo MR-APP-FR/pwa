@@ -10,7 +10,10 @@ export const PARIS_TIME_ZONE = 'Europe/Paris';
 export type JourSemaineKey = '1' | '2' | '3' | '4' | '5' | '6' | '7';
 
 export type HeuresSemaine = Partial<
-  Record<JourSemaineKey, { ouvre?: string | null; double?: string | null } | null>
+  Record<
+    JourSemaineKey,
+    { ouvre?: string | null; ferme?: string | null; double?: string | null } | null
+  >
 >;
 
 function parseDateIsoParts(dateIso: string): { y: number; mo: number; d: number } | null {
@@ -213,6 +216,5 @@ export function formatHeureOuvertureDisplay(value: string | null | undefined): s
   if (!m) return s;
   const h = Number.parseInt(m[1], 10);
   const min = m[2];
-  if (min === '00') return `${h}h`;
-  return `${h}h${min}`;
+  return `${h}H${min}`;
 }

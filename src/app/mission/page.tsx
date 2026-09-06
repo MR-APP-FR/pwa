@@ -8,6 +8,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDateLong } from '../../lib/formatDate';
+import { formatSiteAddress } from '../../lib/formatSiteAddress';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -80,7 +81,7 @@ function MissionContent() {
   const mapsUrl = hasGps
     ? `https://maps.google.com/?q=${siteInfo!.latitude},${siteInfo!.longitude}`
     : '#';
-  const adresseValue = siteInfo?.adresse?.trim() ?? '';
+  const adresseValue = formatSiteAddress(siteInfo?.adresse?.trim() ?? '');
   const metroValue = siteInfo?.metro != null ? String(siteInfo.metro).trim() : '';
   const indicationValue = siteInfo?.indication?.trim() ?? '';
 
@@ -99,10 +100,10 @@ function MissionContent() {
       <div className="flex-1 overflow-y-auto px-5 pb-5 pt-3 space-y-3">
         {/* Site */}
         <div className="card-surface px-5 py-4 space-y-3">
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex justify-between items-start gap-4">
             <span className="text-sm shrink-0" style={{ color: colors.TEXT_SECONDARY }}>{t('screens.planning.address')}</span>
             <span
-              className="text-sm font-medium text-right"
+              className="text-sm font-medium text-right whitespace-pre-line"
               style={{ color: adresseValue ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY }}
             >
               {adresseValue || '-'}
@@ -179,7 +180,7 @@ function MissionContent() {
           <div className="flex justify-between items-center gap-4">
             <span className="text-sm shrink-0" style={{ color: colors.TEXT_SECONDARY }}>{t('screens.planning.status')}</span>
             <span
-              className="text-xs font-semibold px-2 py-0.5 rounded-lg shrink-0"
+              className="text-sm font-semibold px-2 py-0.5 rounded-lg shrink-0"
               style={{
                 backgroundColor: mission.user_confirmed ? colors.SUCCESS + '22' : colors.TEXT_SECONDARY + '22',
                 color: mission.user_confirmed ? colors.SUCCESS : colors.TEXT_SECONDARY,
@@ -192,7 +193,7 @@ function MissionContent() {
             <div className="flex justify-between items-center gap-4">
               <span className="text-sm shrink-0" style={{ color: colors.TEXT_SECONDARY }}>{t('screens.planning.colleagueConfirmation')}</span>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-lg shrink-0"
+                className="text-sm font-semibold px-2 py-0.5 rounded-lg shrink-0"
                 style={{
                   backgroundColor: mission.double_confirmed ? colors.SUCCESS + '22' : colors.TEXT_SECONDARY + '22',
                   color: mission.double_confirmed ? colors.SUCCESS : colors.TEXT_SECONDARY,

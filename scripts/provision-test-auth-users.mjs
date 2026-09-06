@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
- * Provisionne des comptes Auth pour les employés actifs (phase test).
+ * Provisionne des comptes Auth pour les employés actifs (phase test / local).
  *
- * Règles :
+ * Prod terrain : Edge Function `claim-login` (login + MDP saisi au 1er accès).
+ * Ne pas pré-provisionner Auth avec MDP = email avant un go-live claim.
+ *
+ * Règles (ce script) :
  * - email Auth = public.user.email (pré-requis current_employee_id())
  * - password initial = public.user.email (temporaire, must_change_password)
  *

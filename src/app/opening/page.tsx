@@ -25,6 +25,17 @@ import {
   resolvedInterventionIds,
   shouldExcludeAutrePanne,
 } from '../../components/forms/OpenPannesCheckin';
+import {
+  MondayOpeningChecks,
+  areMondayChecksComplete,
+  buildMondayPayload,
+  emptyAffairesState,
+  emptyPanneauxState,
+  type AffaireKey,
+  type AffairesState,
+  type PanneauKey,
+  type PanneauxState,
+} from '../../components/forms/MondayOpeningChecks';
 import { useSujets } from '../../hooks/api/useSujets';
 import { useOpenSiteInterventions } from '../../hooks/api/useOpenSiteInterventions';
 import type { PanneCheckinAnswer } from '../../database/types/intervention.types';
@@ -138,6 +149,9 @@ function OpeningContent() {
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
   const [chrono, setChrono] = useState<DurationValue>({ minutes: 0, seconds: 0 });
   const [chronoOutOfRangeAttempts, setChronoOutOfRangeAttempts] = useState(0);
+  const [panneaux, setPanneaux] = useState<PanneauxState>(() => emptyPanneauxState());
+  const [affaires, setAffaires] = useState<AffairesState>(() => emptyAffairesState());
+  const [missingOpen, setMissingOpen] = useState(false);
 
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -152,6 +166,7 @@ function OpeningContent() {
     form.feuilleDuJour !== null &&
     form.ticketsOuverture !== null &&
     (!showChrono || durationToSeconds(chrono) !== null) &&
+    (!showChrono || areMondayChecksComplete(panneaux, affaires)) &&
     form.fondDeCaisse100 !== null &&
     !needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification) &&
     nettoyageVeille !== null &&
@@ -197,14 +212,33 @@ function OpeningContent() {
         );
       }
     }
+    if (showChrono) {
+      for (const key of Object.keys(panneaux) as PanneauKey[]) {
+        if (panneaux[key] === null) {
+          items.push(t(`forms.opening.panneaux.items.${key}`));
+        }
+      }
+      for (const key of Object.keys(affaires) as AffaireKey[]) {
+        const item = affaires[key];
+        if (item.present === null) {
+          items.push(t(`forms.opening.affaires.items.${key}`));
+        } else if (item.present === false && item.reste.trim().length === 0) {
+          items.push(
+            t('forms.common.missingNoJustification', {
+              field: t(`forms.opening.affaires.items.${key}`),
+            }),
+          );
+        }
+      }
+    }
     return items;
   }, [
     form.feuilleDuJour,
     form.ticketsOuverture,
-    form.fondDeCaisse100,
-    fondDeCaisseJustification,
     showChrono,
     chrono,
+    form.fondDeCaisse100,
+    fondDeCaisseJustification,
     nettoyageVeille,
     nettoyageVeilleJustification,
     showCarteParking,
@@ -215,6 +249,8 @@ function OpeningContent() {
     musiqueDisneyJustification,
     openTickets,
     panneCheckinAnswers,
+    panneaux,
+    affaires,
     t,
   ]);
 
@@ -313,6 +349,15 @@ function OpeningContent() {
       if (!isChronoInExpectedRange(chronoSeconds)) {
         fd.set('chronoConfirmOutOfRange', '1');
       }
+    }
+    if (showChrono) {
+      const monday = buildMondayPayload(panneaux, affaires);
+      if (!monday) {
+        setSubmitError(t('forms.opening.errorMondayChecks'));
+        return;
+      }
+      fd.set('panneaux', JSON.stringify(monday.panneaux));
+      fd.set('affaires', JSON.stringify(monday.affaires));
     }
     fd.set('fondCaisse100', form.fondDeCaisse100 ? '1' : '0');
     fd.set(
@@ -421,13 +466,22 @@ function OpeningContent() {
     <FormScrollLayout
       footer={
         <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
-          {!pending && !isFormValid && (
-            <FormMissingFieldsHint items={missingFieldLabels} />
-          )}
+          <FormMissingFieldsHint
+            items={missingFieldLabels}
+            open={missingOpen}
+            onClose={() => setMissingOpen(false)}
+          />
           <PrimaryButton
-            onClick={handleSubmit}
-            disabled={pending || !isFormValid}
-            className="w-full py-4 text-base"
+            onClick={() => {
+              if (!isFormValid) {
+                setMissingOpen(true);
+                return;
+              }
+              handleSubmit();
+            }}
+            disabled={pending}
+            aria-disabled={!isFormValid || pending}
+            className={`w-full py-4 text-base${!isFormValid && !pending ? ' opacity-45' : ''}`}
           >
             {pending ? '...' : t('forms.opening.submit')}
           </PrimaryButton>
@@ -507,7 +561,10 @@ function OpeningContent() {
               value={nettoyageVeille}
               onChange={(v) => {
                 setNettoyageVeille(v);
-                if (v) setNettoyageVeilleJustification('');
+                if (v) {
+                  setNettoyageVeilleJustification('');
+                  setNettoyagePhoto(null);
+                }
                 if (fieldError === 'nettoyageVeille' || fieldError === 'nettoyageVeilleJustification') {
                   setFieldError(null);
                 }
@@ -524,44 +581,13 @@ function OpeningContent() {
               noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
               noJustificationError={fieldError === 'nettoyageVeilleJustification'}
             />
-            <PhotoCaptureField
-              label={t('forms.common.photoNettoyage')}
-              value={nettoyagePhoto}
-              onChange={setNettoyagePhoto}
-            />
-          </FormSection>
-
-          <FormSection title={t('forms.opening.sectionPannes')}>
-            <OpenPannesCheckin
-              tickets={openTickets}
-              answers={panneCheckinAnswers}
-              onAnswer={(ticketId, answer) => {
-                setPanneCheckinAnswers((prev) => ({ ...prev, [ticketId]: answer }));
-                if (fieldError === 'panneCheckin') setFieldError(null);
-              }}
-              error={fieldError === 'panneCheckin'}
-            />
-
-            <PannesSection
-              siteId={mission?.site_id}
-              selectedSujetIds={selectedSujetIds}
-              onToggleSujet={(id) =>
-                setSelectedSujetIds((prev) =>
-                  prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
-                )
-              }
-              sujetReasons={sujetReasons}
-              onSujetReasonChange={(id, reason) =>
-                setSujetReasons((prev) => ({ ...prev, [id]: reason }))
-              }
-              pannesAutre={pannesAutre}
-              onPannesAutreChange={setPannesAutre}
-              onClearPannes={() => {
-                setSelectedSujetIds([]);
-                setSujetReasons({});
-                setPannesAutre('');
-              }}
-            />
+            {nettoyageVeille === false && (
+              <PhotoCaptureField
+                label={t('forms.common.photoNettoyage')}
+                value={nettoyagePhoto}
+                onChange={setNettoyagePhoto}
+              />
+            )}
 
             {showCarteParking && (
               <ConditionalQuestion
@@ -600,6 +626,143 @@ function OpeningContent() {
             )}
           </FormSection>
 
+          <FormSection title={t('forms.opening.sectionPannes')}>
+            {openTickets.length > 0 && (
+              <div className="space-y-3">
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-wide"
+                  style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+                >
+                  {t('forms.opening.sectionPannesVerification')}
+                </p>
+                <OpenPannesCheckin
+                  tickets={openTickets}
+                  answers={panneCheckinAnswers}
+                  onAnswer={(ticketId, answer) => {
+                    setPanneCheckinAnswers((prev) => ({ ...prev, [ticketId]: answer }));
+                    if (fieldError === 'panneCheckin') setFieldError(null);
+                  }}
+                  error={fieldError === 'panneCheckin'}
+                />
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-wide"
+                style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+              >
+                {t('forms.opening.sectionPannesSujets')}
+              </p>
+              <PannesSection
+                variant="sujets"
+                siteId={mission?.site_id}
+                selectedSujetIds={selectedSujetIds}
+                onToggleSujet={(id) =>
+                  setSelectedSujetIds((prev) =>
+                    prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                  )
+                }
+                sujetReasons={sujetReasons}
+                onSujetReasonChange={(id, reason) =>
+                  setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+                }
+                pannesAutre={pannesAutre}
+                onPannesAutreChange={setPannesAutre}
+                onClearPannes={() => {
+                  setSelectedSujetIds([]);
+                  setSujetReasons({});
+                  setPannesAutre('');
+                }}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-wide"
+                style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+              >
+                {t('forms.opening.sectionPannesAutres')}
+              </p>
+              <PannesSection
+                variant="autre"
+                siteId={mission?.site_id}
+                selectedSujetIds={selectedSujetIds}
+                onToggleSujet={(id) =>
+                  setSelectedSujetIds((prev) =>
+                    prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                  )
+                }
+                sujetReasons={sujetReasons}
+                onSujetReasonChange={(id, reason) =>
+                  setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+                }
+                pannesAutre={pannesAutre}
+                onPannesAutreChange={setPannesAutre}
+                onClearPannes={() => {
+                  setSelectedSujetIds([]);
+                  setSujetReasons({});
+                  setPannesAutre('');
+                }}
+              />
+            </div>
+          </FormSection>
+
+          {showChrono && (
+            <>
+              <FormSection title={t('forms.opening.sectionPanneaux')}>
+                <MondayOpeningChecks
+                  mode="panneaux"
+                  panneaux={panneaux}
+                  onPanneauChange={(key, value) => {
+                    setPanneaux((prev) => ({ ...prev, [key]: value }));
+                  }}
+                  affaires={affaires}
+                  onAffairePresentChange={(key, value) => {
+                    setAffaires((prev) => ({
+                      ...prev,
+                      [key]: {
+                        present: value,
+                        reste: value ? '' : prev[key].reste,
+                      },
+                    }));
+                  }}
+                  onAffaireResteChange={(key, value) => {
+                    setAffaires((prev) => ({
+                      ...prev,
+                      [key]: { ...prev[key], reste: value },
+                    }));
+                  }}
+                />
+              </FormSection>
+              <FormSection title={t('forms.opening.sectionAffaires')}>
+                <MondayOpeningChecks
+                  mode="affaires"
+                  panneaux={panneaux}
+                  onPanneauChange={(key, value) => {
+                    setPanneaux((prev) => ({ ...prev, [key]: value }));
+                  }}
+                  affaires={affaires}
+                  onAffairePresentChange={(key, value) => {
+                    setAffaires((prev) => ({
+                      ...prev,
+                      [key]: {
+                        present: value,
+                        reste: value ? '' : prev[key].reste,
+                      },
+                    }));
+                  }}
+                  onAffaireResteChange={(key, value) => {
+                    setAffaires((prev) => ({
+                      ...prev,
+                      [key]: { ...prev[key], reste: value },
+                    }));
+                  }}
+                />
+              </FormSection>
+            </>
+          )}
+
           {showChrono && (
             <FormSection title={t('forms.opening.sectionChrono')} danger={chronoOutOfRangeAttempts > 0}>
               <p
@@ -609,7 +772,7 @@ function OpeningContent() {
                 {t('forms.opening.chronoIntro')}
               </p>
               <FormDurationInput
-                label={t('forms.opening.chrono')}
+                label=""
                 value={chrono}
                 onChange={(v) => {
                   setChrono(v);

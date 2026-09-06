@@ -24,7 +24,7 @@ Uploads : path en colonne, bucket privé (lecture CRM admin).
 
 ## Transverse
 
-- CRM [users](../../../admin-desktop-app/components/crm/users/) : fiche complète, édition admin, provision Auth.
+- CRM [users](../../../admin-desktop-app/components/crm/users/) : fiche complète, édition admin ; login sans Auth à la création.
 
 ## Ne pas casser
 

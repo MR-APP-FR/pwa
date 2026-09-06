@@ -18,8 +18,8 @@ interface FormDurationInputProps {
   error?: boolean;
 }
 
-const ITEM_H = 44;
-const VISIBLE_ROWS = 5;
+const ITEM_H = 36;
+const VISIBLE_ROWS = 3;
 const PAD_ROWS = Math.floor(VISIBLE_ROWS / 2);
 const WHEEL_H = ITEM_H * VISIBLE_ROWS;
 const MAX_MINUTES = 9;
@@ -144,14 +144,16 @@ export function FormDurationInput({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-semibold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
-        {label}
-        {required && (
-          <span className="ml-0.5" style={{ color: colors.DANGER }} aria-hidden>
-            *
-          </span>
-        )}
-      </label>
+      {label.trim().length > 0 && (
+        <label className="text-sm font-semibold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
+          {label}
+          {required && (
+            <span className="ml-0.5" style={{ color: colors.DANGER }} aria-hidden>
+              *
+            </span>
+          )}
+        </label>
+      )}
       <div
         className="relative overflow-hidden"
         style={{
@@ -159,6 +161,8 @@ export function FormDurationInput({
           borderRadius: RADIUS.md,
           border: `1px solid ${error ? colors.DANGER : colors.BORDER}`,
         }}
+        aria-required={required || undefined}
+        aria-invalid={error || undefined}
       >
         <div className="relative" style={{ height: WHEEL_H }}>
           <div

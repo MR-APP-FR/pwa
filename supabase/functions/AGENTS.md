@@ -11,6 +11,7 @@ Jobs automatiques côté Supabase (plus de cron Vercel). Déclenchés par `pg_cr
 | [weather-sync/index.ts](weather-sync/index.ts) | Météo + enrichissement `site_weather`, `site_day_baseline` | Open-Meteo |
 | [opening-late/index.ts](opening-late/index.ts) | Relance ouverture manquante | Web Push |
 | [availability-reminder/index.ts](availability-reminder/index.ts) | Rappel dispos mercredi | Web Push |
+| [claim-login/index.ts](claim-login/index.ts) | Login / claim MDP terrain (appel PWA, `verify_jwt: false`) | Auth Admin |
 
 ## pg_cron
 

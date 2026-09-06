@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { PrimaryButton } from '../common/PrimaryButton';
+import { PWA_INSTALL_BANNER_DISMISS_KEY } from '../../lib/pwa/cutover';
 
 export function InstallBanner() {
   const { colors } = useThemeColors();
@@ -25,7 +26,7 @@ export function InstallBanner() {
       window.matchMedia('(display-mode: standalone)').matches;
 
     if (isIos && !isStandalone) {
-      const dismissed = localStorage.getItem('pwa-banner-dismissed');
+      const dismissed = localStorage.getItem(PWA_INSTALL_BANNER_DISMISS_KEY);
       if (!dismissed) setShow(true);
     }
 
@@ -42,7 +43,7 @@ export function InstallBanner() {
 
   const handleDismiss = () => {
     setShow(false);
-    localStorage.setItem('pwa-banner-dismissed', 'true');
+    localStorage.setItem(PWA_INSTALL_BANNER_DISMISS_KEY, 'true');
   };
 
   if (!show) return null;

@@ -22,6 +22,8 @@ interface PannesSectionProps {
   pannesAutre: string;
   onPannesAutreChange: (value: string) => void;
   onClearPannes: () => void;
+  /** Default `all`. Use `sujets` / `autre` to split into sub-sections. */
+  variant?: 'all' | 'sujets' | 'autre';
 }
 
 export function buildPannesDetail(
@@ -196,6 +198,7 @@ export function PannesSection({
   pannesAutre,
   onPannesAutreChange,
   onClearPannes,
+  variant = 'all',
 }: PannesSectionProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -206,6 +209,9 @@ export function PannesSection({
   const trimmedAutre = pannesAutre.trim();
   const hasSujets = selectedSujetIds.length > 0;
   const hasPannes = hasSujets || trimmedAutre.length > 0;
+  const showSujets = variant === 'all' || variant === 'sujets';
+  const showAutre = variant === 'all' || variant === 'autre';
+  const showClear = variant === 'all' && hasPannes;
 
   const summaryItems = selectedSujetIds
     .map((id) => {
@@ -235,79 +241,87 @@ export function PannesSection({
   return (
     <>
       <div className="space-y-3">
-        <div className="space-y-2">
-          {hasSujets ? (
-            <ul className="list-none space-y-1.5">
-              {summaryItems.map((item) => (
-                <li
-                  key={item.id}
-                  className="text-base font-bold leading-snug"
-                  style={{
-                    color: colors.ACCENT_ORANGE,
-                    fontFamily: 'var(--font-display)',
-                  }}
-                >
-                  {item.label}
-                </li>
-              ))}
-              {summaryFallback && (
-                <li
-                  className="text-base font-bold leading-snug"
-                  style={{
-                    color: colors.ACCENT_ORANGE,
-                    fontFamily: 'var(--font-display)',
-                  }}
-                >
-                  {summaryFallback}
-                </li>
-              )}
-            </ul>
-          ) : (
-            <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
-              {t('forms.dailyInfo.pannesNone')}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={openModal}
-            className="w-full rounded-xl border py-2.5 text-sm font-semibold"
-            style={{
-              borderColor: hasSujets ? colors.PRIMARY : colors.BORDER,
-              backgroundColor: hasSujets ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
-              color: hasSujets ? colors.PRIMARY : colors.TEXT_PRIMARY,
-              borderRadius: RADIUS.sm,
-            }}
-          >
-            {hasSujets ? t('common.edit') : t('forms.dailyInfo.pannesReportButton')}
-          </button>
-        </div>
+        {showSujets && (
+          <div className="space-y-2">
+            {hasSujets ? (
+              <ul className="list-none space-y-1.5">
+                {summaryItems.map((item) => (
+                  <li
+                    key={item.id}
+                    className="text-base font-bold leading-snug"
+                    style={{
+                      color: colors.ACCENT_ORANGE,
+                      fontFamily: 'var(--font-display)',
+                    }}
+                  >
+                    {item.label}
+                  </li>
+                ))}
+                {summaryFallback && (
+                  <li
+                    className="text-base font-bold leading-snug"
+                    style={{
+                      color: colors.ACCENT_ORANGE,
+                      fontFamily: 'var(--font-display)',
+                    }}
+                  >
+                    {summaryFallback}
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+                {t('forms.dailyInfo.pannesNone')}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={openModal}
+              className="w-full rounded-xl border py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: hasSujets ? colors.PRIMARY : colors.BORDER,
+                backgroundColor: hasSujets ? colors.PRIMARY + '15' : colors.BG_SECONDARY,
+                color: hasSujets ? colors.PRIMARY : colors.TEXT_PRIMARY,
+                borderRadius: RADIUS.sm,
+              }}
+            >
+              {hasSujets ? t('common.edit') : t('forms.dailyInfo.pannesReportButton')}
+            </button>
+          </div>
+        )}
 
-        <div className="space-y-1.5">
-          <p
-            className="text-sm font-bold"
-            style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
-          >
-            {t('forms.dailyInfo.pannesAutre')}
-          </p>
-          <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('forms.dailyInfo.pannesAutreHelp')}
-          </p>
-          <textarea
-            value={pannesAutre}
-            onChange={(e) => onPannesAutreChange(e.target.value)}
-            placeholder={t('forms.dailyInfo.pannesAutrePlaceholder')}
-            rows={3}
-            className="w-full resize-none rounded-xl border px-3 py-2.5 text-sm"
-            style={{
-              color: colors.TEXT_PRIMARY,
-              borderColor: trimmedAutre.length > 0 ? colors.PRIMARY : colors.BORDER,
-              backgroundColor: colors.BG_SECONDARY,
-              borderRadius: RADIUS.sm,
-            }}
-          />
-        </div>
+        {showAutre && (
+          <div className="space-y-1.5">
+            {variant === 'all' && (
+              <p
+                className="text-sm font-bold"
+                style={{ color: colors.TEXT_PRIMARY, fontFamily: 'var(--font-display)' }}
+              >
+                {t('forms.dailyInfo.pannesAutre')}
+              </p>
+            )}
+            {t('forms.dailyInfo.pannesAutreHelp') ? (
+              <p className="text-xs" style={{ color: colors.TEXT_SECONDARY }}>
+                {t('forms.dailyInfo.pannesAutreHelp')}
+              </p>
+            ) : null}
+            <textarea
+              value={pannesAutre}
+              onChange={(e) => onPannesAutreChange(e.target.value)}
+              placeholder={t('forms.dailyInfo.pannesAutrePlaceholder')}
+              rows={3}
+              className="w-full resize-none rounded-xl border px-3 py-2.5 text-sm"
+              style={{
+                color: colors.TEXT_PRIMARY,
+                borderColor: trimmedAutre.length > 0 ? colors.PRIMARY : colors.BORDER,
+                backgroundColor: colors.BG_SECONDARY,
+                borderRadius: RADIUS.sm,
+              }}
+            />
+          </div>
+        )}
 
-        {hasPannes && (
+        {showClear && (
           <button
             type="button"
             onClick={onClearPannes}
@@ -326,23 +340,25 @@ export function PannesSection({
         )}
       </div>
 
-      <BottomSheetModal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        colors={colors}
-        title={t('forms.dailyInfo.pannesModalSelectionTitle')}
-        titleId="pannes-modal-title"
-        closeAriaLabel={t('common.cancel')}
-        doneLabel={t('forms.dailyInfo.pannesModalDone')}
-      >
-        <PannesSelectionContent
-          siteId={siteId}
-          selectedSujetIds={selectedSujetIds}
-          onToggleSujet={onToggleSujet}
-          sujetReasons={sujetReasons}
-          onSujetReasonChange={onSujetReasonChange}
-        />
-      </BottomSheetModal>
+      {showSujets && (
+        <BottomSheetModal
+          isOpen={modalOpen}
+          onClose={closeModal}
+          colors={colors}
+          title={t('forms.dailyInfo.pannesModalSelectionTitle')}
+          titleId="pannes-modal-title"
+          closeAriaLabel={t('common.cancel')}
+          doneLabel={t('forms.dailyInfo.pannesModalDone')}
+        >
+          <PannesSelectionContent
+            siteId={siteId}
+            selectedSujetIds={selectedSujetIds}
+            onToggleSujet={onToggleSujet}
+            sujetReasons={sujetReasons}
+            onSujetReasonChange={onSujetReasonChange}
+          />
+        </BottomSheetModal>
+      )}
     </>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Wrench } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { OpenSiteIntervention, PanneCheckinAnswer } from '../../database/types/intervention.types';
@@ -53,8 +53,6 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
 
   if (tickets.length === 0) return null;
 
-  const answeredCount = tickets.filter((ticket) => answers[ticket.id] != null).length;
-
   return (
     <div className="space-y-3">
       <div
@@ -69,24 +67,24 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
           🔧
         </span>
         <div className="min-w-0 flex-1">
-          <p
-            className="text-sm font-bold"
-            style={{ color: colors.ACCENT_ORANGE, fontFamily: 'var(--font-display)' }}
-          >
-            {t('forms.opening.panneCheckin.title')}
-          </p>
-          <p
-            className="mt-0.5 whitespace-pre-line text-sm leading-relaxed"
-            style={{ color: colors.TEXT_PRIMARY }}
-          >
-            {t('forms.opening.panneCheckin.help')}
-          </p>
-          <p className="mt-2 text-xs font-semibold" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('forms.opening.panneCheckin.progress', {
-              done: String(answeredCount),
-              total: String(tickets.length),
-            })}
-          </p>
+          {t('forms.opening.panneCheckin.title') ? (
+            <p
+              className="text-sm font-bold"
+              style={{ color: colors.ACCENT_ORANGE, fontFamily: 'var(--font-display)' }}
+            >
+              {t('forms.opening.panneCheckin.title')}
+            </p>
+          ) : null}
+          {t('forms.opening.panneCheckin.help') ? (
+            <p
+              className={`whitespace-pre-line text-sm leading-relaxed ${
+                t('forms.opening.panneCheckin.title') ? 'mt-0.5' : ''
+              }`}
+              style={{ color: colors.TEXT_PRIMARY }}
+            >
+              {t('forms.opening.panneCheckin.help')}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -198,13 +196,6 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
                   }}
                   aria-pressed={answer === 'resolved'}
                 >
-                  {answer === 'resolved' ? (
-                    <Check size={14} className="shrink-0" aria-hidden />
-                  ) : (
-                    <span className="shrink-0 text-sm leading-none" aria-hidden>
-                      ✨
-                    </span>
-                  )}
                   <span>{t('forms.opening.panneCheckin.resolved')}</span>
                 </button>
               </div>

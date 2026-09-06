@@ -24,7 +24,7 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
 
   return (
     <div
-      className="mx-4 mb-2 flex items-center justify-between gap-2 px-3"
+      className="flex items-center justify-between gap-2 px-3"
       style={{
         minHeight: TOUCH_TARGET,
         backgroundColor: colors.SETTINGS_SECTION_BG,
@@ -48,20 +48,19 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
       }
     >
       <p
-        className="min-w-0 truncate text-[16px] font-semibold uppercase leading-tight"
-        style={{ color: colors.PRIMARY, fontFamily: 'var(--font-body)', fontSize: 16 }}
+        className="min-w-0 truncate text-sm font-semibold uppercase leading-snug"
+        style={{ color: colors.PRIMARY, fontFamily: 'var(--font-body)' }}
       >
         {dateLabel}
       </p>
       {mission ? (
         <span
-          className="flex min-w-0 max-w-[62%] shrink items-center px-2.5 font-semibold leading-tight"
+          className="flex min-w-0 max-w-[62%] shrink items-center px-2.5 text-sm font-semibold leading-tight"
           style={{
             color: colors.TEXT_INVERSE,
             backgroundColor: colors.ACCENT_GREEN,
             borderRadius: RADIUS.sm,
             fontFamily: 'var(--font-body)',
-            fontSize: 16,
             paddingTop: 4,
             paddingBottom: 4,
           }}

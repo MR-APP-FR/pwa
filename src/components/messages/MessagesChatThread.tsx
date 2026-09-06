@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, MapPin } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { MESSAGE_SOURCE_ICON, type StaffMessageWithAck } from '../../database/types';
 import { ackMessage } from '../../app/messages/actions';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -157,13 +157,6 @@ export function MessagesChatThread({ conversation, messages }: ChatThreadProps) 
     if (el) el.scrollTop = 0;
   }, [conversation.key]);
 
-  const emptyLabel =
-    conversation.kind === 'tous'
-      ? t('screens.messages.emptyTous')
-      : conversation.kind === 'notifications'
-        ? t('screens.messages.emptyNotifications')
-        : t('screens.messages.emptyZone');
-
   return (
     <div
       className="flex min-h-0 flex-1 flex-col"
@@ -179,20 +172,12 @@ export function MessagesChatThread({ conversation, messages }: ChatThreadProps) 
                 backgroundColor: colors.PRIMARY_MUTED,
               }}
             >
-              {conversation.kind === 'notifications' ? (
-                <span className="text-2xl leading-none" aria-hidden>
-                  {MESSAGE_SOURCE_ICON.appli}
-                </span>
-              ) : conversation.kind === 'zone' ? (
-                <MapPin size={22} color={colors.PRIMARY} strokeWidth={2.25} />
-              ) : (
-                <span className="text-2xl leading-none" aria-hidden>
-                  {MESSAGE_SOURCE_ICON.bureau}
-                </span>
-              )}
+              <span className="text-2xl leading-none" aria-hidden>
+                {MESSAGE_SOURCE_ICON.bureau}
+              </span>
             </div>
             <p className="text-center text-sm leading-relaxed" style={{ color: colors.TEXT_SECONDARY }}>
-              {emptyLabel}
+              {t('screens.messages.empty')}
             </p>
           </div>
         ) : (

@@ -38,7 +38,7 @@ export function LateOpeningPrompt({
   const [empty, setEmpty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [hourLabel, setHourLabel] = useState('10h');
+  const [hourLabel, setHourLabel] = useState('10H00');
 
   useEffect(() => {
     if (!todayMission || !currentUser?.user) {
@@ -64,7 +64,7 @@ export function LateOpeningPrompt({
     }
 
     const raw = heures?.[dateIsoToJourSemaineKey(todayIso)]?.ouvre ?? null;
-    const label = formatHeureOuvertureDisplay(raw) || '10h';
+    const label = formatHeureOuvertureDisplay(raw) || '10H00';
     setHourLabel(label);
 
     let cancelled = false;

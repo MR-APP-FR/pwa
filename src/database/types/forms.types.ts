@@ -5,6 +5,28 @@
 
 export type PhotoSource = 'camera_live' | 'phototheque';
 
+/** Lundi ouverture — présence panneaux (true = présent). */
+export type OpeningPanneaux = {
+  prix: boolean;
+  consigne_securite: boolean;
+  info: boolean;
+  reviens_5mn: boolean;
+  en_panne: boolean;
+  pause_dej: boolean;
+};
+
+export type OpeningAffaireItem = {
+  present: boolean;
+  reste: number | null;
+};
+
+/** Lundi ouverture — stock affaires. */
+export type OpeningAffaires = {
+  produits_entretien: OpeningAffaireItem;
+  fournitures: OpeningAffaireItem;
+  rouleaux_cb: OpeningAffaireItem;
+};
+
 export interface OpeningFormRow {
   id: number;
   site_id: number;
@@ -18,6 +40,8 @@ export interface OpeningFormRow {
   client_lat: number | null;
   client_lng: number | null;
   chrono_seconds: number | null;
+  panneaux: OpeningPanneaux | null;
+  affaires: OpeningAffaires | null;
 }
 
 export interface OpeningLateAlertRow {
@@ -57,6 +81,11 @@ export interface ClosingFormRow {
   photo_parking_url: string | null;
   photo_parking_source: PhotoSource | null;
   photo_parking_captured_at: string | null;
+  nettoyage_fait: boolean | null;
+  photo_seau_url: string | null;
+  photo_seau_source: PhotoSource | null;
+  photo_seau_captured_at: string | null;
+  nettoyage_raison: string | null;
   force_reason: string | null;
   force_early: boolean;
   force_distance_m: number | null;

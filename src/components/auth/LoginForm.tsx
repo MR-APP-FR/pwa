@@ -7,28 +7,45 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
+import { claimLogin } from '../../app/login/actions';
 
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function doSignIn(emailValue: string, passwordValue: string) {
+  async function doSignIn(loginValue: string, passwordValue: string) {
     setLoading(true);
     setError(null);
 
+    const result = await claimLogin(loginValue, passwordValue);
+
+    if (!result.ok) {
+      if (result.code === 'unknown_login') {
+        setError(t('auth.contactValeria'));
+      } else if (result.code === 'invalid_input') {
+        setError(t('auth.invalidInput'));
+      } else if (result.code === 'server_error') {
+        setError(t('auth.serverError'));
+      } else {
+        setError(t('auth.loginError'));
+      }
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: emailValue.trim(),
-      password: passwordValue,
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
     });
 
-    if (signInError) {
-      setError(t('auth.loginError'));
+    if (sessionError) {
+      setError(t('auth.serverError'));
       setLoading(false);
       return;
     }
@@ -39,7 +56,7 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await doSignIn(email, password);
+    await doSignIn(login, password);
   }
 
   const inputStyle = {
@@ -52,17 +69,19 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
-          {t('auth.email')}
+        <label htmlFor="login" className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
+          {t('auth.login')}
         </label>
         <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="login"
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder={t('auth.loginPlaceholder')}
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
           required
           disabled={loading}
           className="w-full border px-3 py-3 text-base outline-none"
@@ -84,6 +103,7 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength={6}
           disabled={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}

@@ -29,6 +29,18 @@ interface SubmitOpeningInput {
   clientLng: number | null;
   chronoSeconds: number | null;
   chronoConfirmOutOfRange: boolean;
+  panneaux: Record<string, boolean> | null;
+  affaires: Record<string, { present: boolean; reste: number | null }> | null;
+}
+
+function parseJsonObject(formData: FormData, key: string): unknown | null {
+  const raw = formData.get(key);
+  if (typeof raw !== 'string' || raw.length === 0) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 function optionalCoord(formData: FormData, key: string, min: number, max: number): number | null {
@@ -37,6 +49,15 @@ function optionalCoord(formData: FormData, key: string, min: number, max: number
   const n = Number(raw);
   if (!Number.isFinite(n) || n < min || n > max) return null;
   return n;
+}
+
+/** Compte feuilles : entier simple ou préfixe numérique d'un format X/Y. */
+function parseFeuillesCount(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  const match = /^(\d+)\s*\//.exec(trimmed);
+  if (match) return Number(match[1]);
+  return null;
 }
 
 function parseInput(formData: FormData): SubmitOpeningInput | { error: string } {
@@ -69,6 +90,21 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
     chronoSeconds = parsedChrono;
   }
 
+  let panneaux: SubmitOpeningInput['panneaux'] = null;
+  let affaires: SubmitOpeningInput['affaires'] = null;
+  if (isChronoDay) {
+    const panneauxRaw = parseJsonObject(formData, 'panneaux');
+    const affairesRaw = parseJsonObject(formData, 'affaires');
+    if (!panneauxRaw || typeof panneauxRaw !== 'object' || Array.isArray(panneauxRaw)) {
+      return { error: 'Panneaux manquants.' };
+    }
+    if (!affairesRaw || typeof affairesRaw !== 'object' || Array.isArray(affairesRaw)) {
+      return { error: 'Affaires manquantes.' };
+    }
+    panneaux = panneauxRaw as SubmitOpeningInput['panneaux'];
+    affaires = affairesRaw as SubmitOpeningInput['affaires'];
+  }
+
   if (!Number.isFinite(siteId) || siteId <= 0) return { error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Date invalide.' };
   if (feuillesDeJour.length === 0) return { error: 'Feuilles de jour manquantes.' };
@@ -86,6 +122,8 @@ function parseInput(formData: FormData): SubmitOpeningInput | { error: string } 
     ...clientPair,
     chronoSeconds,
     chronoConfirmOutOfRange: formData.get('chronoConfirmOutOfRange') === '1',
+    panneaux,
+    affaires,
   };
 }
 
@@ -130,6 +168,8 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
           ? { client_lat: parsed.clientLat, client_lng: parsed.clientLng }
           : {}),
         ...(parsed.chronoSeconds != null ? { chrono_seconds: parsed.chronoSeconds } : {}),
+        ...(parsed.panneaux != null ? { panneaux: parsed.panneaux } : {}),
+        ...(parsed.affaires != null ? { affaires: parsed.affaires } : {}),
       },
       { onConflict: 'site_id,date' },
     )
@@ -150,6 +190,48 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
       return {
         ok: false,
         error: `Ouverture enregistrée, mais l'alerte chrono a échoué : ${rpcError.message}`,
+      };
+    }
+  }
+
+  if (parsed.panneaux != null && parsed.affaires != null) {
+    const hasPanneauIssue = Object.values(parsed.panneaux).some((v) => v === false);
+    const hasAffaireIssue = Object.values(parsed.affaires).some((v) => v.present === false);
+    if (hasPanneauIssue || hasAffaireIssue) {
+      const { error: rpcError } = await session.supabase.rpc(
+        'report_monday_opening_issues_to_bureau',
+        {
+          p_site_id: parsed.siteId,
+          p_date: parsed.date,
+          p_payload: {
+            panneaux: parsed.panneaux,
+            affaires: parsed.affaires,
+          },
+        },
+      );
+      if (rpcError) {
+        return {
+          ok: false,
+          error: `Ouverture enregistrée, mais l'alerte manques lundi a échoué : ${rpcError.message}`,
+        };
+      }
+    }
+  }
+
+  const feuillesCount = parseFeuillesCount(parsed.feuillesDeJour);
+  const lowFeuilles = feuillesCount != null && feuillesCount < 10;
+  const lowTickets = parsed.ticketsOuverture < 500;
+  if (lowFeuilles || lowTickets) {
+    const { error: rpcError } = await session.supabase.rpc('report_opening_low_stock_to_bureau', {
+      p_site_id: parsed.siteId,
+      p_date: parsed.date,
+      p_feuilles_count: feuillesCount,
+      p_tickets_ouverture: parsed.ticketsOuverture,
+    });
+    if (rpcError) {
+      return {
+        ok: false,
+        error: `Ouverture enregistrée, mais l'alerte stock bas a échoué : ${rpcError.message}`,
       };
     }
   }

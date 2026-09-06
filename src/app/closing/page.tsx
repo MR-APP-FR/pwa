@@ -17,6 +17,7 @@ import { useSiteClosingChecklist,
 } from '../../hooks/api/useSiteClosingChecklist';
 import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
+import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
 import { useAppDate } from '../../hooks/useAppDate';
@@ -95,19 +96,16 @@ const PAIE_SECTION: ClosingSection = {
       key: 'payeDuJour',
       labelKey: 'forms.closing.payeDuJour',
       unit: 'eur',
-      helpKey: 'forms.closing.payeDuJourHelp',
     },
     {
       key: 'payeDuDouble',
       labelKey: 'forms.closing.payeDuDouble',
       unit: 'eur',
-      helpKey: 'forms.closing.payeDuDoubleHelp',
     },
     {
       key: 'payeManquanteRecuperee',
       labelKey: 'forms.closing.payeManquanteRecuperee',
       unit: 'eur',
-      helpKey: 'forms.closing.payeManquanteHelp',
     },
   ],
 };
@@ -180,9 +178,14 @@ function ClosingContent() {
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [parkingPhoto, setParkingPhoto] = useState<CapturedPhoto | null>(null);
+  const [nettoyageFait, setNettoyageFait] = useState<boolean | null>(null);
+  const [nettoyageRaison, setNettoyageRaison] = useState('');
+  const [seauPhoto, setSeauPhoto] = useState<CapturedPhoto | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [fieldError, setFieldError] = useState<ClosingFieldKey | 'photo' | 'parkingPhoto' | null>(null);
+  const [fieldError, setFieldError] = useState<
+    ClosingFieldKey | 'photo' | 'parkingPhoto' | 'nettoyageFait' | 'nettoyageRaison' | 'seauPhoto' | null
+  >(null);
   const [envelopeConfirmed, setEnvelopeConfirmed] = useState(false);
   const [forceReason, setForceReason] = useState('');
   const [forceModalOpen, setForceModalOpen] = useState(false);
@@ -190,6 +193,7 @@ function ClosingContent() {
   const [geoFix, setGeoFix] = useState<GeoFix | null>(null);
   const [forceRevealed, setForceRevealed] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [missingOpen, setMissingOpen] = useState(false);
 
   // X = espèces enveloppe ; Y = CB enveloppe (null → 0). Pas stockés en base.
   // Sorties espèces : CB + rémunérations + payé manquante récupérée.
@@ -226,9 +230,6 @@ function ClosingContent() {
   }, [mission?.site_id, missionDateIso]);
 
   const isBeforeClosingDeadline = closingDeadline !== null && now < closingDeadline;
-  const remainingMinutes = isBeforeClosingDeadline
-    ? Math.max(1, Math.ceil((closingDeadline!.getTime() - now.getTime()) / 60_000))
-    : 0;
 
   const forceCheck = evaluateClosingForce({
     anchorLatitude: formsStatus?.openingLat,
@@ -258,6 +259,8 @@ function ClosingContent() {
     photoFile !== null &&
     form.telecollectePhotoSource !== null &&
     (!showParkingPhoto || parkingPhoto !== null) &&
+    nettoyageFait !== null &&
+    (nettoyageFait === true ? seauPhoto !== null : nettoyageRaison.trim().length > 0) &&
     envelopeConfirmed;
 
   const missingFieldLabels = useMemo(() => {
@@ -269,6 +272,15 @@ function ClosingContent() {
     if (showParkingPhoto && parkingPhoto === null) {
       items.push(t('forms.closing.parkingPhoto'));
     }
+    if (nettoyageFait === null) {
+      items.push(t('forms.closing.nettoyageFait'));
+    } else if (nettoyageFait === true && seauPhoto === null) {
+      items.push(t('forms.closing.photoSeau'));
+    } else if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
+      items.push(
+        t('forms.common.missingNoJustification', { field: t('forms.closing.nettoyageFait') }),
+      );
+    }
     if (!envelopeConfirmed) items.push(t('forms.closing.envelopeCheckbox'));
     return items;
   }, [
@@ -277,6 +289,9 @@ function ClosingContent() {
     photoFile,
     showParkingPhoto,
     parkingPhoto,
+    nettoyageFait,
+    seauPhoto,
+    nettoyageRaison,
     envelopeConfirmed,
     t,
   ]);
@@ -299,7 +314,7 @@ function ClosingContent() {
     return (
       <FormSection key={section.titleKey} title={t(section.titleKey)}>
         <div className="flex flex-col gap-4">
-          {section.fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
+          {section.fields.map(({ key, labelKey, unit, required, inputMode }) => (
             <FormNumberInput
               key={key}
               label={t(labelKey)}
@@ -309,7 +324,6 @@ function ClosingContent() {
               required={required}
               error={fieldError === key}
               inputMode={inputMode ?? 'decimal'}
-              helpText={helpKey ? t(helpKey) : undefined}
             />
           ))}
         </div>
@@ -374,6 +388,21 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.errorParkingPhoto'));
       return false;
     }
+    if (nettoyageFait === null) {
+      setFieldError('nettoyageFait');
+      setSubmitError(t('forms.closing.errorNettoyageFait'));
+      return false;
+    }
+    if (nettoyageFait === true && !seauPhoto) {
+      setFieldError('seauPhoto');
+      setSubmitError(t('forms.closing.errorPhotoSeau'));
+      return false;
+    }
+    if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
+      setFieldError('nettoyageRaison');
+      setSubmitError(t('forms.closing.errorNettoyageRaison'));
+      return false;
+    }
     if (!envelopeConfirmed) {
       setSubmitError(t('forms.closing.envelopeError'));
       return false;
@@ -417,6 +446,9 @@ function ClosingContent() {
   function startClosingSubmit(reason: string | null) {
     if (!mission || !photoFile || !form.telecollectePhotoSource) return;
     if (showParkingPhoto && !parkingPhoto) return;
+    if (nettoyageFait === null) return;
+    if (nettoyageFait === true && !seauPhoto) return;
+    if (nettoyageFait === false && nettoyageRaison.trim().length === 0) return;
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
     const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
@@ -475,6 +507,15 @@ function ClosingContent() {
           fd.set('parkingPhoto', parkingPhoto.file);
           fd.set('parkingPhotoSource', parkingPhoto.source);
           fd.set('parkingPhotoCapturedAtMs', String(parkingPhoto.capturedAtMs));
+        }
+        fd.set('nettoyageFait', nettoyageFait ? '1' : '0');
+        if (nettoyageFait === true && seauPhoto) {
+          fd.set('seauPhoto', seauPhoto.file);
+          fd.set('seauPhotoSource', seauPhoto.source);
+          fd.set('seauPhotoCapturedAtMs', String(seauPhoto.capturedAtMs));
+        }
+        if (nettoyageFait === false) {
+          fd.set('nettoyageRaison', nettoyageRaison.trim());
         }
         if (clientLat != null) fd.set('clientLat', String(clientLat));
         if (clientLng != null) fd.set('clientLng', String(clientLng));
@@ -540,13 +581,22 @@ function ClosingContent() {
     <FormScrollLayout
       footer={
         <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
-          {!pending && !formValid && (
-            <FormMissingFieldsHint items={missingFieldLabels} />
-          )}
+          <FormMissingFieldsHint
+            items={missingFieldLabels}
+            open={missingOpen}
+            onClose={() => setMissingOpen(false)}
+          />
           <PrimaryButton
-            onClick={handleSubmit}
-            disabled={pending || !formValid || (isBeforeClosingDeadline && !needsForceUi)}
-            className="w-full py-4 text-base"
+            onClick={() => {
+              if (!formValid) {
+                setMissingOpen(true);
+                return;
+              }
+              handleSubmit();
+            }}
+            disabled={pending || (formValid && isBeforeClosingDeadline && !needsForceUi)}
+            aria-disabled={!formValid || pending}
+            className={`w-full py-4 text-base${!formValid && !pending ? ' opacity-45' : ''}`}
             style={needsForceUi ? { backgroundColor: colors.DANGER } : undefined}
           >
             {pending
@@ -559,9 +609,16 @@ function ClosingContent() {
           </PrimaryButton>
           {isBeforeClosingDeadline && !needsForceUi && (
             <PrimaryButton
-              onClick={handleCloseEarly}
-              disabled={pending || !formValid}
-              className="mt-2 w-full py-4 text-base"
+              onClick={() => {
+                if (!formValid) {
+                  setMissingOpen(true);
+                  return;
+                }
+                handleCloseEarly();
+              }}
+              disabled={pending}
+              aria-disabled={!formValid || pending}
+              className={`mt-2 w-full py-4 text-base${!formValid && !pending ? ' opacity-45' : ''}`}
               style={{ backgroundColor: colors.DANGER }}
             >
               {t('forms.closing.closeEarly')}
@@ -586,19 +643,6 @@ function ClosingContent() {
           />
         )}
         <div className="px-4 pb-3 pt-3">
-          {isBeforeClosingDeadline && (
-            <div
-              className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
-              style={{
-                borderColor: colors.ACCENT_YELLOW,
-                color: colors.ACCENT_YELLOW,
-                backgroundColor: colors.ACCENT_YELLOW_MUTED,
-              }}
-              role="status"
-            >
-              {t('forms.closing.deadlineCountdown', { minutes: String(remainingMinutes) })}
-            </div>
-          )}
           {needsForceUi && forceCheck.distanceM != null && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
@@ -708,7 +752,6 @@ function ClosingContent() {
                 onChange={(v) => setForm((f) => ({ ...f, avisGoogleCount: v }))}
                 unit="count"
                 inputMode="numeric"
-                helpText={t('forms.closing.avisGoogleHelp')}
               />
             </FormSection>
 
@@ -717,6 +760,48 @@ function ClosingContent() {
               optional
               optionalLabel={t('forms.common.optional')}
             >
+              <ConditionalQuestion
+                label={t('forms.closing.nettoyageFait')}
+                value={nettoyageFait}
+                onChange={(v) => {
+                  setNettoyageFait(v);
+                  if (v) {
+                    setNettoyageRaison('');
+                  } else {
+                    setSeauPhoto(null);
+                  }
+                  if (
+                    fieldError === 'nettoyageFait' ||
+                    fieldError === 'nettoyageRaison' ||
+                    fieldError === 'seauPhoto'
+                  ) {
+                    setFieldError(null);
+                  }
+                }}
+                yesLabel={t('forms.opening.fondDeCaisseYes')}
+                noLabel={t('forms.opening.fondDeCaisseNo')}
+                required
+                error={fieldError === 'nettoyageFait'}
+                noJustification={nettoyageRaison}
+                onNoJustificationChange={(v) => {
+                  setNettoyageRaison(v);
+                  if (fieldError === 'nettoyageRaison') setFieldError(null);
+                }}
+                noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+                noJustificationError={fieldError === 'nettoyageRaison'}
+              />
+              {nettoyageFait === true && (
+                <PhotoCaptureField
+                  label={t('forms.closing.photoSeau')}
+                  value={seauPhoto}
+                  onChange={(photo) => {
+                    setSeauPhoto(photo);
+                    if (fieldError === 'seauPhoto') setFieldError(null);
+                  }}
+                  required
+                />
+              )}
+
               <textarea
                 placeholder={t('forms.closing.observationsPlaceholder')}
                 value={form.observations}

@@ -100,6 +100,11 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   const parkingPhotoSourceRaw = formData.get('parkingPhotoSource');
   const parkingPhotoCapturedAtMsRaw = formData.get('parkingPhotoCapturedAtMs');
   const parkingPhoto = formData.get('parkingPhoto');
+  const seauPhotoSourceRaw = formData.get('seauPhotoSource');
+  const seauPhotoCapturedAtMsRaw = formData.get('seauPhotoCapturedAtMs');
+  const seauPhoto = formData.get('seauPhoto');
+  const nettoyageFaitRaw = formData.get('nettoyageFait');
+  const nettoyageRaison = nullableText(formData, 'nettoyageRaison');
 
   if (!Number.isFinite(siteId) || siteId <= 0) return { ok: false, error: 'Site invalide.' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'Date invalide.' };
@@ -112,6 +117,20 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   }
   if (!isPhotoSource(photoSourceRaw)) {
     return { ok: false, error: 'Source de la photo invalide.' };
+  }
+  if (nettoyageFaitRaw !== '0' && nettoyageFaitRaw !== '1') {
+    return { ok: false, error: 'Indique si le nettoyage a été fait.' };
+  }
+  const nettoyageFait = nettoyageFaitRaw === '1';
+  if (nettoyageFait) {
+    if (!(seauPhoto instanceof File) || seauPhoto.size === 0) {
+      return { ok: false, error: 'Photo du seau manquante.' };
+    }
+    if (!isPhotoSource(seauPhotoSourceRaw)) {
+      return { ok: false, error: 'Source de la photo seau invalide.' };
+    }
+  } else if (!nettoyageRaison) {
+    return { ok: false, error: 'Précise la raison du non-nettoyage.' };
   }
 
   const session = await requireEmployeeSession();
@@ -174,6 +193,11 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
       ? new Date(Number(parkingPhotoCapturedAtMsRaw)).toISOString()
       : null;
 
+  const seauPhotoCapturedAtIso =
+    typeof seauPhotoCapturedAtMsRaw === 'string' && seauPhotoCapturedAtMsRaw.length > 0
+      ? new Date(Number(seauPhotoCapturedAtMsRaw)).toISOString()
+      : null;
+
   const photoUpload = await uploadClosingPhoto(
     supabase,
     photo,
@@ -197,6 +221,21 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     }
     parkingPhotoPath = parkingUpload.path;
     parkingPhotoSource = parkingPhotoSourceRaw;
+  }
+
+  let seauPhotoPath: string | null = null;
+  let seauPhotoSource: PhotoSource | null = null;
+  if (nettoyageFait && seauPhoto instanceof File && isPhotoSource(seauPhotoSourceRaw)) {
+    const seauUpload = await uploadClosingPhoto(
+      supabase,
+      seauPhoto,
+      `${date}/site-${siteId}/user-${userId}/seau`,
+    );
+    if (!seauUpload.ok) {
+      return { ok: false, error: `Upload photo seau échoué : ${seauUpload.error}` };
+    }
+    seauPhotoPath = seauUpload.path;
+    seauPhotoSource = seauPhotoSourceRaw;
   }
 
   const [y, m, d] = date.split('-').map(Number);
@@ -244,6 +283,19 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
               photo_parking_captured_at: parkingPhotoCapturedAtIso,
             }
           : {}),
+        nettoyage_fait: nettoyageFait,
+        nettoyage_raison: nettoyageFait ? null : nettoyageRaison,
+        ...(seauPhotoPath != null
+          ? {
+              photo_seau_url: seauPhotoPath,
+              photo_seau_source: seauPhotoSource,
+              photo_seau_captured_at: seauPhotoCapturedAtIso,
+            }
+          : {
+              photo_seau_url: null,
+              photo_seau_source: null,
+              photo_seau_captured_at: null,
+            }),
         checklist: parseChecklist(formData),
         avis_google_count: nullableNumber(formData, 'avisGoogleCount') ?? 0,
         force_reason: forceCheck.needsForce ? forceReason : null,

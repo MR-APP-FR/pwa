@@ -2,39 +2,38 @@
 
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
-import { RADIUS } from '../../constants/design';
+import { BottomSheetModal } from '../common/BottomSheetModal';
 
 interface FormMissingFieldsHintProps {
   items: string[];
+  open: boolean;
+  onClose: () => void;
 }
 
-export function FormMissingFieldsHint({ items }: FormMissingFieldsHintProps) {
+/** Popup listant les champs manquants (ouverture / fermeture). */
+export function FormMissingFieldsHint({ items, open, onClose }: FormMissingFieldsHintProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
 
   if (items.length === 0) return null;
 
   return (
-    <div
-      className="mb-3 rounded-xl border px-3.5 py-3"
-      style={{
-        borderColor: colors.ACCENT_ORANGE + '55',
-        backgroundColor: colors.ACCENT_ORANGE + '12',
-        borderRadius: RADIUS.md,
-      }}
-      role="status"
-      aria-live="polite"
+    <BottomSheetModal
+      isOpen={open}
+      onClose={onClose}
+      colors={colors}
+      title={t('forms.common.missingFieldsTitle')}
+      titleId="missing-fields-sheet-title"
+      closeAriaLabel={t('common.cancel')}
+      doneLabel={t('forms.common.missingFieldsDone')}
     >
-      <p className="text-sm font-bold" style={{ color: colors.ACCENT_ORANGE }}>
-        {t('forms.common.missingFieldsTitle')}
-      </p>
-      <ul className="mt-2 list-disc space-y-1 pl-5">
+      <ul className="list-disc space-y-2 pl-5 pb-2">
         {items.map((item) => (
           <li key={item} className="text-sm leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
             {item}
           </li>
         ))}
       </ul>
-    </div>
+    </BottomSheetModal>
   );
 }
