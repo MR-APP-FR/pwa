@@ -12,7 +12,7 @@ Jobs automatiques côté Supabase (plus de cron Vercel). Déclenchés par `pg_cr
 | [weather-brief/index.ts](weather-brief/index.ts) | 9h Paris : brief encourage + push (1 msg / employé planifié) | Web Push |
 | [opening-late/index.ts](opening-late/index.ts) | Relance ouverture manquante | Web Push |
 | [availability-reminder/index.ts](availability-reminder/index.ts) | Rappel dispos mercredi | Web Push |
-| [claim-login/index.ts](claim-login/index.ts) | Login / claim MDP terrain (appel PWA, `verify_jwt: false`) | Auth Admin |
+| [claim-login/index.ts](claim-login/index.ts) | Login / claim MDP terrain par `login` ou `email` (appel PWA, `verify_jwt: false`) | Auth Admin |
 | [ca-daily-pdf/index.ts](ca-daily-pdf/index.ts) | 21h Paris : stub message canal `ca` (PDF au clic CRM) | — |
 
 ## pg_cron

@@ -4,17 +4,17 @@
   },
   "auth": {
     "email": "Email",
-    "login": "Username",
-    "loginPlaceholder": "Your username",
+    "login": "Username or email",
+    "loginPlaceholder": "Your username or email",
     "password": "Password",
     "passwordHint": "Use your usual password (from the previous app).",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
     "signOut": "Sign out",
     "signingOut": "Signing out…",
-    "loginError": "Incorrect username or password.",
-    "contactValeria": "Unknown username. Contact Valeria.",
-    "invalidInput": "Username and password required (min. 6 characters).",
+    "loginError": "Incorrect username, email or password.",
+    "contactValeria": "Unknown username or email. Contact Valeria.",
+    "invalidInput": "Username (or email) and password required.",
     "serverError": "Sign-in unavailable right now. Try again."
   },
   "firstLogin": {

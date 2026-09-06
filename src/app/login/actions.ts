@@ -9,7 +9,7 @@ export async function claimLogin(
   password: string,
 ): Promise<ClaimLoginResult> {
   const trimmedLogin = login.trim();
-  if (!trimmedLogin || !password || password.length < 6) {
+  if (!trimmedLogin || !password) {
     return { ok: false, code: 'invalid_input' };
   }
 

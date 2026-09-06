@@ -11,11 +11,23 @@ type ClaimBody = {
   password?: unknown;
 };
 
+type EmployeeRow = {
+  id: number;
+  login: string | null;
+  email: string | null;
+  actif: boolean | null;
+};
+
 function json(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+/** Case-insensitive exact match (escape LIKE wildcards). */
+function escapeLikeExact(value: string) {
+  return value.replace(/[%_]/g, "\\$&");
 }
 
 Deno.serve(async (req) => {
@@ -40,13 +52,14 @@ Deno.serve(async (req) => {
     return json(400, { error: "invalid_json" });
   }
 
-  const login = typeof body.login === "string" ? body.login.trim() : "";
+  // `login` body field = identifiant OU email (rétrocompat API).
+  const identifier = typeof body.login === "string" ? body.login.trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
 
-  if (!login || login.length > 128) {
+  if (!identifier || identifier.length > 128) {
     return json(400, { error: "invalid_login" });
   }
-  if (!password || password.length < 6 || password.length > 200) {
+  if (!password || password.length > 200) {
     return json(400, { error: "invalid_password" });
   }
 
@@ -54,20 +67,28 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Case-insensitive exact match (escape LIKE wildcards).
-  const escaped = login.replace(/[%_]/g, "\\$&");
-  const { data: employees, error: lookupError } = await admin
-    .from("user")
-    .select("id, login, email, actif")
-    .ilike("login", escaped)
-    .limit(2);
+  const escaped = escapeLikeExact(identifier);
+  const selectCols = "id, login, email, actif";
 
-  if (lookupError) {
-    console.error("claim-login lookup", lookupError.message);
+  // Prefers login match; falls back to email.
+  const byLogin = await admin.from("user").select(selectCols).ilike("login", escaped).limit(2);
+  if (byLogin.error) {
+    console.error("claim-login lookup login", byLogin.error.message);
     return json(500, { error: "lookup_failed" });
   }
 
-  if (!employees?.length) {
+  let employees = (byLogin.data ?? []) as EmployeeRow[];
+
+  if (!employees.length) {
+    const byEmail = await admin.from("user").select(selectCols).ilike("email", escaped).limit(2);
+    if (byEmail.error) {
+      console.error("claim-login lookup email", byEmail.error.message);
+      return json(500, { error: "lookup_failed" });
+    }
+    employees = (byEmail.data ?? []) as EmployeeRow[];
+  }
+
+  if (!employees.length) {
     return json(404, { error: "unknown_login" });
   }
   if (employees.length > 1) {

@@ -2,9 +2,9 @@
 
 ## Métier
 
-Login terrain = **identifiant** (`public.user.login`) + mot de passe.
-Premier accès (claim) : si le login existe et qu’aucun Auth n’est lié, le MDP saisi devient le MDP Supabase.
-Login inconnu → message « contacte Valeria ».
+Login terrain = **identifiant ou email** (`public.user.login` / `public.user.email`) + mot de passe.
+Premier accès (claim) : si le compte existe et qu’aucun Auth n’est lié, le MDP saisi devient le MDP Supabase.
+Identifiant / email inconnu → message « contacte Valeria ».
 L’identité métier reste `public.user.id` (int), pas `auth.uid()`.
 
 ## Fichiers
@@ -26,7 +26,7 @@ RLS `public.user` : SELECT des actifs (collègues) **ou** de sa propre ligne (`i
 **Prod terrain** : Edge Function [`claim-login`](../../../supabase/functions/claim-login/) (service role côté Supabase, `verify_jwt: false`). La PWA Vercel n’a **pas** de service role.
 
 Flux claim :
-1. Lookup `public.user` par `login` (email requis ; `actif` non filtré)
+1. Lookup `public.user` par `login`, sinon par `email` (email profil requis pour Auth ; `actif` non filtré)
 2. `signInWithPassword` si Auth existe déjà
 3. Sinon `createUser` + session (`must_change_password = false`)
 4. Auth déjà présent + mauvais MDP → erreur (pas de réécriture)

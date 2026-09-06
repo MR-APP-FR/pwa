@@ -103,7 +103,6 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
           disabled={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}

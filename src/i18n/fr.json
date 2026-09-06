@@ -4,17 +4,17 @@
   },
   "auth": {
     "email": "Email",
-    "login": "Identifiant",
-    "loginPlaceholder": "Ton identifiant",
+    "login": "Identifiant ou email",
+    "loginPlaceholder": "Ton identifiant ou email",
     "password": "Mot de passe",
     "passwordHint": "Utilise ton mot de passe habituel (celui de l'ancienne appli).",
     "signIn": "Se connecter",
     "signingIn": "Connexion…",
     "signOut": "Se déconnecter",
     "signingOut": "Déconnexion…",
-    "loginError": "Identifiant ou mot de passe incorrect.",
-    "contactValeria": "Identifiant inconnu. Contacte Valeria.",
-    "invalidInput": "Identifiant et mot de passe requis (6 caractères minimum).",
+    "loginError": "Identifiant, email ou mot de passe incorrect.",
+    "contactValeria": "Identifiant ou email inconnu. Contacte Valeria.",
+    "invalidInput": "Identifiant (ou email) et mot de passe requis.",
     "serverError": "Connexion impossible pour le moment. Réessaie."
   },
   "firstLogin": {
