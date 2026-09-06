@@ -20,16 +20,15 @@ Messagerie direction → terrain. Un message cible **Tous** ou **une seule zone*
 | Tables | `staff_message`, `staff_message_ack` |
 | Push | CRM + Edge envoient ; PWA reçoit si abonnée ([../../lib/push/AGENTS.md](../../lib/push/AGENTS.md)) |
 
-Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `staff_message_site_ids_one_zone`. Brief météo du jour injecté dans la même liste.
+Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `staff_message_site_ids_one_zone`. Brief météo 9h Paris : Edge `weather-brief` insère un `staff_message` (`meta.kind = weather_brief`, ciblage `user_ids`) + Web Push.
 
 ## Transverse
 
-- CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone inchangée).
-- Canaux SQL auto : anniversaires (corps 🎂), hebdo bureau, taux déclaration (`internal.post_*`).
+- CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone Messages, dont Province découpée côté CRM seulement).
+- Canaux SQL auto : anniversaires / hebdo (`bureau`), taux déclaration + PDF CA (`ca`), pannes (`inter`). La PWA ne voit que `channel = staff`.
 
 ## Ne pas casser
 
 - Ne pas filtrer côté client ce que RLS cache déjà — respecter `site_ids` / `user_ids`.
 - Ack = upsert `(message_id, user_id)`.
-- Brief météo : marquer lu ouvre popup ou Messages (cohérence badge accueil).
 - Ne pas réintroduire un split UI par groupe côté PWA sans demande produit.

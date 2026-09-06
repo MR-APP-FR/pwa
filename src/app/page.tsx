@@ -16,8 +16,6 @@ import {
   useUnreadStaffMessageCount,
 } from '../hooks/api/useStaffMessages';
 import { useAvailability } from '../hooks/api/useAvailability';
-import { useCurrentUser } from '../hooks/api/useCurrentUser';
-import { useWeatherBriefRead } from '../hooks/useWeatherBriefRead';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
@@ -65,19 +63,11 @@ export default function HomePage() {
 
   const hasTodayMission = todayMission !== null;
   const todayIso = toIsoDateString(today);
-  const unreadStaffCount = useUnreadStaffMessageCount();
-  const { data: currentUser } = useCurrentUser();
+  const unreadMessageCount = useUnreadStaffMessageCount();
   const { data: todayWeather } = useSiteWeather(
     todayMission?.site_id ?? null,
     hasTodayMission ? todayIso : null,
   );
-  const { isRead: weatherBriefRead, markRead: markWeatherBriefRead } = useWeatherBriefRead(
-    currentUser?.user.id ?? null,
-    todayWeather ? todayIso : null,
-    todayMission?.site_id ?? null,
-  );
-  const unreadMessageCount =
-    unreadStaffCount + (todayWeather && !weatherBriefRead ? 1 : 0);
 
   const nextWeekStartIso = toIsoDateString(nextWeekStart);
   const nextWeekEndIso = toIsoDateString(nextWeekEnd);
@@ -108,7 +98,6 @@ export default function HomePage() {
         nextMission={nextMission}
         nextDayLabel={nextDayLabel}
         todayWeather={todayWeather ?? null}
-        onWeatherOpen={markWeatherBriefRead}
       />
       <LateOpeningPrompt todayMission={todayMission} todayIso={todayIso} />
 

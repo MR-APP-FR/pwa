@@ -40,7 +40,10 @@ export function WeatherEncourageBanner({ weather }: WeatherEncourageBannerProps)
         >
           {weatherBriefTitle(weather, t)}
         </p>
-        <p className="mt-0.5 text-sm leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
+        <p
+          className="mt-0.5 whitespace-pre-wrap text-sm leading-snug"
+          style={{ color: colors.TEXT_PRIMARY }}
+        >
           {weatherBriefBody(weather, t)}
         </p>
       </div>

@@ -1,9 +1,9 @@
 /** Types DB pour `staff_message` / `staff_message_ack` (GRE vague 1, chantier B5). */
 
 export type StaffMessageSource = 'bureau' | 'appli';
-export type StaffMessageChannel = 'staff' | 'bureau' | 'cr_auto';
+export type StaffMessageChannel = 'staff' | 'bureau' | 'ca' | 'inter';
 
-/** 👧🏻 saisi par le bureau · 🤖 automatique (météo, plus tard recap hebdo / mensuel CA). */
+/** 👧🏻 saisi par le bureau · 🤖 automatique (météo, recap CA, pannes). */
 export const MESSAGE_SOURCE_ICON: Record<StaffMessageSource, string> = {
   bureau: '👧🏻',
   appli: '🤖',
@@ -14,7 +14,7 @@ export interface StaffMessageRow {
   titre: string;
   corps: string;
   source: StaffMessageSource;
-  /** staff = employés ; bureau / cr_auto = canaux internes CRM, jamais exposés à la PWA. */
+  /** staff = employés ; bureau / ca / inter = canaux internes CRM, jamais exposés à la PWA. */
   channel: StaffMessageChannel;
   require_ack: boolean;
   publie_at: string;
@@ -36,9 +36,6 @@ export interface StaffMessageWithAck extends StaffMessageRow {
   read_at: string | null;
   acked_at: string | null;
 }
-
-/** Brief météo du jour injecté dans Messages (pas une ligne `staff_message`). */
-export const WEATHER_BRIEF_MESSAGE_ID = -1;
 
 /** Titres des messages automatiques / bureau (badges accueil). */
 export const AVAILABILITY_REMINDER_TITLE = 'Disponibilités';

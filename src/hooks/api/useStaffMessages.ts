@@ -9,7 +9,7 @@ import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
 /**
  * Liste des messages ciblant l'employé connecté (filtrage par la RLS de
  * `staff_message`, cf. Phase 0 §0.4), fusionnée avec son propre accusé de
- * lecture (`staff_message_ack`). Les canaux admin (`bureau`, `cr_auto`) sont exclus.
+ * lecture (`staff_message_ack`). Les canaux admin (`bureau`, `ca`, `inter`) sont exclus.
  */
 export function useStaffMessages() {
   const { data: currentUser } = useCurrentUser();

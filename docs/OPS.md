@@ -1,12 +1,12 @@
 # Ops : crons, automatisations, APIs externes
 
-État au **2026-09-06**. Source de vérité des jobs : `supabase/migrations/20260827220000_gre_supabase_cron_jobs.sql` et `20260828120000_gre_week_staff_dispatch.sql`.
+État au **2026-09-06**. Source de vérité des jobs : `supabase/migrations/20260827220000_gre_supabase_cron_jobs.sql`, `20260828120000_gre_week_staff_dispatch.sql`, `20260906184500_gre_messages_ca_inter_channels.sql`, `20260906164900_gre_weather_brief_cron.sql`.
 
 Les horaires `pg_cron` sont en **UTC**. En été (CEST) : UTC+2.
 
 ## Ce qui n’est plus en production
 
-Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.json` → `"crons": []`, commit CRM `074a420` du 2026-08-27). Les routes `GET /api/cron/*` existent encore pour un appel manuel avec `CRON_SECRET`, mais **rien ne les déclenche** automatiquement.
+Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.json` → `"crons": []`, commit CRM `074a420` du 2026-08-27). Les routes `GET /api/cron/*` existent encore pour un appel manuel avec `CRON_SECRET`, mais **rien ne les déclenche** automatiquement (sauf tests manuels). Le stub PDF CA 21h est posté par Edge `ca-daily-pdf`.
 
 ## pg_cron (Supabase)
 
@@ -15,8 +15,12 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 | `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — message canal Bureau « Anniversaires » (corps 🎂) |
 | `bureau-birthdays-utc5` | `0 5 * * *` | 07:00 | Idem (2e passage si le 1er a loupé / fuseau) |
 | `bureau-weekly-utc7` | `0 7 * * 1` | lundi 09:00 | SQL `internal.post_bureau_weekly()` — message hebdo Bureau |
-| `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `cr_auto`, taux de déclaration |
+| `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `ca`, taux de déclaration |
+| `ca-daily-pdf-utc19` | `0 19 * * *` | 21:00 | Edge `ca-daily-pdf` : message stub canal CA (PDF au clic admin) |
+| `ca-daily-pdf-utc20` | `0 20 * * *` | 22:00 été / 21:00 hiver | Idem (2e passage fuseau) |
 | `weather-sync-utc4` | `0 4 * * *` | 06:00 | Edge Function `weather-sync` via `internal.invoke_edge` |
+| `weather-brief-utc7` | `0 7 * * *` | 09:00 | Edge Function `weather-brief` — message + push par employé planifié |
+| `weather-brief-utc8` | `0 8 * * *` | 10:00 | Idem (2e passage DST ; gate Paris hour = 9) |
 | `opening-late-every-15m` | `*/15 * * * *` | toutes les 15 min | Edge Function `opening-late` |
 | `availability-reminder-utc7` | `0 7 * * 3` | mercredi 09:00 | Edge Function `availability-reminder` |
 | `availability-reminder-utc8` | `0 8 * * 3` | mercredi 10:00 | Idem (2e passage) |
@@ -25,16 +29,19 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 `https://ooirydwzxltdtvlyhqar.supabase.co/functions/v1/<name>`  
 avec le secret Vault **`supabase_anon_key`** (jamais dans git). Sans ce secret, les jobs Edge échouent.
 
-Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (défaut `mailto:noreply@maneges-ravoire.fr`).
+Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (défaut `mailto:noreply@maneges-ravoire.fr`).  
+`ca-daily-pdf` n’a **pas** besoin de `CRM_APP_URL` / `CRON_SECRET` : stub message seulement ; le PDF est généré au clic dans le CRM.
 
 ## Edge Functions (`pwa/supabase/functions/`)
 
 | Fonction | Rôle | APIs |
 |---|---|---|
 | `weather-sync` | Open-Meteo forecast + archive ERA5, upsert `site_weather`, calendrier FR, `crowd_level` | Open-Meteo (sans clé) |
+| `weather-brief` | 9h Paris : 1 `staff_message` + Web Push par employé planifié (catalogue encourage) | Web Push (VAPID) |
 | `opening-late` | Créneaux matin / après-midi Paris : relance si ouverture manquante + Web Push | Web Push (VAPID) |
 | `availability-reminder` | Mercredi : rappel dispos N+1 + Web Push | Web Push (VAPID) |
 | `claim-login` | Login terrain par `public.user.login` : claim MDP 1re fois ou `signInWithPassword` ; `verify_jwt: false` | Auth Admin (service role) |
+| `ca-daily-pdf` | 21h Paris : message stub canal CA (PDF généré au clic CRM) | — |
 
 ## Déclenché par un humain (pas un cron)
 
@@ -57,12 +64,14 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Trigger / fonction | Sur | Effet |
 |---|---|---|
 | `create_intervention_from_panne` | `daily_info` INSERT/UPDATE | ticket `intervention` (dédup `daily_info_id, sujet`) |
+| `notify_inter_panne_created` | `intervention` INSERT | message canal Inter |
 | `sync_closing_form_to_data` | `closing_form` | alimente `data` (CA) |
 | fermeture forcée → Bureau | `closing_form` | message canal Bureau |
 | `report_chrono_out_of_range` | ouverture lundi (RPC) | message Bureau + intervention urgente |
 | `report_parking_card_missing` | ouverture (RPC) | message Bureau carte parking absente |
 | `report_opening_low_stock_to_bureau` | ouverture (RPC) | message Bureau stock feuilles / tickets bas |
 | `report_monday_opening_issues_to_bureau` | ouverture lundi (RPC) | message Bureau panneaux / affaires manquants |
+| `resolve_pannes_from_opening` | RPC ouverture | cloture tickets + message Inter |
 | `staff_message_site_ids_one_zone` | `staff_message` | un message = Tous ou une zone |
 | `set_updated_at` | plusieurs tables | `updated_at` |
 

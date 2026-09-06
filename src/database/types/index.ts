@@ -29,7 +29,6 @@ export type {
   StaffMessageWithAck,
 } from './messages.types';
 export {
-  WEATHER_BRIEF_MESSAGE_ID,
   MESSAGE_SOURCE_ICON,
   AVAILABILITY_REMINDER_TITLE,
   PLANNING_ASSIGNED_MESSAGE_TITLE,

@@ -1,0 +1,589 @@
+{
+  "messages": [
+    {
+      "id": "rain-01",
+      "tags": ["rain"],
+      "text": "Bonjour 👋\nLa pluie peut changer le rythme aujourd'hui. Chaque client comptera encore plus : sois dynamique, va au contact et ne lâche rien ! Même pas peur 😎💪"
+    },
+    {
+      "id": "rain-02",
+      "tags": ["rain"],
+      "text": "Bonjour !\nIl pleut, mais ceux qui passent sont souvent motivés. Un sourire et une belle proposition peuvent faire toute la différence ☔🔥"
+    },
+    {
+      "id": "rain-03",
+      "tags": ["rain"],
+      "text": "Bonjour 👋\nJournée pluvieuse : restons accueillants et force de proposition. On peut quand même faire une très belle journée !"
+    },
+    {
+      "id": "rain-04",
+      "tags": ["rain"],
+      "text": "Bonjour !\nLa pluie n'empêche pas les belles ventes. Accueille bien, propose avec énergie, et transforme chaque passage 💪"
+    },
+    {
+      "id": "rain-05",
+      "tags": ["rain"],
+      "text": "Bonjour 👋\nTemps humide au programme. Profitons de chaque visite : disponibilité, conseil et sourire font la différence ☔"
+    },
+    {
+      "id": "rain-busy-01",
+      "tags": ["rain", "busy"],
+      "text": "Bonjour 👋\nMalgré la pluie, gros passage attendu. Accueille, propose, et garde le rythme : ça peut être une journée explosive ☔🚀"
+    },
+    {
+      "id": "rain-busy-02",
+      "tags": ["rain", "busy"],
+      "text": "Bonjour !\nPluie et affluence : double défi. Reste concentré, souriant et proactif pour transformer un maximum de visites 💪"
+    },
+    {
+      "id": "rain-quiet-01",
+      "tags": ["rain", "quiet"],
+      "text": "Bonjour 👋\nPluie et journée plus calme. Chouchoute chaque client qui vient : un accueil au top peut tout changer ☔"
+    },
+    {
+      "id": "rain-quiet-02",
+      "tags": ["rain", "quiet"],
+      "text": "Bonjour !\nMoins de passage prévu avec la pluie. Chaque vente compte : sois extra accueillant et force de proposition 💪"
+    },
+    {
+      "id": "sun-01",
+      "tags": ["sun"],
+      "text": "Bonjour !\nLe beau temps devrait mettre tout le monde de bonne humeur. À nous de transmettre cette énergie aux clients et d'en faire une belle journée 😎💪"
+    },
+    {
+      "id": "sun-02",
+      "tags": ["sun"],
+      "text": "Bonjour ☀️\nBeau ciel aujourd'hui. Accueille, propose et vends avec le sourire : le potentiel est là !"
+    },
+    {
+      "id": "sun-03",
+      "tags": ["sun"],
+      "text": "Bonjour 👋\nSoleil au programme. Profitons de cette bonne énergie pour aller chercher un maximum de ventes 🔥"
+    },
+    {
+      "id": "sun-04",
+      "tags": ["sun"],
+      "text": "Bonjour !\nJournée ensoleillée : les clients sont souvent plus ouverts. Sois visible, accueillant et proactif ☀️💪"
+    },
+    {
+      "id": "sun-05",
+      "tags": ["sun"],
+      "text": "Bonjour ☀️\nLe temps est avec nous. Transformons cette belle journée en belles ventes : énergie et conseils au top !"
+    },
+    {
+      "id": "sun-busy-01",
+      "tags": ["sun", "busy"],
+      "text": "Bonjour ☀️\nBeau temps et gros passage attendu. De l'énergie, du sourire et une prise en charge au top pour transformer un maximum de visites 🚀"
+    },
+    {
+      "id": "sun-busy-02",
+      "tags": ["sun", "busy"],
+      "text": "Bonjour !\nSoleil + affluence = journée à fort potentiel. Accueille vite, propose bien, et ne laisse passer aucune opportunité 💪"
+    },
+    {
+      "id": "sun-quiet-01",
+      "tags": ["sun", "quiet"],
+      "text": "Bonjour ☀️\nBeau temps mais passage plus calme. Profite-en pour chouchouter chaque client et être au top de l'accueil !"
+    },
+    {
+      "id": "sun-quiet-02",
+      "tags": ["sun", "quiet"],
+      "text": "Bonjour !\nJournée ensoleillée un peu plus soft. Chaque visite mérite une belle proposition : on compte sur toi 💪"
+    },
+    {
+      "id": "heat-01",
+      "tags": ["heat"],
+      "text": "Bonjour ☀️\nLa chaleur peut modifier les habitudes de fréquentation aujourd'hui. Profitons pleinement des heures les plus actives et ne laissons passer aucune occasion !"
+    },
+    {
+      "id": "heat-02",
+      "tags": ["heat"],
+      "text": "Bonjour !\nForte chaleur au programme. Reste dynamique sur les créneaux forts et accueille chaque client avec le sourire 🔥"
+    },
+    {
+      "id": "heat-03",
+      "tags": ["heat"],
+      "text": "Bonjour 👋\nIl va faire chaud. Adapté ton rythme, reste disponible, et transforme chaque passage en belle opportunité 💪"
+    },
+    {
+      "id": "heat-busy-01",
+      "tags": ["heat", "busy"],
+      "text": "Bonjour ☀️\nChaleur et gros passage : journée intense. Hydrate-toi, garde le sourire, et va chercher chaque vente 🚀"
+    },
+    {
+      "id": "cold-01",
+      "tags": ["cold"],
+      "text": "Bonjour 👋\nIl fait frais aujourd'hui. Un accueil chaleureux et une belle énergie peuvent vraiment faire la différence 💪"
+    },
+    {
+      "id": "cold-02",
+      "tags": ["cold"],
+      "text": "Bonjour !\nTemps froid au menu. Sois souriant, propose avec enthousiasme, et réchauffe la journée côté ventes 🔥"
+    },
+    {
+      "id": "snow-01",
+      "tags": ["snow"],
+      "text": "Bonjour ❄️\nIl neige. Ceux qui viennent sont souvent motivés : sourire, proposer, tout donner. On peut faire une super journée !"
+    },
+    {
+      "id": "snow-02",
+      "tags": ["snow"],
+      "text": "Bonjour 👋\nJournée neigeuse. Accueille bien chaque client et transforme chaque passage avec énergie ❄️💪"
+    },
+    {
+      "id": "snow-03",
+      "tags": ["snow"],
+      "text": "Bonjour !\nNeige au programme. Reste dynamique et force de proposition : chaque visite compte encore plus ❄️"
+    },
+    {
+      "id": "snow-busy-01",
+      "tags": ["snow", "busy"],
+      "text": "Bonjour ❄️\nNeige et gros passage. Bon courage, ça va être actif : accueille, propose, et garde le rythme 🚀"
+    },
+    {
+      "id": "snow-quiet-01",
+      "tags": ["snow", "quiet"],
+      "text": "Bonjour ❄️\nNeige et journée plus calme. Chouchoute chaque visiteur : un accueil extra peut tout changer !"
+    },
+    {
+      "id": "normal-01",
+      "tags": ["normal"],
+      "text": "Bonjour 👋\nTemps couvert, mais rien n'empêche une belle journée : accueil, propositions, énergie. Allez, on y va 🌤️"
+    },
+    {
+      "id": "normal-02",
+      "tags": ["normal"],
+      "text": "Bonjour !\nCiel un peu gris, énergie au top. Sois visible, accueillant et proactif pour faire une belle journée 💪"
+    },
+    {
+      "id": "normal-03",
+      "tags": ["normal"],
+      "text": "Bonjour 🌤️\nJournée classique météo. À nous de faire la différence grâce au sourire et aux conseils !"
+    },
+    {
+      "id": "normal-04",
+      "tags": ["normal"],
+      "text": "Bonjour 👋\nPas de soleil spectaculaire, mais plein d'opportunités. Accueille, propose, et va chercher les ventes 🔥"
+    },
+    {
+      "id": "normal-busy-01",
+      "tags": ["normal", "busy"],
+      "text": "Bonjour !\nGros passage attendu malgré un ciel couvert. De l'énergie et une prise en charge au top pour transformer les visites 🚀"
+    },
+    {
+      "id": "normal-quiet-01",
+      "tags": ["normal", "quiet"],
+      "text": "Bonjour 🌤️\nPassage plus calme sous un ciel gris. Idéal pour un accueil au top et bien s'occuper de chaque client !"
+    },
+    {
+      "id": "busy-01",
+      "tags": ["busy"],
+      "text": "Bonjour 👋\nGros passage attendu aujourd'hui. Accueille vite, propose bien, et transforme un maximum d'opportunités 🚀"
+    },
+    {
+      "id": "busy-02",
+      "tags": ["busy"],
+      "text": "Bonjour !\nJournée à fort potentiel de fréquentation. Reste dynamique, souriant et force de proposition 💪"
+    },
+    {
+      "id": "busy-03",
+      "tags": ["busy"],
+      "text": "Bonjour 👋\nÇa devrait bouger aujourd'hui. Prépare-toi à être au top : énergie, conseil, et sourire 🔥"
+    },
+    {
+      "id": "quiet-01",
+      "tags": ["quiet"],
+      "text": "Bonjour 👋\nPassage plus calme prévu. Profite-en pour chouchouter chaque client et être extra accueillant 💪"
+    },
+    {
+      "id": "quiet-02",
+      "tags": ["quiet"],
+      "text": "Bonjour !\nJournée un peu plus soft côté fréquentation. Chaque visite compte : sois présent et force de proposition !"
+    },
+    {
+      "id": "quiet-03",
+      "tags": ["quiet"],
+      "text": "Bonjour 👋\nMoins de passage attendu. Qualité d'accueil et belles propositions : c'est le moment de faire la différence 🔥"
+    },
+    {
+      "id": "wednesday-01",
+      "tags": ["wednesday"],
+      "text": "Bonjour !\nC'est mercredi, les familles devraient être plus nombreuses aujourd'hui. Une belle occasion d'aller chercher un maximum de ventes ! À toi de jouer 🙂💪"
+    },
+    {
+      "id": "wednesday-02",
+      "tags": ["wednesday"],
+      "text": "Bonjour 👋\nMercredi famille : sois visible, accueillant et proactif. Les enfants et parents passent souvent davantage 🔥"
+    },
+    {
+      "id": "wednesday-03",
+      "tags": ["wednesday", "busy"],
+      "text": "Bonjour !\nMercredi et gros passage attendu. Accueille les familles avec le sourire et transforme chaque opportunité 🚀"
+    },
+    {
+      "id": "wednesday-sun-01",
+      "tags": ["wednesday", "sun"],
+      "text": "Bonjour ☀️\nMercredi ensoleillé : combo gagnant pour les familles. Va au contact et propose avec énergie !"
+    },
+    {
+      "id": "saturday-01",
+      "tags": ["saturday"],
+      "text": "Bonjour !\nLe samedi est l'un de nos meilleurs jours de passage. De l'énergie, du sourire et une prise en charge au top pour transformer un maximum de visites 🚀"
+    },
+    {
+      "id": "saturday-02",
+      "tags": ["saturday"],
+      "text": "Bonjour 👋\nSamedi = journée clé. Sois dynamique dès l'ouverture et ne lâche rien jusqu'à la fermeture 💪"
+    },
+    {
+      "id": "saturday-03",
+      "tags": ["saturday", "busy"],
+      "text": "Bonjour !\nSamedi chargé en vue. Accueille, propose, vends : on vise une très belle journée 🔥"
+    },
+    {
+      "id": "saturday-rain-01",
+      "tags": ["saturday", "rain"],
+      "text": "Bonjour ☔\nSamedi pluvieux : le passage peut se concentrer. Reste prêt et transforme chaque client qui vient 💪"
+    },
+    {
+      "id": "sunday-01",
+      "tags": ["sunday"],
+      "text": "Bonjour 👋\nCe dimanche peut nous réserver une belle affluence. Restons disponibles et profitons de chaque opportunité pour terminer la semaine en beauté 💪"
+    },
+    {
+      "id": "sunday-02",
+      "tags": ["sunday"],
+      "text": "Bonjour !\nDimanche : belle occasion de finir la semaine en force. Sourire, conseils, et énergie jusqu'au bout 🚀"
+    },
+    {
+      "id": "sunday-03",
+      "tags": ["sunday", "sun"],
+      "text": "Bonjour ☀️\nDimanche ensoleillé. Profitons de la bonne humeur générale pour faire une belle journée de ventes !"
+    },
+    {
+      "id": "weekend-01",
+      "tags": ["weekend"],
+      "text": "Bonjour 👋\nWeek-end : les clients sortent davantage. Sois accueillant, visible et force de proposition 💪"
+    },
+    {
+      "id": "weekend-02",
+      "tags": ["weekend", "busy"],
+      "text": "Bonjour !\nWeek-end à fort passage. Garde le rythme, le sourire, et transforme un maximum de visites 🚀"
+    },
+    {
+      "id": "friday-01",
+      "tags": ["friday"],
+      "text": "Bonjour 👋\nVendredi : l'envie de se faire plaisir monte souvent. Propose avec le sourire et va chercher les ventes 🔥"
+    },
+    {
+      "id": "friday-02",
+      "tags": ["friday"],
+      "text": "Bonjour !\nOn attaque le week-end. De l'énergie dès ce matin pour bien lancer la dynamique 💪"
+    },
+    {
+      "id": "monday-01",
+      "tags": ["monday"],
+      "text": "Bonjour 👋\nNouvelle semaine, nouveaux compteurs. Accueille bien et pose une belle dynamique dès aujourd'hui 🚀"
+    },
+    {
+      "id": "monday-02",
+      "tags": ["monday"],
+      "text": "Bonjour !\nLundi motivant : chaque vente compte pour bien démarrer. On compte sur toi 💪"
+    },
+    {
+      "id": "school-01",
+      "tags": ["school_holiday"],
+      "text": "Bonjour !\nLes vacances scolaires devraient nous apporter davantage de familles. C'est le moment d'être visible, accueillant et proactif ! Belle journée à toi 🔥"
+    },
+    {
+      "id": "school-02",
+      "tags": ["school_holiday"],
+      "text": "Bonjour 👋\nVacances scolaires : plus de familles en circulation. Va au contact et propose avec énergie 💪"
+    },
+    {
+      "id": "school-03",
+      "tags": ["school_holiday", "busy"],
+      "text": "Bonjour !\nVacances + gros passage attendu. Accueille les familles au top et transforme chaque opportunité 🚀"
+    },
+    {
+      "id": "school-sun-01",
+      "tags": ["school_holiday", "sun"],
+      "text": "Bonjour ☀️\nVacances et beau temps : combo idéal. Sois visible et force de proposition toute la journée !"
+    },
+    {
+      "id": "school-rain-01",
+      "tags": ["school_holiday", "rain"],
+      "text": "Bonjour ☔\nVacances sous la pluie : les familles cherchent souvent des activités. Accueille bien et propose avec le sourire !"
+    },
+    {
+      "id": "back-to-school-01",
+      "tags": ["back_to_school"],
+      "text": "Bonjour 👋\nLa rentrée approche et les familles sont en pleine période d'achats. Profitons de cette dynamique pour faire une grosse journée ! On compte sur toi 💪"
+    },
+    {
+      "id": "back-to-school-02",
+      "tags": ["back_to_school"],
+      "text": "Bonjour !\nAmbiance rentrée : les familles bougent. Sois accueillant, propose, et va chercher les ventes 🔥"
+    },
+    {
+      "id": "holiday-01",
+      "tags": ["holiday"],
+      "text": "Bonjour 👋\nJour férié : le passage peut surprendre. Reste disponible et transforme chaque opportunité 💪"
+    },
+    {
+      "id": "holiday-02",
+      "tags": ["holiday"],
+      "text": "Bonjour !\nFérié au calendrier. Accueille avec le sourire et profite de chaque client qui passe 🚀"
+    },
+    {
+      "id": "bridge-01",
+      "tags": ["bridge"],
+      "text": "Bonjour 👋\nJour de pont : certains sortent, d'autres voyagent. Sois prêt à accueillir et à proposer 💪"
+    },
+    {
+      "id": "bridge-02",
+      "tags": ["bridge"],
+      "text": "Bonjour !\nPont au programme. Chaque passage compte : énergie, sourire et belles propositions 🔥"
+    },
+    {
+      "id": "payday-01",
+      "tags": ["payday"],
+      "text": "Bonjour 👋\nLe début du mois est souvent favorable aux achats. Soyons présents, enthousiastes et force de proposition pour profiter pleinement de cette dynamique 🚀"
+    },
+    {
+      "id": "payday-02",
+      "tags": ["payday"],
+      "text": "Bonjour !\nDébut de mois : pouvoir d'achat un peu plus fluide. Accueille bien et propose avec conviction 💪"
+    },
+    {
+      "id": "payday-03",
+      "tags": ["payday", "busy"],
+      "text": "Bonjour 👋\nDébut de mois et gros passage. Belle fenêtre pour faire une grosse journée : à toi de jouer 🔥"
+    },
+    {
+      "id": "month-end-01",
+      "tags": ["month_end"],
+      "text": "Bonjour !\nFin de mois : chaque vente aide à bien clôturer. Reste concentré et force de proposition 💪"
+    },
+    {
+      "id": "month-end-02",
+      "tags": ["month_end"],
+      "text": "Bonjour 👋\nOn termine le mois. Accueille, propose, et va chercher le maximum jusqu'au bout 🚀"
+    },
+    {
+      "id": "christmas-01",
+      "tags": ["christmas"],
+      "text": "Bonjour !\nLes achats de Noël s'accélèrent et les clients cherchent des idées. Un bon conseil peut faire toute la différence : sois disponible et propose un maximum 🎄💪"
+    },
+    {
+      "id": "christmas-02",
+      "tags": ["christmas"],
+      "text": "Bonjour 🎄\nAmbiance Noël : les gens cherchent le cadeau parfait. Accueille chaleureusement et guide-les avec le sourire !"
+    },
+    {
+      "id": "christmas-03",
+      "tags": ["christmas", "busy"],
+      "text": "Bonjour 🎄\nNoël et gros passage. De l'énergie, des conseils, et une prise en charge au top pour faire exploser la journée 🚀"
+    },
+    {
+      "id": "christmas-weekend-01",
+      "tags": ["christmas", "weekend"],
+      "text": "Bonjour !\nWeek-end de courses de Noël. Sois visible, accueillant et ultra force de proposition 🎄💪"
+    },
+    {
+      "id": "black-friday-01",
+      "tags": ["black_friday"],
+      "text": "Bonjour 👋\nLe Black Friday est une occasion en or pour faire exploser les compteurs. Va au contact, reste dynamique et transforme chaque opportunité ! Let's go 🚀"
+    },
+    {
+      "id": "black-friday-02",
+      "tags": ["black_friday"],
+      "text": "Bonjour !\nBlack Friday : du monde, de la concurrence, et surtout de belles opportunités. À nous de faire la différence 🔥"
+    },
+    {
+      "id": "soldes-01",
+      "tags": ["soldes"],
+      "text": "Bonjour !\nLes soldes vont attirer du monde aujourd'hui. Il y aura du passage, mais aussi de la concurrence : à nous de faire la différence grâce à notre énergie et nos conseils 🔥"
+    },
+    {
+      "id": "soldes-02",
+      "tags": ["soldes"],
+      "text": "Bonjour 👋\nAmbiance soldes. Accueille bien, propose naturellement, et transforme le passage en belles ventes 💪"
+    },
+    {
+      "id": "soldes-03",
+      "tags": ["soldes", "weekend"],
+      "text": "Bonjour !\nSoldes + week-end : belle fenêtre. De l'énergie et du conseil pour sortir du lot 🚀"
+    },
+    {
+      "id": "valentine-01",
+      "tags": ["valentine"],
+      "text": "Bonjour 👋\nSaint-Valentin dans l'air : les clients cherchent souvent une idée cadeau. Sois disponible et force de proposition 💕"
+    },
+    {
+      "id": "valentine-02",
+      "tags": ["valentine"],
+      "text": "Bonjour !\nAmbiance Saint-Valentin. Un sourire et un bon conseil peuvent vraiment faire la différence aujourd'hui 💪"
+    },
+    {
+      "id": "mothers-day-01",
+      "tags": ["mothers_day"],
+      "text": "Bonjour 👋\nFête des Mères approche : beaucoup cherchent une attention spéciale. Accueille bien et propose avec le cœur 💐"
+    },
+    {
+      "id": "mothers-day-02",
+      "tags": ["mothers_day"],
+      "text": "Bonjour !\nWeek-end Fête des Mères. Sois visible, accueillant et force de proposition 🔥"
+    },
+    {
+      "id": "halloween-01",
+      "tags": ["halloween"],
+      "text": "Bonjour 🎃\nAmbiance Halloween : les familles bougent et cherchent des idées. Accueille avec le sourire et propose 💪"
+    },
+    {
+      "id": "halloween-02",
+      "tags": ["halloween"],
+      "text": "Bonjour !\nHalloween dans l'air. Profite de cette dynamique pour aller au contact et faire une belle journée 🚀"
+    },
+    {
+      "id": "summer-01",
+      "tags": ["summer"],
+      "text": "Bonjour ☀️\nAmbiance été : les gens sortent davantage. Transmets cette énergie et transforme chaque passage 💪"
+    },
+    {
+      "id": "summer-02",
+      "tags": ["summer", "heat"],
+      "text": "Bonjour !\nÉté et chaleur. Concentre-toi sur les créneaux actifs et reste ultra accueillant 🔥"
+    },
+    {
+      "id": "summer-busy-01",
+      "tags": ["summer", "busy"],
+      "text": "Bonjour ☀️\nÉté et gros passage. Garde le rythme, le sourire, et va chercher un maximum de ventes 🚀"
+    },
+    {
+      "id": "generic-01",
+      "tags": [],
+      "text": "Bonjour 👋\nNouvelle journée, nouvelles opportunités. Accueille, propose, et donne le meilleur de toi-même 💪"
+    },
+    {
+      "id": "generic-02",
+      "tags": [],
+      "text": "Bonjour !\nOn compte sur ton énergie aujourd'hui. Sourire, conseils, et prise en charge au top 🚀"
+    },
+    {
+      "id": "generic-03",
+      "tags": [],
+      "text": "Bonjour 👋\nChaque client peut faire une belle journée. Sois visible, accueillant et force de proposition 🔥"
+    },
+    {
+      "id": "generic-04",
+      "tags": [],
+      "text": "Bonjour !\nBelle journée devant toi. Va au contact, reste dynamique, et transforme chaque opportunité 💪"
+    },
+    {
+      "id": "generic-05",
+      "tags": [],
+      "text": "Bonjour 👋\nAujourd'hui, l'accueil et les propositions font la différence. On est avec toi 🚀"
+    },
+    {
+      "id": "generic-06",
+      "tags": [],
+      "text": "Bonjour !\nReste concentré, souriant et proactif. Une belle journée se construit client après client 💪"
+    },
+    {
+      "id": "rain-wednesday-01",
+      "tags": ["rain", "wednesday"],
+      "text": "Bonjour ☔\nMercredi pluvieux : les familles peuvent quand même sortir. Accueille bien et propose avec énergie !"
+    },
+    {
+      "id": "sun-saturday-01",
+      "tags": ["sun", "saturday"],
+      "text": "Bonjour ☀️\nSamedi ensoleillé : gros potentiel. De l'énergie dès l'ouverture pour transformer un maximum de visites 🚀"
+    },
+    {
+      "id": "sun-sunday-01",
+      "tags": ["sun", "sunday"],
+      "text": "Bonjour ☀️\nDimanche beau temps. Terminons la semaine en beauté avec sourire et force de proposition 💪"
+    },
+    {
+      "id": "busy-weekend-01",
+      "tags": ["busy", "weekend"],
+      "text": "Bonjour 👋\nWeek-end chargé en vue. Accueille vite, propose bien, et garde le rythme toute la journée 🔥"
+    },
+    {
+      "id": "quiet-rain-monday-01",
+      "tags": ["quiet", "rain", "monday"],
+      "text": "Bonjour ☔\nLundi pluvieux et plus calme. Chaque client mérite un accueil au top : on construit la semaine dès aujourd'hui 💪"
+    },
+    {
+      "id": "payday-friday-01",
+      "tags": ["payday", "friday"],
+      "text": "Bonjour 👋\nDébut de mois et vendredi : belle dynamique d'achats possible. Propose avec enthousiasme 🚀"
+    },
+    {
+      "id": "school-saturday-01",
+      "tags": ["school_holiday", "saturday"],
+      "text": "Bonjour !\nSamedi de vacances scolaires. Les familles sont souvent dehors : sois visible et ultra accueillant 🔥"
+    },
+    {
+      "id": "heat-saturday-01",
+      "tags": ["heat", "saturday"],
+      "text": "Bonjour ☀️\nSamedi chaud. Concentre ton énergie sur les heures actives et transforme chaque passage 💪"
+    },
+    {
+      "id": "christmas-saturday-01",
+      "tags": ["christmas", "saturday"],
+      "text": "Bonjour 🎄\nSamedi de courses de Noël. Accueille, conseille, et aide chaque client à trouver la bonne idée 🚀"
+    },
+    {
+      "id": "soldes-busy-01",
+      "tags": ["soldes", "busy"],
+      "text": "Bonjour !\nSoldes et gros passage. Fais la différence par ton énergie et tes conseils, pas seulement par l'offre 🔥"
+    },
+    {
+      "id": "back-to-school-saturday-01",
+      "tags": ["back_to_school", "saturday"],
+      "text": "Bonjour 👋\nSamedi de rentrée : les familles achètent. Va au contact et propose avec le sourire 💪"
+    },
+    {
+      "id": "holiday-sun-01",
+      "tags": ["holiday", "sun"],
+      "text": "Bonjour ☀️\nFérié ensoleillé. Belle occasion d'accueillir du monde et de faire une journée mémorable 🚀"
+    },
+    {
+      "id": "normal-friday-01",
+      "tags": ["normal", "friday"],
+      "text": "Bonjour 🌤️\nVendredi sous un ciel couvert. Lance bien le week-end : énergie, sourire et propositions 💪"
+    },
+    {
+      "id": "cold-busy-01",
+      "tags": ["cold", "busy"],
+      "text": "Bonjour 👋\nFroid et gros passage. Un accueil chaleureux fera la différence : sois au top 🔥"
+    },
+    {
+      "id": "summer-wednesday-01",
+      "tags": ["summer", "wednesday"],
+      "text": "Bonjour ☀️\nMercredi d'été : familles et bonne humeur. Sois visible et force de proposition toute la journée !"
+    },
+    {
+      "id": "generic-07",
+      "tags": [],
+      "text": "Bonjour 👋\nAujourd'hui on vise la qualité d'accueil et la force de proposition. Belle journée à toi 💪"
+    },
+    {
+      "id": "generic-08",
+      "tags": [],
+      "text": "Bonjour !\nUne vente, puis une autre. Garde le rythme et montre de quoi tu es capable 🚀"
+    },
+    {
+      "id": "rain-busy-weekend-01",
+      "tags": ["rain", "busy", "weekend"],
+      "text": "Bonjour ☔\nWeek-end pluvieux mais très fréquenté en vue. Reste prêt : chaque client peut faire une belle journée 💪"
+    },
+    {
+      "id": "sun-payday-01",
+      "tags": ["sun", "payday"],
+      "text": "Bonjour ☀️\nBeau temps et début de mois. Belle fenêtre pour accueillir et proposer avec conviction 🔥"
+    }
+  ]
+}

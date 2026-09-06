@@ -22,7 +22,7 @@ export const INBOX_CONVERSATION: Conversation = {
 
 /** Messages affichés dans la boîte staff (canal staff uniquement). */
 export function isStaffInboxMessage(message: {
-  channel?: 'staff' | 'bureau' | 'cr_auto';
+  channel?: 'staff' | 'bureau' | 'ca' | 'inter';
 }): boolean {
   return !message.channel || message.channel === 'staff';
 }
