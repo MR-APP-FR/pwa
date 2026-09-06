@@ -60,7 +60,6 @@ Deno.serve(async (req) => {
     .from("user")
     .select("id, login, email, actif")
     .ilike("login", escaped)
-    .eq("actif", true)
     .limit(2);
 
   if (lookupError) {

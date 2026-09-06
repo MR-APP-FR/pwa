@@ -21,10 +21,12 @@ L’identité métier reste `public.user.id` (int), pas `auth.uid()`.
 
 Bridge SQL : `current_employee_id()` — `auth.users.email` ↔ `public.user.email`.
 
+RLS `public.user` : SELECT des actifs (collègues) **ou** de sa propre ligne (`id = current_employee_id()`), même si `actif = false` — sinon profil / todos photo-CNI invisibles.
+
 **Prod terrain** : Edge Function [`claim-login`](../../../supabase/functions/claim-login/) (service role côté Supabase, `verify_jwt: false`). La PWA Vercel n’a **pas** de service role.
 
 Flux claim :
-1. Lookup `public.user` par `login` (actif, email requis)
+1. Lookup `public.user` par `login` (email requis ; `actif` non filtré)
 2. `signInWithPassword` si Auth existe déjà
 3. Sinon `createUser` + session (`must_change_password = false`)
 4. Auth déjà présent + mauvais MDP → erreur (pas de réécriture)
