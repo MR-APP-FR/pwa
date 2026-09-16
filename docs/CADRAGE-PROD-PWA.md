@@ -99,9 +99,10 @@ Livré côté PWA (pas de migration : colonnes `paye_jour` / `paye_double` réut
 2. **Calcul enveloppe** (client, null → 0) :
    ```
    X (espèces) = recette_totale − carte_bleue − paye_jour − paye_double
-                 − paye_manquante_recuperee
+                 − paye_manquante_recuperee − frais
    Y (CB)      = carte_bleue
    ```
+   `frais` + `frais_raison` (obligatoire si frais > 0) : sorties espèces hors rémunération.
    X/Y non stockés (dérivables). Si `X < 0`, alerte visible.
 3. **UI confirmation** : bloc « Contrôle enveloppe » juste avant Valider — case à
    cocher obligatoire ; submit bloqué sans confirmation.

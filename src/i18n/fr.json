@@ -343,7 +343,7 @@
         "help": "Pour chaque point à vérifier dans le manège, merci de nous dire si le problème est toujours là ou si c'est réglé.",
         "progress": "{{done}} / {{total}}",
         "stillBroken": "Toujours là",
-        "resolved": "Réglé ✅",
+        "resolved": "Réglé",
         "other": "Autre",
         "urgent": "Urgent",
         "scheduled": "Programmé",
@@ -352,7 +352,8 @@
         "missingTicket": "Point : {{label}}"
       },
       "successTitle": "Ouverture enregistrée",
-      "successDescription": "Vos informations d'ouverture ont été enregistrées"
+      "successDescription": "Vos informations d'ouverture ont été enregistrées",
+      "lockedBanner": "Ouverture déjà validée — consultation uniquement"
     },
     "closing": {
       "title": "Fermeture",
@@ -378,6 +379,11 @@
       "payeDuDouble": "Rémunération du double",
       "payeManquanteHelp": "Montant du payé manquant récupéré auprès des clients ce jour (rattrapage d'un défaut de monnaie ou d'un ticket non encaissé)",
       "payeDuDoubleHelp": "Montant de la rémunération du collègue / partenaire sur place",
+      "frais": "Frais",
+      "fraisHelp": "Montant sorti de la caisse (espèces) hors rémunération — ex. tickets, fournitures",
+      "fraisRaison": "Motif des frais",
+      "fraisRaisonPlaceholder": "Précisez à quoi correspondent ces frais…",
+      "errorFraisRaison": "Indique le motif des frais",
       "pointCaisse13h": "Point caisse 13H00-14H00",
       "pointCaisse20h": "Point caisse 20H00-20H35",
       "observations": "Observations éventuelles",
@@ -396,9 +402,10 @@
       "photoCapturedAt": "Prise le",
       "envelopeTitle": "Contrôle enveloppe",
       "envelopeConfirm": "Avez-vous bien mis dans l'enveloppe %{cash} € et %{card} € de CB ?",
-      "envelopeAnomaly": "Attention : le montant espèces calculé est négatif (%{cash} €). Vérifiez la recette, la CB et les rémunérations.",
+      "envelopeAnomaly": "Attention : le montant espèces calculé est négatif (%{cash} €). Vérifiez la recette, la CB, les rémunérations et les frais.",
       "envelopeCheckbox": "Oui j'ai vérifié 👍",
       "envelopeError": "Confirmez le dépôt dans l'enveloppe pour valider",
+      "lockedBanner": "Fermeture déjà validée — consultation uniquement",
       "sectionChecklist": "Checklist de fermeture",
       "checklistItems": {
         "nettoyage": "Nettoyage effectué",

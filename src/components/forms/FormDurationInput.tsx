@@ -16,6 +16,8 @@ interface FormDurationInputProps {
   onChange: (value: DurationValue) => void;
   required?: boolean;
   error?: boolean;
+  /** Lecture seule (formulaire déjà validé) — affiche MM:SS sans roulette. */
+  readOnly?: boolean;
 }
 
 const ITEM_H = 36;
@@ -133,6 +135,7 @@ export function FormDurationInput({
   onChange,
   required,
   error,
+  readOnly = false,
 }: FormDurationInputProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -141,6 +144,45 @@ export function FormDurationInput({
   const seconds = value.seconds ?? 0;
   const minuteValues = Array.from({ length: MAX_MINUTES + 1 }, (_, i) => i);
   const secondValues = Array.from({ length: 60 }, (_, i) => i);
+
+  if (readOnly) {
+    return (
+      <div className="space-y-1.5">
+        {label.trim().length > 0 && (
+          <label className="text-sm font-semibold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
+            {label}
+          </label>
+        )}
+        <div
+          className="flex items-center justify-center rounded-xl border px-3 py-3 text-2xl font-semibold tabular-nums"
+          style={{
+            color: colors.TEXT_PRIMARY,
+            borderColor: colors.BORDER,
+            backgroundColor: colors.BG_PRIMARY,
+            borderRadius: RADIUS.md,
+            opacity: 0.92,
+          }}
+          aria-readonly
+        >
+          {pad2(minutes)}:{pad2(seconds)}
+        </div>
+        <div className="flex justify-center gap-8">
+          <span
+            className="text-center text-[11px] font-semibold uppercase tracking-wide"
+            style={{ color: colors.TEXT_SECONDARY }}
+          >
+            {t('forms.common.durationMinutes')}
+          </span>
+          <span
+            className="text-center text-[11px] font-semibold uppercase tracking-wide"
+            style={{ color: colors.TEXT_SECONDARY }}
+          >
+            {t('forms.common.durationSeconds')}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1.5">

@@ -16,6 +16,8 @@ export interface ClosingFormData {
   payeDuJour: number | null;
   payeManquanteRecuperee: number | null;
   payeDuDouble: number | null;
+  frais: number | null;
+  fraisRaison: string;
   pointCaisse13h: number | null;
   pointCaisse20h: number | null;
   avisGoogleCount: number | null;

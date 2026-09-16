@@ -6,16 +6,18 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 
 ## Écran
 
-- Route : `/opening` (souvent `?siteId=&date=`)
+- Route : `/opening` (souvent `?id=` mission planning)
 - Page : [page.tsx](page.tsx)
+- **Déjà soumis** : `useExistingOpeningForm(site, date)` → lecture seule (banner, champs `readOnly`/`disabled`, footer Retour seul, photo nettoyage via `LockedPhotoThumb` + URL signée). Même pattern que fermeture.
 
 ## Technique
 
 | Élément | Détail |
 |---|---|
 | Action | [actions.ts](actions.ts) → `submitOpeningForm` |
-| Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s ; section juste avant remarques ; roulette min/s |
-| Lundi | [MondayOpeningChecks](../../components/forms/MondayOpeningChecks.tsx) — panneaux collés/volants + affaires (reste si absent) |
+| Prefill lock | [useExistingOpeningForm](../../hooks/api/useExistingOpeningForm.ts) — `opening_form` + `daily_info` ; hydrate une fois via `useRef` |
+| Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s ; section juste avant remarques ; roulette min/s (`FormDurationInput` `readOnly` si lock) |
+| Lundi | [MondayOpeningChecks](../../components/forms/MondayOpeningChecks.tsx) — panneaux collés/volants + affaires (reste si absent) ; prop `disabled` si lock |
 | Retard | [late-opening-actions.ts](late-opening-actions.ts) |
 | Table | `opening_form` — upsert `onConflict: site_id,date` ; colonnes JSON `panneaux`, `affaires` |
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking, `panneaux`, `affaires` |

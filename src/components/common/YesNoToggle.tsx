@@ -54,6 +54,7 @@ interface YesNoToggleProps {
   noFirst?: boolean;
   /** Non = vert, Oui = rouge (ex. signalement de pannes) */
   invertSelectedColors?: boolean;
+  disabled?: boolean;
 }
 
 export function YesNoToggle({
@@ -65,6 +66,7 @@ export function YesNoToggle({
   error,
   noFirst,
   invertSelectedColors,
+  disabled = false,
 }: YesNoToggleProps) {
   const { colors } = useThemeColors();
   const sizeClass = compact
@@ -75,9 +77,17 @@ export function YesNoToggle({
     <button
       key="no"
       type="button"
-      onClick={() => onChange(false)}
-      className={`${sizeClass} font-bold transition-all active:scale-[0.98]`}
-      style={yesNoOptionStyle(colors, 'no', value === false, error, invertSelectedColors)}
+      onClick={() => {
+        if (disabled) return;
+        onChange(false);
+      }}
+      disabled={disabled}
+      className={`${sizeClass} font-bold transition-all ${disabled ? '' : 'active:scale-[0.98]'}`}
+      style={{
+        ...yesNoOptionStyle(colors, 'no', value === false, error, invertSelectedColors),
+        opacity: disabled ? 0.85 : 1,
+        cursor: disabled ? 'default' : undefined,
+      }}
       aria-pressed={value === false}
     >
       {noLabel}
@@ -88,9 +98,17 @@ export function YesNoToggle({
     <button
       key="yes"
       type="button"
-      onClick={() => onChange(true)}
-      className={`${sizeClass} font-bold transition-all active:scale-[0.98]`}
-      style={yesNoOptionStyle(colors, 'yes', value === true, error, invertSelectedColors)}
+      onClick={() => {
+        if (disabled) return;
+        onChange(true);
+      }}
+      disabled={disabled}
+      className={`${sizeClass} font-bold transition-all ${disabled ? '' : 'active:scale-[0.98]'}`}
+      style={{
+        ...yesNoOptionStyle(colors, 'yes', value === true, error, invertSelectedColors),
+        opacity: disabled ? 0.85 : 1,
+        cursor: disabled ? 'default' : undefined,
+      }}
       aria-pressed={value === true}
     >
       {yesLabel}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Wrench } from 'lucide-react';
+import { Check, Wrench } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { OpenSiteIntervention, PanneCheckinAnswer } from '../../database/types/intervention.types';
@@ -47,45 +47,83 @@ function ticketDescription(ticket: OpenSiteIntervention): string | null {
   return desc || null;
 }
 
+function answerButtonStyle(
+  selected: boolean,
+  tone: 'still' | 'resolved',
+  colors: ReturnType<typeof useThemeColors>['colors'],
+  unansweredError: boolean,
+) {
+  if (!selected) {
+    return {
+      borderRadius: RADIUS.md,
+      backgroundColor: colors.BG_SECONDARY,
+      color: colors.TEXT_SECONDARY,
+      boxShadow: `inset 0 0 0 1.5px ${unansweredError ? colors.DANGER : colors.BORDER}`,
+      opacity: 0.72,
+    } as const;
+  }
+  if (tone === 'resolved') {
+    return {
+      borderRadius: RADIUS.md,
+      backgroundColor: colors.ACCENT_GREEN,
+      color: colors.TEXT_INVERSE,
+      boxShadow: `0 0 0 3px ${colors.ACCENT_GREEN}33`,
+      opacity: 1,
+    } as const;
+  }
+  return {
+    borderRadius: RADIUS.md,
+    backgroundColor: colors.ACCENT_ORANGE,
+    color: colors.TEXT_INVERSE,
+    boxShadow: `0 0 0 3px ${colors.ACCENT_ORANGE}33`,
+    opacity: 1,
+  } as const;
+}
+
 export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPannesCheckinProps) {
   const { colors } = useThemeColors();
   const { t, language } = useTranslation();
 
   if (tickets.length === 0) return null;
 
+  const answeredCount = tickets.filter((ticket) => answers[ticket.id] != null).length;
+  const help = t('forms.opening.panneCheckin.help');
+
   return (
     <div className="space-y-3">
+      {help ? (
+        <p className="px-0.5 text-sm leading-relaxed" style={{ color: colors.TEXT_SECONDARY }}>
+          {help}
+        </p>
+      ) : null}
+
       <div
-        className="flex items-start gap-3 px-3.5 py-3"
-        style={{
-          backgroundColor: colors.ACCENT_ORANGE + '18',
-          borderRadius: RADIUS.xl,
-          border: `1px solid ${error ? colors.ACCENT_RED : colors.ACCENT_ORANGE + '40'}`,
-        }}
+        className="flex items-center justify-between gap-3 px-0.5"
+        style={{ color: colors.TEXT_SECONDARY }}
       >
-        <span className="mt-0.5 shrink-0 text-[22px] leading-none" aria-hidden>
-          🔧
-        </span>
-        <div className="min-w-0 flex-1">
-          {t('forms.opening.panneCheckin.title') ? (
-            <p
-              className="text-sm font-bold"
-              style={{ color: colors.ACCENT_ORANGE, fontFamily: 'var(--font-display)' }}
-            >
-              {t('forms.opening.panneCheckin.title')}
-            </p>
-          ) : null}
-          {t('forms.opening.panneCheckin.help') ? (
-            <p
-              className={`whitespace-pre-line text-sm leading-relaxed ${
-                t('forms.opening.panneCheckin.title') ? 'mt-0.5' : ''
-              }`}
-              style={{ color: colors.TEXT_PRIMARY }}
-            >
-              {t('forms.opening.panneCheckin.help')}
-            </p>
-          ) : null}
+        <div
+          className="h-1.5 flex-1 overflow-hidden rounded-full"
+          style={{ backgroundColor: colors.BORDER }}
+          aria-hidden
+        >
+          <div
+            className="h-full rounded-full transition-all duration-200"
+            style={{
+              width: `${tickets.length === 0 ? 0 : (answeredCount / tickets.length) * 100}%`,
+              backgroundColor:
+                answeredCount === tickets.length ? colors.ACCENT_GREEN : colors.ACCENT_ORANGE,
+            }}
+          />
         </div>
+        <span
+          className="shrink-0 text-xs font-bold tabular-nums"
+          style={{
+            color: answeredCount === tickets.length ? colors.ACCENT_GREEN : colors.TEXT_SECONDARY,
+            fontFamily: 'var(--font-display)',
+          }}
+        >
+          {answeredCount}/{tickets.length}
+        </span>
       </div>
 
       {error && (
@@ -94,24 +132,34 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
         </p>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {tickets.map((ticket) => {
           const answer = answers[ticket.id];
+          const unanswered = answer == null;
           const headline = openPanneTicketHeadline(ticket);
           const subline = ticketSubline(ticket);
           const reportedLabel = formatReportedAt(ticket.reported_at, language);
+          const cardBorder =
+            answer === 'resolved'
+              ? colors.ACCENT_GREEN
+              : answer === 'still'
+                ? colors.ACCENT_ORANGE
+                : error && unanswered
+                  ? colors.DANGER
+                  : colors.BORDER;
 
           return (
             <div
               key={ticket.id}
-              className="card-surface space-y-2 px-3 py-2.5"
+              className="card-surface space-y-3 px-3.5 py-3"
               style={{
                 borderRadius: RADIUS.lg,
-                boxShadow:
+                boxShadow: `inset 0 0 0 ${answer ? 2 : 1}px ${cardBorder}`,
+                backgroundColor:
                   answer === 'resolved'
-                    ? `inset 0 0 0 2px ${colors.ACCENT_GREEN}`
+                    ? colors.ACCENT_GREEN + '12'
                     : answer === 'still'
-                      ? `inset 0 0 0 2px ${colors.ACCENT_ORANGE}`
+                      ? colors.ACCENT_ORANGE + '12'
                       : undefined,
               }}
             >
@@ -125,25 +173,19 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
                   </p>
                   {ticket.urgent && (
                     <span
-                      className="shrink-0 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
-                      style={{
-                        backgroundColor: colors.ACCENT_RED_MUTED,
-                        color: colors.ACCENT_RED,
-                      }}
-                    >
-                      {t('forms.opening.panneCheckin.urgent')}
-                    </span>
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: colors.ACCENT_RED }}
+                      title={t('forms.opening.panneCheckin.urgent')}
+                      aria-label={t('forms.opening.panneCheckin.urgent')}
+                    />
                   )}
                   {ticket.status === 'planifiee' && (
                     <span
-                      className="shrink-0 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wide"
-                      style={{
-                        backgroundColor: colors.PRIMARY + '18',
-                        color: colors.PRIMARY,
-                      }}
-                    >
-                      {t('forms.opening.panneCheckin.scheduled')}
-                    </span>
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: colors.PRIMARY }}
+                      title={t('forms.opening.panneCheckin.scheduled')}
+                      aria-label={t('forms.opening.panneCheckin.scheduled')}
+                    />
                   )}
                 </div>
                 {subline && (
@@ -158,44 +200,36 @@ export function OpenPannesCheckin({ tickets, answers, onAnswer, error }: OpenPan
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => onAnswer(ticket.id, 'still')}
-                  className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg px-2 py-2 text-[11px] font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+                  className="inline-flex min-h-12 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
                   style={{
-                    borderRadius: RADIUS.sm,
-                    backgroundColor:
-                      answer === 'still' ? colors.ACCENT_ORANGE_MUTED : colors.BG_SECONDARY,
-                    color: answer === 'still' ? colors.ACCENT_ORANGE : colors.TEXT_PRIMARY,
-                    boxShadow:
-                      answer === 'still'
-                        ? `inset 0 0 0 2px ${colors.ACCENT_ORANGE}`
-                        : `inset 0 0 0 1px ${colors.BORDER}`,
+                    ...answerButtonStyle(answer === 'still', 'still', colors, Boolean(error && unanswered)),
                     fontFamily: 'var(--font-display)',
                   }}
                   aria-pressed={answer === 'still'}
                 >
-                  <Wrench size={14} className="shrink-0" aria-hidden />
+                  <Wrench size={16} className="shrink-0" strokeWidth={2.5} aria-hidden />
                   <span>{t('forms.opening.panneCheckin.stillBroken')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => onAnswer(ticket.id, 'resolved')}
-                  className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg px-2 py-2 text-[11px] font-bold whitespace-nowrap transition-all active:scale-[0.98]"
+                  className="inline-flex min-h-12 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-all active:scale-[0.98]"
                   style={{
-                    borderRadius: RADIUS.sm,
-                    backgroundColor:
-                      answer === 'resolved' ? colors.ACCENT_GREEN_MUTED : colors.BG_SECONDARY,
-                    color: answer === 'resolved' ? colors.ACCENT_GREEN : colors.TEXT_PRIMARY,
-                    boxShadow:
-                      answer === 'resolved'
-                        ? `inset 0 0 0 2px ${colors.ACCENT_GREEN}`
-                        : `inset 0 0 0 1px ${colors.BORDER}`,
+                    ...answerButtonStyle(
+                      answer === 'resolved',
+                      'resolved',
+                      colors,
+                      Boolean(error && unanswered),
+                    ),
                     fontFamily: 'var(--font-display)',
                   }}
                   aria-pressed={answer === 'resolved'}
                 >
+                  <Check size={17} className="shrink-0" strokeWidth={3} aria-hidden />
                   <span>{t('forms.opening.panneCheckin.resolved')}</span>
                 </button>
               </div>

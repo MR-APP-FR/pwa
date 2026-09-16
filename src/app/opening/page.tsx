@@ -1,12 +1,14 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo, Suspense, useTransition, useEffect } from 'react';
+import { useState, useMemo, Suspense, useTransition, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
 import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
+import { useExistingOpeningForm } from '../../hooks/api/useExistingOpeningForm';
+import { useTelecollecteSignedUrl } from '../../hooks/api/useTelecollecteSignedUrl';
 import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
 import { CHRONO_WEEKDAY_KEY, isChronoInExpectedRange } from './chrono';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -16,6 +18,8 @@ import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/Ph
 import { FormNumberInput } from '../../components/forms/FormNumberInput';
 import { FormDurationInput, type DurationValue } from '../../components/forms/FormDurationInput';
 import { FormSection } from '../../components/forms/FormSection';
+import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
+import { LockedPhotoThumb } from '../../components/forms/LockedPhotoThumb';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import {
   OpenPannesCheckin,
@@ -35,6 +39,9 @@ import {
   type AffairesState,
   type PanneauKey,
   type PanneauxState,
+  AFFAIRES_KEYS,
+  PANNEAUX_COLLES_KEYS,
+  PANNEAUX_VOLANTS_KEYS,
 } from '../../components/forms/MondayOpeningChecks';
 import { useSujets } from '../../hooks/api/useSujets';
 import { useOpenSiteInterventions } from '../../hooks/api/useOpenSiteInterventions';
@@ -117,6 +124,15 @@ function OpeningContent() {
   const openTickets = openInterventions ?? [];
   const { data: questions } = useSiteDailyInfoQuestions(mission?.site_id);
   const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
+  const { data: existingOpening, isLoading: existingOpeningLoading } = useExistingOpeningForm(
+    mission?.site_id,
+    missionDateIso,
+  );
+  const isLocked = existingOpening != null;
+  const hydratedRef = useRef(false);
+  const nettoyageSigned = useTelecollecteSignedUrl(
+    isLocked ? existingOpening?.dailyInfo?.photo_nettoyage_url : null,
+  );
   const showCarteParking = carteParkingConfig?.enabled === true;
   const carteParkingLabel =
     carteParkingConfig?.questionLabel ?? t('forms.opening.carteParkingCaisse');
@@ -161,6 +177,57 @@ function OpeningContent() {
   useEffect(() => {
     void requestGeolocation();
   }, []);
+
+  useEffect(() => {
+    if (!existingOpening || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const { opening, dailyInfo } = existingOpening;
+
+    const feuilleRaw = Number(opening.feuilles_de_jour);
+    setForm({
+      missionId,
+      feuilleDuJour: Number.isFinite(feuilleRaw) ? feuilleRaw : null,
+      ticketsOuverture: opening.tickets_ouverture,
+      fondDeCaisse100: opening.fond_caisse_100,
+      observations: opening.observations ?? '',
+    });
+
+    if (opening.chrono_seconds != null && Number.isFinite(opening.chrono_seconds)) {
+      const s = Math.max(0, Math.floor(opening.chrono_seconds));
+      setChrono({ minutes: Math.floor(s / 60), seconds: s % 60 });
+    }
+
+    if (opening.panneaux) {
+      const next = emptyPanneauxState();
+      for (const key of [...PANNEAUX_COLLES_KEYS, ...PANNEAUX_VOLANTS_KEYS]) {
+        if (key in opening.panneaux) {
+          next[key] = opening.panneaux[key] === true;
+        }
+      }
+      setPanneaux(next);
+    }
+
+    if (opening.affaires) {
+      const next = emptyAffairesState();
+      for (const key of AFFAIRES_KEYS) {
+        const item = opening.affaires[key];
+        if (!item) continue;
+        next[key] = {
+          present: item.present === true,
+          reste: item.reste != null && Number.isFinite(item.reste) ? String(item.reste) : '',
+        };
+      }
+      setAffaires(next);
+    }
+
+    if (dailyInfo) {
+      setNettoyageVeille(dailyInfo.nettoyage_veille);
+      setCarteParking(dailyInfo.carte_parking);
+      setMusiqueDisney(dailyInfo.musique_disney);
+      setPannesAutre(dailyInfo.pannes_autre ?? '');
+      setSelectedSujetIds(dailyInfo.pannes_sujet_ids ?? []);
+    }
+  }, [existingOpening, missionId]);
 
   const isFormValid =
     form.feuilleDuJour !== null &&
@@ -433,6 +500,7 @@ function OpeningContent() {
 
         queryClient.invalidateQueries({ queryKey: ['missionForms'] });
         queryClient.invalidateQueries({ queryKey: ['openSiteInterventions'] });
+        queryClient.invalidateQueries({ queryKey: ['existingOpeningForm'] });
         setSubmitted(true);
       } catch {
         setSubmitError(t('forms.common.errorSubmit'));
@@ -462,29 +530,50 @@ function OpeningContent() {
     );
   }
 
+  if (existingOpeningLoading && !existingOpening) {
+    return (
+      <FormScrollLayout>
+        <div
+          className="flex min-h-[40vh] items-center justify-center"
+          style={{ backgroundColor: colors.BG_SECONDARY }}
+        >
+          <p style={{ color: colors.TEXT_SECONDARY }}>...</p>
+        </div>
+      </FormScrollLayout>
+    );
+  }
+
   return (
     <FormScrollLayout
       footer={
         <div className="px-5 py-4" style={{ backgroundColor: colors.BG_SECONDARY }}>
-          <FormMissingFieldsHint
-            items={missingFieldLabels}
-            open={missingOpen}
-            onClose={() => setMissingOpen(false)}
-          />
-          <PrimaryButton
-            onClick={() => {
-              if (!isFormValid) {
-                setMissingOpen(true);
-                return;
-              }
-              handleSubmit();
-            }}
-            disabled={pending}
-            aria-disabled={!isFormValid || pending}
-            className={`w-full py-4 text-base${!isFormValid && !pending ? ' opacity-45' : ''}`}
-          >
-            {pending ? '...' : t('forms.opening.submit')}
-          </PrimaryButton>
+          {isLocked ? (
+            <PrimaryButton onClick={() => router.back()} className="w-full py-4 text-base">
+              Retour
+            </PrimaryButton>
+          ) : (
+            <>
+              <FormMissingFieldsHint
+                items={missingFieldLabels}
+                open={missingOpen}
+                onClose={() => setMissingOpen(false)}
+              />
+              <PrimaryButton
+                onClick={() => {
+                  if (!isFormValid) {
+                    setMissingOpen(true);
+                    return;
+                  }
+                  handleSubmit();
+                }}
+                disabled={pending}
+                aria-disabled={!isFormValid || pending}
+                className={`w-full py-4 text-base${!isFormValid && !pending ? ' opacity-45' : ''}`}
+              >
+                {pending ? '...' : t('forms.opening.submit')}
+              </PrimaryButton>
+            </>
+          )}
         </div>
       }
     >
@@ -504,6 +593,7 @@ function OpeningContent() {
           />
         )}
         <div className="space-y-4 px-5 pb-5 pt-3">
+        {isLocked && <FormLockedBanner label={t('forms.opening.lockedBanner')} />}
         <div className="card-surface space-y-5 px-5 py-5">
           <FormSection title={t('forms.opening.sectionCounts')}>
             <FormNumberInput
@@ -517,6 +607,7 @@ function OpeningContent() {
               required
               error={fieldError === 'feuilleDuJour'}
               inputMode="numeric"
+              readOnly={isLocked}
             />
             <FormNumberInput
               label={t('forms.opening.ticketsOuverture')}
@@ -529,6 +620,7 @@ function OpeningContent() {
               required
               error={fieldError === 'ticketsOuverture'}
               inputMode="numeric"
+              readOnly={isLocked}
             />
           </FormSection>
 
@@ -554,6 +646,7 @@ function OpeningContent() {
               }}
               noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
               noJustificationError={fieldError === 'fondDeCaisse100Justification'}
+              disabled={isLocked}
             />
 
             <ConditionalQuestion
@@ -580,14 +673,23 @@ function OpeningContent() {
               }}
               noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
               noJustificationError={fieldError === 'nettoyageVeilleJustification'}
+              disabled={isLocked}
             />
-            {nettoyageVeille === false && (
-              <PhotoCaptureField
-                label={t('forms.common.photoNettoyage')}
-                value={nettoyagePhoto}
-                onChange={setNettoyagePhoto}
-              />
-            )}
+            {nettoyageVeille === false &&
+              (isLocked ? (
+                <LockedPhotoThumb
+                  label={t('forms.common.photoNettoyage')}
+                  signedUrl={nettoyageSigned.data ?? null}
+                  source={existingOpening?.dailyInfo?.photo_source ?? null}
+                  capturedAtIso={existingOpening?.dailyInfo?.photo_captured_at ?? null}
+                />
+              ) : (
+                <PhotoCaptureField
+                  label={t('forms.common.photoNettoyage')}
+                  value={nettoyagePhoto}
+                  onChange={setNettoyagePhoto}
+                />
+              ))}
 
             {showCarteParking && (
               <ConditionalQuestion
@@ -601,6 +703,7 @@ function OpeningContent() {
                 noLabel={t('forms.opening.fondDeCaisseNo')}
                 required
                 error={fieldError === 'carteParking'}
+                disabled={isLocked}
               />
             )}
 
@@ -622,90 +725,99 @@ function OpeningContent() {
                 }}
                 noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
                 noJustificationError={fieldError === 'musiqueDisneyJustification'}
+                disabled={isLocked}
               />
             )}
           </FormSection>
 
           <FormSection title={t('forms.opening.sectionPannes')}>
-            {openTickets.length > 0 && (
-              <div className="space-y-3">
-                <p
-                  className="text-[11px] font-semibold uppercase tracking-wide"
-                  style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
-                >
-                  {t('forms.opening.sectionPannesVerification')}
-                </p>
-                <OpenPannesCheckin
-                  tickets={openTickets}
-                  answers={panneCheckinAnswers}
-                  onAnswer={(ticketId, answer) => {
-                    setPanneCheckinAnswers((prev) => ({ ...prev, [ticketId]: answer }));
-                    if (fieldError === 'panneCheckin') setFieldError(null);
-                  }}
-                  error={fieldError === 'panneCheckin'}
-                />
-              </div>
+            {isLocked ? (
+              <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                —
+              </p>
+            ) : (
+              <>
+                {openTickets.length > 0 && (
+                  <div className="space-y-3">
+                    <p
+                      className="text-[11px] font-semibold uppercase tracking-wide"
+                      style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+                    >
+                      {t('forms.opening.sectionPannesVerification')}
+                    </p>
+                    <OpenPannesCheckin
+                      tickets={openTickets}
+                      answers={panneCheckinAnswers}
+                      onAnswer={(ticketId, answer) => {
+                        setPanneCheckinAnswers((prev) => ({ ...prev, [ticketId]: answer }));
+                        if (fieldError === 'panneCheckin') setFieldError(null);
+                      }}
+                      error={fieldError === 'panneCheckin'}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <p
+                    className="text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+                  >
+                    {t('forms.opening.sectionPannesSujets')}
+                  </p>
+                  <PannesSection
+                    variant="sujets"
+                    siteId={mission?.site_id}
+                    selectedSujetIds={selectedSujetIds}
+                    onToggleSujet={(id) =>
+                      setSelectedSujetIds((prev) =>
+                        prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                      )
+                    }
+                    sujetReasons={sujetReasons}
+                    onSujetReasonChange={(id, reason) =>
+                      setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+                    }
+                    pannesAutre={pannesAutre}
+                    onPannesAutreChange={setPannesAutre}
+                    onClearPannes={() => {
+                      setSelectedSujetIds([]);
+                      setSujetReasons({});
+                      setPannesAutre('');
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <p
+                    className="text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+                  >
+                    {t('forms.opening.sectionPannesAutres')}
+                  </p>
+                  <PannesSection
+                    variant="autre"
+                    siteId={mission?.site_id}
+                    selectedSujetIds={selectedSujetIds}
+                    onToggleSujet={(id) =>
+                      setSelectedSujetIds((prev) =>
+                        prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                      )
+                    }
+                    sujetReasons={sujetReasons}
+                    onSujetReasonChange={(id, reason) =>
+                      setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+                    }
+                    pannesAutre={pannesAutre}
+                    onPannesAutreChange={setPannesAutre}
+                    onClearPannes={() => {
+                      setSelectedSujetIds([]);
+                      setSujetReasons({});
+                      setPannesAutre('');
+                    }}
+                  />
+                </div>
+              </>
             )}
-
-            <div className="space-y-3">
-              <p
-                className="text-[11px] font-semibold uppercase tracking-wide"
-                style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
-              >
-                {t('forms.opening.sectionPannesSujets')}
-              </p>
-              <PannesSection
-                variant="sujets"
-                siteId={mission?.site_id}
-                selectedSujetIds={selectedSujetIds}
-                onToggleSujet={(id) =>
-                  setSelectedSujetIds((prev) =>
-                    prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
-                  )
-                }
-                sujetReasons={sujetReasons}
-                onSujetReasonChange={(id, reason) =>
-                  setSujetReasons((prev) => ({ ...prev, [id]: reason }))
-                }
-                pannesAutre={pannesAutre}
-                onPannesAutreChange={setPannesAutre}
-                onClearPannes={() => {
-                  setSelectedSujetIds([]);
-                  setSujetReasons({});
-                  setPannesAutre('');
-                }}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <p
-                className="text-[11px] font-semibold uppercase tracking-wide"
-                style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
-              >
-                {t('forms.opening.sectionPannesAutres')}
-              </p>
-              <PannesSection
-                variant="autre"
-                siteId={mission?.site_id}
-                selectedSujetIds={selectedSujetIds}
-                onToggleSujet={(id) =>
-                  setSelectedSujetIds((prev) =>
-                    prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
-                  )
-                }
-                sujetReasons={sujetReasons}
-                onSujetReasonChange={(id, reason) =>
-                  setSujetReasons((prev) => ({ ...prev, [id]: reason }))
-                }
-                pannesAutre={pannesAutre}
-                onPannesAutreChange={setPannesAutre}
-                onClearPannes={() => {
-                  setSelectedSujetIds([]);
-                  setSujetReasons({});
-                  setPannesAutre('');
-                }}
-              />
-            </div>
           </FormSection>
 
           {showChrono && (
@@ -733,6 +845,7 @@ function OpeningContent() {
                       [key]: { ...prev[key], reste: value },
                     }));
                   }}
+                  disabled={isLocked}
                 />
               </FormSection>
               <FormSection title={t('forms.opening.sectionAffaires')}>
@@ -758,6 +871,7 @@ function OpeningContent() {
                       [key]: { ...prev[key], reste: value },
                     }));
                   }}
+                  disabled={isLocked}
                 />
               </FormSection>
             </>
@@ -780,6 +894,7 @@ function OpeningContent() {
                 }}
                 required
                 error={fieldError === 'chrono' || chronoOutOfRangeAttempts > 0}
+                readOnly={isLocked}
               />
             </FormSection>
           )}
@@ -791,16 +906,18 @@ function OpeningContent() {
           >
             <div className="space-y-1.5">
               <textarea
-                placeholder={t('forms.opening.observationsPlaceholder')}
+                placeholder={isLocked ? undefined : t('forms.opening.observationsPlaceholder')}
                 value={form.observations}
+                readOnly={isLocked}
                 onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))}
                 rows={3}
                 className="min-h-[80px] w-full resize-none rounded-xl border px-3 py-3 text-base"
                 style={{
                   color: colors.TEXT_PRIMARY,
                   borderColor: colors.BORDER,
-                  backgroundColor: colors.BG_SECONDARY,
+                  backgroundColor: isLocked ? colors.BG_PRIMARY : colors.BG_SECONDARY,
                   borderRadius: RADIUS.sm,
+                  opacity: isLocked ? 0.92 : 1,
                 }}
               />
             </div>

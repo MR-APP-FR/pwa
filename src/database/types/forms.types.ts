@@ -69,6 +69,9 @@ export interface ClosingFormRow {
   paye_jour: string | null;
   paye_manquante_recuperee: string | null;
   paye_double: string | null;
+  /** Frais divers sortis en espèces (déduits enveloppe). */
+  frais: string | null;
+  frais_raison: string | null;
   point_caisse_13_14: string | null;
   point_caisse_20_2035: string | null;
   observations: string | null;

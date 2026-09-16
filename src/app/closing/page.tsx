@@ -12,12 +12,16 @@ import { FormSection } from '../../components/forms/FormSection';
 import { PannesSection, buildPannesDetail, type SujetReasons } from '../../components/forms/PannesSection';
 import { useSujets } from '../../hooks/api/useSujets';
 import { useMissionForms } from '../../hooks/api/useMissionForms';
+import { useExistingClosingForm } from '../../hooks/api/useExistingClosingForm';
+import { useTelecollecteSignedUrl } from '../../hooks/api/useTelecollecteSignedUrl';
 import { useSiteClosingChecklist,
   type ClosingChecklistItemKey,
 } from '../../hooks/api/useSiteClosingChecklist';
 import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
+import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
+import { LockedPhotoThumb } from '../../components/forms/LockedPhotoThumb';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
 import { useAppDate } from '../../hooks/useAppDate';
@@ -45,6 +49,12 @@ function pad2(n: number): string {
 
 function formatEurAmount(n: number): string {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function numFromDb(value: string | number | null | undefined): number | null {
+  if (value == null || value === '') return null;
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 type ClosingFieldKey = keyof ClosingFormData;
@@ -107,6 +117,12 @@ const PAIE_SECTION: ClosingSection = {
       labelKey: 'forms.closing.payeManquanteRecuperee',
       unit: 'eur',
     },
+    {
+      key: 'frais',
+      labelKey: 'forms.closing.frais',
+      unit: 'eur',
+      helpKey: 'forms.closing.fraisHelp',
+    },
   ],
 };
 
@@ -122,6 +138,8 @@ const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   payeDuJour: 'payeJour',
   payeManquanteRecuperee: 'payeManquanteRecuperee',
   payeDuDouble: 'payeDouble',
+  frais: 'frais',
+  fraisRaison: null,
   pointCaisse13h: 'pointCaisse13h',
   pointCaisse20h: 'pointCaisse20h',
   avisGoogleCount: null,
@@ -151,6 +169,20 @@ function ClosingContent() {
   const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
   const showParkingPhoto = carteParkingConfig?.enabled === true;
   const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
+  const { data: existingClosing, isLoading: existingClosingLoading } = useExistingClosingForm(
+    mission?.site_id,
+    missionDateIso,
+  );
+  const isLocked = existingClosing != null;
+  const hydratedRef = useRef(false);
+
+  const telecollecteSigned = useTelecollecteSignedUrl(
+    isLocked ? existingClosing?.photo_url : null,
+  );
+  const parkingSigned = useTelecollecteSignedUrl(
+    isLocked ? existingClosing?.photo_parking_url : null,
+  );
+  const seauSigned = useTelecollecteSignedUrl(isLocked ? existingClosing?.photo_seau_url : null);
 
   const [form, setForm] = useState<ClosingFormData>({
     missionId,
@@ -162,6 +194,8 @@ function ClosingContent() {
     payeDuJour: null,
     payeManquanteRecuperee: null,
     payeDuDouble: null,
+    frais: null,
+    fraisRaison: '',
     pointCaisse13h: null,
     pointCaisse20h: null,
     avisGoogleCount: null,
@@ -196,15 +230,50 @@ function ClosingContent() {
   const [missingOpen, setMissingOpen] = useState(false);
 
   // X = espèces enveloppe ; Y = CB enveloppe (null → 0). Pas stockés en base.
-  // Sorties espèces : CB + rémunérations + payé manquante récupérée.
+  // Sorties espèces : CB + rémunérations + payé manquante récupérée + frais.
   const enveloppeEspeces =
     (form.recetteTotale ?? 0) -
     (form.carteBleue ?? 0) -
     (form.payeDuJour ?? 0) -
     (form.payeDuDouble ?? 0) -
-    (form.payeManquanteRecuperee ?? 0);
+    (form.payeManquanteRecuperee ?? 0) -
+    (form.frais ?? 0);
   const enveloppeCb = form.carteBleue ?? 0;
   const enveloppeAnomaly = enveloppeEspeces < 0;
+  const fraisNeedsReason = (form.frais ?? 0) > 0 && form.fraisRaison.trim().length === 0;
+
+  useEffect(() => {
+    if (!existingClosing || hydratedRef.current) return;
+    hydratedRef.current = true;
+    setForm({
+      missionId,
+      recetteTotale: numFromDb(existingClosing.recette_totale),
+      carteBleue: numFromDb(existingClosing.carte_bleue),
+      nombreEnfants: existingClosing.nb_enfants,
+      ticketsOuverture: existingClosing.tickets_ouverture,
+      ticketsFermeture: existingClosing.tickets_fermeture,
+      payeDuJour: numFromDb(existingClosing.paye_jour),
+      payeManquanteRecuperee: numFromDb(existingClosing.paye_manquante_recuperee),
+      payeDuDouble: numFromDb(existingClosing.paye_double),
+      frais: numFromDb(existingClosing.frais),
+      fraisRaison: existingClosing.frais_raison?.trim() ?? '',
+      pointCaisse13h: numFromDb(existingClosing.point_caisse_13_14),
+      pointCaisse20h: numFromDb(existingClosing.point_caisse_20_2035),
+      avisGoogleCount: existingClosing.avis_google_count,
+      observations: existingClosing.observations ?? '',
+      telecollectePhotoUri: existingClosing.photo_url,
+      telecollectePhotoSource: existingClosing.photo_source,
+      telecollectePhotoCapturedAtMs: existingClosing.photo_captured_at
+        ? new Date(existingClosing.photo_captured_at).getTime()
+        : null,
+    });
+    setChecklist(
+      (existingClosing.checklist ?? {}) as Partial<Record<ClosingChecklistItemKey, boolean>>,
+    );
+    setNettoyageFait(existingClosing.nettoyage_fait);
+    setNettoyageRaison(existingClosing.nettoyage_raison ?? '');
+    setEnvelopeConfirmed(true);
+  }, [existingClosing, missionId]);
 
   const closingDeadline = missionDateIso ? closingDeadlineParisFromDateIso(missionDateIso) : null;
 
@@ -261,6 +330,7 @@ function ClosingContent() {
     (!showParkingPhoto || parkingPhoto !== null) &&
     nettoyageFait !== null &&
     (nettoyageFait === true ? seauPhoto !== null : nettoyageRaison.trim().length > 0) &&
+    !fraisNeedsReason &&
     envelopeConfirmed;
 
   const missingFieldLabels = useMemo(() => {
@@ -281,6 +351,7 @@ function ClosingContent() {
         t('forms.common.missingNoJustification', { field: t('forms.closing.nettoyageFait') }),
       );
     }
+    if (fraisNeedsReason) items.push(t('forms.closing.fraisRaison'));
     if (!envelopeConfirmed) items.push(t('forms.closing.envelopeCheckbox'));
     return items;
   }, [
@@ -292,6 +363,7 @@ function ClosingContent() {
     nettoyageFait,
     seauPhoto,
     nettoyageRaison,
+    fraisNeedsReason,
     envelopeConfirmed,
     t,
   ]);
@@ -304,7 +376,8 @@ function ClosingContent() {
       key === 'carteBleue' ||
       key === 'payeDuJour' ||
       key === 'payeDuDouble' ||
-      key === 'payeManquanteRecuperee'
+      key === 'payeManquanteRecuperee' ||
+      key === 'frais'
     ) {
       setEnvelopeConfirmed(false);
     }
@@ -314,17 +387,55 @@ function ClosingContent() {
     return (
       <FormSection key={section.titleKey} title={t(section.titleKey)}>
         <div className="flex flex-col gap-4">
-          {section.fields.map(({ key, labelKey, unit, required, inputMode }) => (
-            <FormNumberInput
-              key={key}
-              label={t(labelKey)}
-              value={form[key] as number | null}
-              onChange={(v) => updateNumericField(key, v)}
-              unit={unit}
-              required={required}
-              error={fieldError === key}
-              inputMode={inputMode ?? 'decimal'}
-            />
+          {section.fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
+            <div key={key} className="space-y-2">
+              <FormNumberInput
+                label={t(labelKey)}
+                value={form[key] as number | null}
+                onChange={(v) => updateNumericField(key, v)}
+                unit={unit}
+                required={required}
+                error={fieldError === key}
+                inputMode={inputMode ?? 'decimal'}
+                helpText={helpKey ? t(helpKey) : undefined}
+                readOnly={isLocked}
+              />
+              {key === 'frais' && (form.frais ?? 0) > 0 ? (
+                <div className="space-y-1.5">
+                  <label
+                    className="text-sm font-semibold"
+                    style={{ color: colors.TEXT_PRIMARY }}
+                  >
+                    {t('forms.closing.fraisRaison')}
+                    {!isLocked && (
+                      <span className="ml-0.5" style={{ color: colors.DANGER }} aria-hidden>
+                        *
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.fraisRaison}
+                    readOnly={isLocked}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, fraisRaison: e.target.value }));
+                      setEnvelopeConfirmed(false);
+                    }}
+                    placeholder={isLocked ? undefined : t('forms.closing.fraisRaisonPlaceholder')}
+                    className="min-h-[48px] w-full rounded-xl border px-3 py-3 text-base"
+                    style={{
+                      color: colors.TEXT_PRIMARY,
+                      borderColor: fraisNeedsReason ? colors.DANGER : colors.BORDER,
+                      backgroundColor: isLocked ? colors.BG_PRIMARY : colors.BG_SECONDARY,
+                      borderRadius: RADIUS.sm,
+                      opacity: isLocked ? 0.92 : 1,
+                    }}
+                    aria-required={!isLocked}
+                    aria-invalid={fraisNeedsReason}
+                  />
+                </div>
+              ) : null}
+            </div>
           ))}
         </div>
       </FormSection>
@@ -401,6 +512,10 @@ function ClosingContent() {
     if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
       setFieldError('nettoyageRaison');
       setSubmitError(t('forms.closing.errorNettoyageRaison'));
+      return false;
+    }
+    if (fraisNeedsReason) {
+      setSubmitError(t('forms.closing.errorFraisRaison'));
       return false;
     }
     if (!envelopeConfirmed) {
@@ -495,6 +610,7 @@ function ClosingContent() {
           const value = form[key];
           fd.set(dataKey, value === null || value === undefined ? '' : String(value));
         }
+        fd.set('fraisRaison', form.fraisRaison.trim());
         fd.set('observations', form.observations);
         fd.set('avisGoogleCount', form.avisGoogleCount === null ? '' : String(form.avisGoogleCount));
         fd.set('checklist', JSON.stringify(checklist));
@@ -547,6 +663,7 @@ function ClosingContent() {
         }
 
         queryClient.invalidateQueries({ queryKey: ['missionForms'] });
+        queryClient.invalidateQueries({ queryKey: ['existingClosingForm'] });
         setSubmitted(true);
       } catch {
         setSubmitError(t('forms.common.errorSubmit'));
@@ -576,11 +693,30 @@ function ClosingContent() {
     );
   }
 
+  if (existingClosingLoading && !existingClosing) {
+    return (
+      <FormScrollLayout>
+        <div
+          className="flex min-h-[40vh] items-center justify-center"
+          style={{ backgroundColor: colors.BG_SECONDARY }}
+        >
+          <p style={{ color: colors.TEXT_SECONDARY }}>...</p>
+        </div>
+      </FormScrollLayout>
+    );
+  }
+
   return (
     <>
     <FormScrollLayout
       footer={
         <div className="px-4 py-3" style={{ backgroundColor: colors.BG_SECONDARY }}>
+          {isLocked ? (
+            <PrimaryButton onClick={() => router.back()} className="w-full py-4 text-base">
+              Retour
+            </PrimaryButton>
+          ) : (
+            <>
           <FormMissingFieldsHint
             items={missingFieldLabels}
             open={missingOpen}
@@ -624,6 +760,8 @@ function ClosingContent() {
               {t('forms.closing.closeEarly')}
             </PrimaryButton>
           )}
+            </>
+          )}
         </div>
       }
     >
@@ -643,7 +781,8 @@ function ClosingContent() {
           />
         )}
         <div className="px-4 pb-3 pt-3">
-          {needsForceUi && forceCheck.distanceM != null && (
+          {isLocked && <FormLockedBanner label={t('forms.closing.lockedBanner')} />}
+          {!isLocked && needsForceUi && forceCheck.distanceM != null && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
               style={{
@@ -659,7 +798,7 @@ function ClosingContent() {
               })}
             </div>
           )}
-          {needsForceUi && forceRevealed && forceCheck.geoFailed && (
+          {!isLocked && needsForceUi && forceRevealed && forceCheck.geoFailed && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
               style={{
@@ -676,6 +815,11 @@ function ClosingContent() {
             {EARLY_SECTIONS.map(renderNumericSection)}
 
             <FormSection title={t('forms.closing.sectionPannes')}>
+              {isLocked ? (
+                <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                  —
+                </p>
+              ) : (
               <PannesSection
                 siteId={mission?.site_id}
                 selectedSujetIds={selectedSujetIds}
@@ -696,6 +840,7 @@ function ClosingContent() {
                   setPannesAutre('');
                 }}
               />
+              )}
             </FormSection>
 
             {renderNumericSection(PAIE_SECTION)}
@@ -711,6 +856,7 @@ function ClosingContent() {
                       <input
                         type="checkbox"
                         checked={checklist[item] ?? false}
+                        disabled={isLocked}
                         onChange={(e) =>
                           setChecklist((prev) => ({ ...prev, [item]: e.target.checked }))
                         }
@@ -728,19 +874,30 @@ function ClosingContent() {
 
             {showParkingPhoto && (
               <FormSection title={t('forms.closing.sectionParkingPhoto')}>
-                <PhotoCaptureField
-                  label={t('forms.closing.parkingPhoto')}
-                  value={parkingPhoto}
-                  onChange={(photo) => {
-                    setParkingPhoto(photo);
-                    if (fieldError === 'parkingPhoto') setFieldError(null);
-                  }}
-                  required
-                />
-                {fieldError === 'parkingPhoto' && (
-                  <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
-                    {t('forms.closing.errorParkingPhoto')}
-                  </p>
+                {isLocked ? (
+                  <LockedPhotoThumb
+                    label={t('forms.closing.parkingPhoto')}
+                    signedUrl={parkingSigned.data ?? null}
+                    source={existingClosing?.photo_parking_source ?? null}
+                    capturedAtIso={existingClosing?.photo_parking_captured_at ?? null}
+                  />
+                ) : (
+                  <>
+                    <PhotoCaptureField
+                      label={t('forms.closing.parkingPhoto')}
+                      value={parkingPhoto}
+                      onChange={(photo) => {
+                        setParkingPhoto(photo);
+                        if (fieldError === 'parkingPhoto') setFieldError(null);
+                      }}
+                      required
+                    />
+                    {fieldError === 'parkingPhoto' && (
+                      <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
+                        {t('forms.closing.errorParkingPhoto')}
+                      </p>
+                    )}
+                  </>
                 )}
               </FormSection>
             )}
@@ -752,6 +909,7 @@ function ClosingContent() {
                 onChange={(v) => setForm((f) => ({ ...f, avisGoogleCount: v }))}
                 unit="count"
                 inputMode="numeric"
+                readOnly={isLocked}
               />
             </FormSection>
 
@@ -789,33 +947,52 @@ function ClosingContent() {
                 }}
                 noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
                 noJustificationError={fieldError === 'nettoyageRaison'}
+                disabled={isLocked}
               />
-              {nettoyageFait === true && (
-                <PhotoCaptureField
-                  label={t('forms.closing.photoSeau')}
-                  value={seauPhoto}
-                  onChange={(photo) => {
-                    setSeauPhoto(photo);
-                    if (fieldError === 'seauPhoto') setFieldError(null);
-                  }}
-                  required
-                />
-              )}
+              {nettoyageFait === true &&
+                (isLocked ? (
+                  <LockedPhotoThumb
+                    label={t('forms.closing.photoSeau')}
+                    signedUrl={seauSigned.data ?? null}
+                    source={existingClosing?.photo_seau_source ?? null}
+                    capturedAtIso={existingClosing?.photo_seau_captured_at ?? null}
+                  />
+                ) : (
+                  <PhotoCaptureField
+                    label={t('forms.closing.photoSeau')}
+                    value={seauPhoto}
+                    onChange={(photo) => {
+                      setSeauPhoto(photo);
+                      if (fieldError === 'seauPhoto') setFieldError(null);
+                    }}
+                    required
+                  />
+                ))}
 
               <textarea
-                placeholder={t('forms.closing.observationsPlaceholder')}
+                placeholder={isLocked ? undefined : t('forms.closing.observationsPlaceholder')}
                 value={form.observations}
+                readOnly={isLocked}
                 onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))}
                 rows={2}
                 className="min-h-[72px] w-full resize-none rounded-xl border px-3 py-3 text-base"
                 style={{
                   color: colors.TEXT_PRIMARY,
                   borderColor: colors.BORDER,
-                  backgroundColor: colors.BG_SECONDARY,
+                  backgroundColor: isLocked ? colors.BG_PRIMARY : colors.BG_SECONDARY,
                   borderRadius: RADIUS.sm,
+                  opacity: isLocked ? 0.92 : 1,
                 }}
               />
 
+              {isLocked ? (
+                <LockedPhotoThumb
+                  label={t('forms.closing.telecollectePhoto')}
+                  signedUrl={telecollecteSigned.data ?? null}
+                  source={existingClosing?.photo_source ?? null}
+                  capturedAtIso={existingClosing?.photo_captured_at ?? null}
+                />
+              ) : (
               <div className="space-y-1.5 pt-2">
                 <label className="text-sm font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
                   {t('forms.closing.telecollectePhoto')}
@@ -918,6 +1095,7 @@ function ClosingContent() {
                   </button>
                 )}
               </div>
+              )}
             </FormSection>
 
             <FormSection title={t('forms.closing.envelopeTitle')}>
@@ -947,6 +1125,7 @@ function ClosingContent() {
                   <input
                     type="checkbox"
                     checked={envelopeConfirmed}
+                    disabled={isLocked}
                     onChange={(e) => {
                       setEnvelopeConfirmed(e.target.checked);
                       if (e.target.checked) setSubmitError(null);

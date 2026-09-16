@@ -22,6 +22,7 @@ interface FormNumberInputProps {
   helpText?: string;
   placeholder?: string;
   inputMode?: 'decimal' | 'numeric';
+  readOnly?: boolean;
 }
 
 export function FormNumberInput({
@@ -34,6 +35,7 @@ export function FormNumberInput({
   helpText,
   placeholder,
   inputMode = 'decimal',
+  readOnly = false,
 }: FormNumberInputProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
@@ -45,19 +47,20 @@ export function FormNumberInput({
     (unit === 'eur'
       ? t('forms.common.placeholderAmount')
       : t('forms.common.placeholderCount'));
+  const fieldBg = readOnly ? colors.BG_PRIMARY : colors.BG_SECONDARY;
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-start gap-1.5">
         <label className="text-sm font-semibold leading-snug" style={{ color: colors.TEXT_PRIMARY }}>
           {label}
-          {required && (
+          {required && !readOnly && (
             <span className="ml-0.5" style={{ color: colors.DANGER }} aria-hidden>
               *
             </span>
           )}
         </label>
-        {helpText && <FieldHelp text={helpText} />}
+        {helpText && !readOnly && <FieldHelp text={helpText} />}
       </div>
       <div className="relative flex items-stretch">
         {unit === 'eur' && (
@@ -66,7 +69,7 @@ export function FormNumberInput({
             style={{
               color: colors.TEXT_SECONDARY,
               borderColor,
-              backgroundColor: colors.BG_SECONDARY,
+              backgroundColor: fieldBg,
               borderTopLeftRadius: RADIUS.sm,
               borderBottomLeftRadius: RADIUS.sm,
             }}
@@ -78,16 +81,22 @@ export function FormNumberInput({
           type="text"
           inputMode={inputMode}
           value={displayValue}
-          placeholder={resolvedPlaceholder}
-          onChange={(e) => onChange(parseNumber(e.target.value))}
-          aria-required={required}
+          placeholder={readOnly ? undefined : resolvedPlaceholder}
+          onChange={(e) => {
+            if (readOnly) return;
+            onChange(parseNumber(e.target.value));
+          }}
+          readOnly={readOnly}
+          aria-required={required && !readOnly}
           aria-invalid={error}
-          className={`min-h-[48px] w-full border px-3 py-3 text-base ${unit === 'eur' ? 'rounded-r-xl rounded-l-none' : 'rounded-xl'}`}
+          aria-readonly={readOnly}
+          className={`min-h-[48px] w-full border px-3 py-3 text-base ${unit === 'eur' ? 'rounded-r-xl rounded-l-none' : 'rounded-xl'}${readOnly ? ' cursor-default' : ''}`}
           style={{
             color: colors.TEXT_PRIMARY,
             borderColor,
-            backgroundColor: colors.BG_SECONDARY,
+            backgroundColor: fieldBg,
             borderRadius: unit === 'eur' ? undefined : RADIUS.sm,
+            opacity: readOnly ? 0.92 : 1,
           }}
         />
       </div>

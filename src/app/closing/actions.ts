@@ -139,6 +139,14 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   }
   const { userId, supabase } = session;
 
+  const fraisAmount = nullableNumber(formData, 'frais');
+  if (fraisAmount != null && fraisAmount < 0) {
+    return { ok: false, error: 'Montant des frais invalide.' };
+  }
+  if (fraisAmount != null && fraisAmount > 0 && !nullableText(formData, 'fraisRaison')) {
+    return { ok: false, error: 'Indique le motif des frais.' };
+  }
+
   const parkingRequired = await siteRequiresParkingPhoto(supabase, siteId);
   if (parkingRequired) {
     if (!(parkingPhoto instanceof File) || parkingPhoto.size === 0) {
@@ -270,6 +278,12 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         paye_jour: nullableNumber(formData, 'payeJour'),
         paye_manquante_recuperee: nullableNumber(formData, 'payeManquanteRecuperee'),
         paye_double: nullableNumber(formData, 'payeDouble'),
+        frais: nullableNumber(formData, 'frais'),
+        frais_raison: (() => {
+          const frais = nullableNumber(formData, 'frais');
+          if (frais == null || frais <= 0) return null;
+          return nullableText(formData, 'fraisRaison');
+        })(),
         point_caisse_13_14: nullableNumber(formData, 'pointCaisse13h'),
         point_caisse_20_2035: nullableNumber(formData, 'pointCaisse20h'),
         observations: nullableText(formData, 'observations'),
