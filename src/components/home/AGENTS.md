@@ -9,7 +9,7 @@
 | Fichier | Rôle |
 |---|---|
 | [../../app/page.tsx](../../app/page.tsx) | Page |
-| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission |
+| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission ; **prochaine affectation** affiche aussi les horaires (`ouvre`–`ferme`) |
 | [WeatherEncourageBanner.tsx](WeatherEncourageBanner.tsx) | Popup météo (toujours positif) |
 | [../../lib/weather/encourageCopy.ts](../../lib/weather/encourageCopy.ts) | Titre + corps brief ; sélection par tags |
 | [../../lib/weather/encourageMessages.fr.json](../../lib/weather/encourageMessages.fr.json) | ~100 variantes FR (météo, jour, saison, passage) |
@@ -21,6 +21,7 @@
 ## Hooks / données
 
 - `usePlanning`, `useAppDate` — affectation jour
+- `useSitesHeuresOuverture` — horaires prochaine affectation
 - `useSiteWeather` — lit `site_weather` (écrit par Edge `weather-sync`)
 - `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount`
 - `useAvailability` + `isAvailabilityReminderWindow` — badge dispos mercredi

@@ -17,7 +17,7 @@ import { useTelecollecteSignedUrl } from '../../hooks/api/useTelecollecteSignedU
 import { useSiteClosingChecklist,
   type ClosingChecklistItemKey,
 } from '../../hooks/api/useSiteClosingChecklist';
-import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
+import { useSiteTerrainConfig } from '../../hooks/api/useSiteTerrainConfig';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
 import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
@@ -79,6 +79,7 @@ const EARLY_SECTIONS: ClosingSection[] = [
     fields: [
       { key: 'recetteTotale', labelKey: 'forms.closing.recetteTotale', unit: 'eur', required: true },
       { key: 'carteBleue', labelKey: 'forms.closing.carteBleue', unit: 'eur' },
+      { key: 'confiserie', labelKey: 'forms.closing.confiserie', unit: 'eur' },
     ],
   },
   {
@@ -143,6 +144,7 @@ const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   pointCaisse13h: 'pointCaisse13h',
   pointCaisse20h: 'pointCaisse20h',
   avisGoogleCount: null,
+  confiserie: 'confiserie',
   observations: 'observations',
   telecollectePhotoUri: null,
   telecollectePhotoSource: null,
@@ -166,8 +168,9 @@ function ClosingContent() {
 
   const { data: sujets } = useSujets(mission?.site_id);
   const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
-  const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
-  const showParkingPhoto = carteParkingConfig?.enabled === true;
+  const { data: terrainConfig } = useSiteTerrainConfig(mission?.site_id);
+  const showParkingPhoto = terrainConfig?.carteParkingEnabled === true;
+  const showConfiserie = terrainConfig?.standConfiserie === true;
   const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
   const { data: existingClosing, isLoading: existingClosingLoading } = useExistingClosingForm(
     mission?.site_id,
@@ -197,14 +200,14 @@ function ClosingContent() {
     frais: null,
     fraisRaison: '',
     pointCaisse13h: null,
-    pointCaisse20h: null,
-    avisGoogleCount: null,
-    observations: '',
-    telecollectePhotoUri: null,
-    telecollectePhotoSource: null,
-    telecollectePhotoCapturedAtMs: null,
-  });
-
+      pointCaisse20h: null,
+      avisGoogleCount: null,
+      confiserie: null,
+      observations: '',
+      telecollectePhotoUri: null,
+      telecollectePhotoSource: null,
+      telecollectePhotoCapturedAtMs: null,
+    });
   const [checklist, setChecklist] = useState<Partial<Record<ClosingChecklistItemKey, boolean>>>({});
   const [selectedSujetIds, setSelectedSujetIds] = useState<number[]>([]);
   const [sujetReasons, setSujetReasons] = useState<SujetReasons>({});
@@ -212,13 +215,20 @@ function ClosingContent() {
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [parkingPhoto, setParkingPhoto] = useState<CapturedPhoto | null>(null);
+  const [parkingPhotoRaison, setParkingPhotoRaison] = useState('');
   const [nettoyageFait, setNettoyageFait] = useState<boolean | null>(null);
   const [nettoyageRaison, setNettoyageRaison] = useState('');
   const [seauPhoto, setSeauPhoto] = useState<CapturedPhoto | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<
-    ClosingFieldKey | 'photo' | 'parkingPhoto' | 'nettoyageFait' | 'nettoyageRaison' | 'seauPhoto' | null
+    | ClosingFieldKey
+    | 'photo'
+    | 'parkingPhoto'
+    | 'nettoyageFait'
+    | 'nettoyageRaison'
+    | 'seauPhoto'
+    | null
   >(null);
   const [envelopeConfirmed, setEnvelopeConfirmed] = useState(false);
   const [forceReason, setForceReason] = useState('');
@@ -260,6 +270,7 @@ function ClosingContent() {
       pointCaisse13h: numFromDb(existingClosing.point_caisse_13_14),
       pointCaisse20h: numFromDb(existingClosing.point_caisse_20_2035),
       avisGoogleCount: existingClosing.avis_google_count,
+      confiserie: numFromDb(existingClosing.confiserie),
       observations: existingClosing.observations ?? '',
       telecollectePhotoUri: existingClosing.photo_url,
       telecollectePhotoSource: existingClosing.photo_source,
@@ -272,6 +283,7 @@ function ClosingContent() {
     );
     setNettoyageFait(existingClosing.nettoyage_fait);
     setNettoyageRaison(existingClosing.nettoyage_raison ?? '');
+    setParkingPhotoRaison(existingClosing.photo_parking_raison ?? '');
     setEnvelopeConfirmed(true);
   }, [existingClosing, missionId]);
 
@@ -323,11 +335,15 @@ function ClosingContent() {
       ? 'forms.closing.forceReasonPlaceholderGeo'
       : 'forms.closing.forceReasonPlaceholderEarly';
 
+  const parkingSatisfied =
+    !showParkingPhoto || parkingPhoto !== null || parkingPhotoRaison.trim().length > 0;
+
   const formValid =
     form.recetteTotale !== null &&
     photoFile !== null &&
     form.telecollectePhotoSource !== null &&
-    (!showParkingPhoto || parkingPhoto !== null) &&
+    parkingSatisfied &&
+    (!showConfiserie || form.confiserie !== null) &&
     nettoyageFait !== null &&
     (nettoyageFait === true ? seauPhoto !== null : nettoyageRaison.trim().length > 0) &&
     !fraisNeedsReason &&
@@ -336,11 +352,12 @@ function ClosingContent() {
   const missingFieldLabels = useMemo(() => {
     const items: string[] = [];
     if (form.recetteTotale === null) items.push(t('forms.closing.recetteTotale'));
+    if (showConfiserie && form.confiserie === null) items.push(t('forms.closing.confiserie'));
     if (photoFile === null || form.telecollectePhotoSource === null) {
       items.push(t('forms.closing.telecollectePhoto'));
     }
-    if (showParkingPhoto && parkingPhoto === null) {
-      items.push(t('forms.closing.parkingPhoto'));
+    if (showParkingPhoto && !parkingSatisfied) {
+      items.push(t('forms.closing.parkingPhotoOrReason'));
     }
     if (nettoyageFait === null) {
       items.push(t('forms.closing.nettoyageFait'));
@@ -356,10 +373,12 @@ function ClosingContent() {
     return items;
   }, [
     form.recetteTotale,
+    form.confiserie,
     form.telecollectePhotoSource,
     photoFile,
     showParkingPhoto,
-    parkingPhoto,
+    parkingSatisfied,
+    showConfiserie,
     nettoyageFait,
     seauPhoto,
     nettoyageRaison,
@@ -384,17 +403,21 @@ function ClosingContent() {
   }
 
   function renderNumericSection(section: ClosingSection) {
+    const fields = section.fields.filter(
+      (f) => f.key !== 'confiserie' || showConfiserie,
+    );
+    if (fields.length === 0) return null;
     return (
       <FormSection key={section.titleKey} title={t(section.titleKey)}>
         <div className="flex flex-col gap-4">
-          {section.fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
+          {fields.map(({ key, labelKey, unit, required, inputMode, helpKey }) => (
             <div key={key} className="space-y-2">
               <FormNumberInput
                 label={t(labelKey)}
                 value={form[key] as number | null}
                 onChange={(v) => updateNumericField(key, v)}
                 unit={unit}
-                required={required}
+                required={required || (key === 'confiserie' && showConfiserie)}
                 error={fieldError === key}
                 inputMode={inputMode ?? 'decimal'}
                 helpText={helpKey ? t(helpKey) : undefined}
@@ -623,6 +646,9 @@ function ClosingContent() {
           fd.set('parkingPhoto', parkingPhoto.file);
           fd.set('parkingPhotoSource', parkingPhoto.source);
           fd.set('parkingPhotoCapturedAtMs', String(parkingPhoto.capturedAtMs));
+        }
+        if (showParkingPhoto && parkingPhotoRaison.trim()) {
+          fd.set('parkingPhotoRaison', parkingPhotoRaison.trim());
         }
         fd.set('nettoyageFait', nettoyageFait ? '1' : '0');
         if (nettoyageFait === true && seauPhoto) {
@@ -875,29 +901,63 @@ function ClosingContent() {
             {showParkingPhoto && (
               <FormSection title={t('forms.closing.sectionParkingPhoto')}>
                 {isLocked ? (
-                  <LockedPhotoThumb
-                    label={t('forms.closing.parkingPhoto')}
-                    signedUrl={parkingSigned.data ?? null}
-                    source={existingClosing?.photo_parking_source ?? null}
-                    capturedAtIso={existingClosing?.photo_parking_captured_at ?? null}
-                  />
+                  existingClosing?.photo_parking_url ? (
+                    <LockedPhotoThumb
+                      label={t('forms.closing.parkingPhoto')}
+                      signedUrl={parkingSigned.data ?? null}
+                      source={existingClosing?.photo_parking_source ?? null}
+                      capturedAtIso={existingClosing?.photo_parking_captured_at ?? null}
+                    />
+                  ) : (
+                    <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                      {existingClosing?.photo_parking_raison?.trim() ||
+                        t('forms.closing.parkingPhotoReason')}
+                    </p>
+                  )
                 ) : (
-                  <>
+                  <div className="flex flex-col gap-3">
                     <PhotoCaptureField
                       label={t('forms.closing.parkingPhoto')}
                       value={parkingPhoto}
                       onChange={(photo) => {
                         setParkingPhoto(photo);
+                        if (photo) setParkingPhotoRaison('');
                         if (fieldError === 'parkingPhoto') setFieldError(null);
                       }}
-                      required
+                      required={parkingPhotoRaison.trim().length === 0}
                     />
+                    {!parkingPhoto && (
+                      <div className="space-y-1.5">
+                        <label
+                          className="text-sm font-semibold"
+                          style={{ color: colors.TEXT_PRIMARY }}
+                        >
+                          {t('forms.closing.parkingPhotoReason')}
+                        </label>
+                        <textarea
+                          value={parkingPhotoRaison}
+                          onChange={(e) => {
+                            setParkingPhotoRaison(e.target.value);
+                            if (fieldError === 'parkingPhoto') setFieldError(null);
+                          }}
+                          rows={2}
+                          placeholder={t('forms.closing.parkingPhotoReasonPlaceholder')}
+                          className="w-full rounded-lg border px-3 py-2 text-sm"
+                          style={{
+                            borderColor:
+                              fieldError === 'parkingPhoto' ? colors.DANGER : colors.BORDER,
+                            color: colors.TEXT_PRIMARY,
+                            backgroundColor: colors.SETTINGS_SECTION_BG,
+                          }}
+                        />
+                      </div>
+                    )}
                     {fieldError === 'parkingPhoto' && (
                       <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
                         {t('forms.closing.errorParkingPhoto')}
                       </p>
                     )}
-                  </>
+                  </div>
                 )}
               </FormSection>
             )}

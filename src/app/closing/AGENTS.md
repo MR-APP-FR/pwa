@@ -23,9 +23,10 @@ Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, G
 | Geo | [../../lib/geo.ts](../../lib/geo.ts) `evaluateClosingForce` |
 | Deadline | [../../lib/parisTime.ts](../../lib/parisTime.ts) `closingDeadlineParisFromDateIso` |
 | Photo | Storage `telecollecte-photos` — path en DB (`photo_url`, `photo_parking_url`, `photo_seau_url`) |
-| Parking | Si `site_infos.carte_parking` : photo carte rangée obligatoire (`photo_parking_*`) |
+| Parking | Si `site_infos.carte_parking` : photo carte **ou** `photo_parking_raison` |
+| Confiserie | Si `site_infos.stand_confiserie` : champ `closing_form.confiserie` → sync `data.confiserie` |
 | Partenaire | `partner_user_id` depuis `planning.double_id` |
-| Trigger aval | `sync_closing_form_to_data` → table `data` (CA CRM) |
+| Trigger aval | `sync_closing_form_to_data` → table `data` (CA + confiserie CRM) |
 
 ## Transverse
 

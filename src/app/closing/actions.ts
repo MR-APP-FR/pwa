@@ -72,6 +72,18 @@ async function siteRequiresParkingPhoto(
   return data?.carte_parking === true;
 }
 
+async function siteRequiresConfiserie(
+  supabase: SupabaseClient,
+  siteId: number,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('site_infos')
+    .select('stand_confiserie')
+    .eq('site_id', siteId)
+    .maybeSingle();
+  return data?.stand_confiserie === true;
+}
+
 async function uploadClosingPhoto(
   supabase: SupabaseClient,
   photo: File,
@@ -148,13 +160,27 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
   }
 
   const parkingRequired = await siteRequiresParkingPhoto(supabase, siteId);
+  const parkingPhotoRaison = nullableText(formData, 'parkingPhotoRaison');
   if (parkingRequired) {
-    if (!(parkingPhoto instanceof File) || parkingPhoto.size === 0) {
-      return { ok: false, error: 'Photo de la carte parking rangée manquante.' };
+    const hasParkingPhoto = parkingPhoto instanceof File && parkingPhoto.size > 0;
+    if (!hasParkingPhoto && !parkingPhotoRaison) {
+      return {
+        ok: false,
+        error: 'Photo de la carte parking rangée manquante (ou indique pourquoi).',
+      };
     }
-    if (!isPhotoSource(parkingPhotoSourceRaw)) {
+    if (hasParkingPhoto && !isPhotoSource(parkingPhotoSourceRaw)) {
       return { ok: false, error: 'Source de la photo parking invalide.' };
     }
+  }
+
+  const confiserieRequired = await siteRequiresConfiserie(supabase, siteId);
+  const confiserieAmount = nullableNumber(formData, 'confiserie');
+  if (confiserieRequired && confiserieAmount == null) {
+    return { ok: false, error: 'Montant confiserie manquant.' };
+  }
+  if (confiserieAmount != null && confiserieAmount < 0) {
+    return { ok: false, error: 'Montant confiserie invalide.' };
   }
 
   const { data: openingRow } = await supabase
@@ -218,7 +244,12 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
 
   let parkingPhotoPath: string | null = null;
   let parkingPhotoSource: PhotoSource | null = null;
-  if (parkingRequired && parkingPhoto instanceof File && isPhotoSource(parkingPhotoSourceRaw)) {
+  if (
+    parkingRequired &&
+    parkingPhoto instanceof File &&
+    parkingPhoto.size > 0 &&
+    isPhotoSource(parkingPhotoSourceRaw)
+  ) {
     const parkingUpload = await uploadClosingPhoto(
       supabase,
       parkingPhoto,
@@ -286,6 +317,7 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
         })(),
         point_caisse_13_14: nullableNumber(formData, 'pointCaisse13h'),
         point_caisse_20_2035: nullableNumber(formData, 'pointCaisse20h'),
+        confiserie: confiserieAmount,
         observations: nullableText(formData, 'observations'),
         photo_url: photoPath,
         photo_source: photoSourceRaw,
@@ -295,8 +327,16 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
               photo_parking_url: parkingPhotoPath,
               photo_parking_source: parkingPhotoSource,
               photo_parking_captured_at: parkingPhotoCapturedAtIso,
+              photo_parking_raison: null,
             }
-          : {}),
+          : parkingRequired
+            ? {
+                photo_parking_url: null,
+                photo_parking_source: null,
+                photo_parking_captured_at: null,
+                photo_parking_raison: parkingPhotoRaison,
+              }
+            : {}),
         nettoyage_fait: nettoyageFait,
         nettoyage_raison: nettoyageFait ? null : nettoyageRaison,
         ...(seauPhotoPath != null

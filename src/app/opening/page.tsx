@@ -6,7 +6,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
-import { useSiteCarteParking } from '../../hooks/api/useSiteCarteParking';
+import {
+  DEFAULT_FOND_CAISSE_EUROS,
+  useSiteTerrainConfig,
+} from '../../hooks/api/useSiteTerrainConfig';
 import { useExistingOpeningForm } from '../../hooks/api/useExistingOpeningForm';
 import { useTelecollecteSignedUrl } from '../../hooks/api/useTelecollecteSignedUrl';
 import { dateIsoToJourSemaineKey } from '../../lib/parisTime';
@@ -123,7 +126,11 @@ function OpeningContent() {
   const { data: openInterventions } = useOpenSiteInterventions(mission?.site_id, missionDateIso);
   const openTickets = openInterventions ?? [];
   const { data: questions } = useSiteDailyInfoQuestions(mission?.site_id);
-  const { data: carteParkingConfig } = useSiteCarteParking(mission?.site_id);
+  const { data: terrainConfig } = useSiteTerrainConfig(mission?.site_id);
+  const fondCaisseEuros = terrainConfig?.fondCaisseEuros ?? DEFAULT_FOND_CAISSE_EUROS;
+  const fondDeCaisseLabel = t('forms.opening.fondDeCaisse', {
+    amount: String(fondCaisseEuros),
+  });
   const { data: existingOpening, isLoading: existingOpeningLoading } = useExistingOpeningForm(
     mission?.site_id,
     missionDateIso,
@@ -133,9 +140,9 @@ function OpeningContent() {
   const nettoyageSigned = useTelecollecteSignedUrl(
     isLocked ? existingOpening?.dailyInfo?.photo_nettoyage_url : null,
   );
-  const showCarteParking = carteParkingConfig?.enabled === true;
+  const showCarteParking = terrainConfig?.carteParkingEnabled === true;
   const carteParkingLabel =
-    carteParkingConfig?.questionLabel ?? t('forms.opening.carteParkingCaisse');
+    terrainConfig?.questionParkingLabel ?? t('forms.opening.carteParkingCaisse');
   const showMusiqueDisney = useMemo(() => questions?.includes('musique_disney') ?? false, [questions]);
   const showChrono = useMemo(
     () => (missionDateIso ? dateIsoToJourSemaineKey(missionDateIso) === CHRONO_WEEKDAY_KEY : false),
@@ -249,9 +256,9 @@ function OpeningContent() {
     if (form.ticketsOuverture === null) items.push(t('forms.opening.ticketsOuverture'));
     if (showChrono && durationToSeconds(chrono) === null) items.push(t('forms.opening.chrono'));
     if (form.fondDeCaisse100 === null) {
-      items.push(t('forms.opening.fondDeCaisse'));
+      items.push(fondDeCaisseLabel);
     } else if (needsNoJustification(form.fondDeCaisse100, fondDeCaisseJustification)) {
-      items.push(t('forms.common.missingNoJustification', { field: t('forms.opening.fondDeCaisse') }));
+      items.push(t('forms.common.missingNoJustification', { field: fondDeCaisseLabel }));
     }
     if (nettoyageVeille === null) {
       items.push(t('forms.dailyInfo.nettoyageVeille'));
@@ -306,6 +313,7 @@ function OpeningContent() {
     chrono,
     form.fondDeCaisse100,
     fondDeCaisseJustification,
+    fondDeCaisseLabel,
     nettoyageVeille,
     nettoyageVeilleJustification,
     showCarteParking,
@@ -430,7 +438,7 @@ function OpeningContent() {
     fd.set(
       'observations',
       buildObservationsWithJustifications(form.observations, [
-        { label: t('forms.opening.fondDeCaisse'), value: form.fondDeCaisse100, justification: fondDeCaisseJustification },
+        { label: fondDeCaisseLabel, value: form.fondDeCaisse100, justification: fondDeCaisseJustification },
         { label: t('forms.dailyInfo.nettoyageVeille'), value: nettoyageVeille, justification: nettoyageVeilleJustification },
         ...(showMusiqueDisney
           ? [{ label: t('forms.dailyInfo.musiqueDisney'), value: musiqueDisney, justification: musiqueDisneyJustification }]
@@ -626,7 +634,7 @@ function OpeningContent() {
 
           <FormSection title={t('forms.opening.sectionChecks')}>
             <ConditionalQuestion
-              label={t('forms.opening.fondDeCaisse')}
+              label={fondDeCaisseLabel}
               value={form.fondDeCaisse100}
               onChange={(v) => {
                 setForm((f) => ({ ...f, fondDeCaisse100: v }));

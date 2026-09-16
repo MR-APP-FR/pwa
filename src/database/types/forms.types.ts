@@ -84,6 +84,10 @@ export interface ClosingFormRow {
   photo_parking_url: string | null;
   photo_parking_source: PhotoSource | null;
   photo_parking_captured_at: string | null;
+  /** Justification si photo parking impossible. */
+  photo_parking_raison: string | null;
+  /** CA confiserie du jour. */
+  confiserie: string | null;
   nettoyage_fait: boolean | null;
   photo_seau_url: string | null;
   photo_seau_source: PhotoSource | null;

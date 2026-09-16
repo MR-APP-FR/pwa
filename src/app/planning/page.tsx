@@ -18,7 +18,8 @@ import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
-import { dateIsoToJourSemaineKey, toIsoDateString, type HeuresSemaine } from '../../lib/parisTime';
+import type { HeuresSemaine } from '../../lib/parisTime';
+import { buildSiteDayHoursLabel } from '../../lib/formatHeuresSite';
 import { markMessagesRead } from '../messages/actions';
 
 interface WeekDay {
@@ -28,16 +29,6 @@ interface WeekDay {
   timeRange?: string;
 }
 
-function formatHeureCourte(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const m = String(raw).trim().match(/^(\d{1,2}):(\d{2})/);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const min = Number(m[2]);
-  if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
-  return `${h}H${String(min).padStart(2, '0')}`;
-}
-
 /** Horaires du jour pour le site de la mission, dérivés de `site_infos.heures_semaine`. */
 function buildTimeRange(
   mission: PlanningWithColleague | null,
@@ -45,10 +36,7 @@ function buildTimeRange(
   heuresBySite: Map<number, HeuresSemaine>,
 ): string | undefined {
   if (!mission) return undefined;
-  const heures = heuresBySite.get(mission.site_id);
-  const jour = heures?.[dateIsoToJourSemaineKey(toIsoDateString(date))];
-  const ouvre = formatHeureCourte(jour?.ouvre);
-  return ouvre ?? undefined;
+  return buildSiteDayHoursLabel(heuresBySite.get(mission.site_id), date) ?? undefined;
 }
 
 function getWeekDays(

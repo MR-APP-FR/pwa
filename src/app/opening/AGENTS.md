@@ -2,7 +2,7 @@
 
 ## Métier
 
-Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse, observations, GPS, chrono **lundi** (2 min 25–35, sinon retry puis alerte Bureau + intervention urgente), option carte parking si configurée sur le site. Seuils stock : feuilles < 10 ou tickets < 500 → alerte Bureau (idempotent site × jour × type). **Lundi** : checklist panneaux + affaires (`opening_form.panneaux` / `affaires`) ; manquants → Bureau `monday_opening_issues`.
+Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse (**montant par site** via `site_infos.fond_caisse`, défaut 100 €), observations, GPS, chrono **lundi** (2 min 25–35, sinon retry puis alerte Bureau + intervention urgente), option carte parking si configurée sur le site. Seuils stock : feuilles < 10 ou tickets < 500 → alerte Bureau (idempotent site × jour × type). **Lundi** : checklist panneaux + affaires (`opening_form.panneaux` / `affaires`) ; manquants → Bureau `monday_opening_issues`.
 
 ## Écran
 
@@ -24,7 +24,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | RPC | `report_chrono_out_of_range` — message canal `bureau` + `intervention` urgente |
 | RPC stock | `report_opening_low_stock_to_bureau` — Bureau si feuilles < 10 (`opening_low_feuilles`) ou tickets < 500 (`opening_low_tickets`) |
 | RPC lundi | `report_monday_opening_issues_to_bureau` — kind `monday_opening_issues` si panneau/affaire manquant |
-| Config site | `site_infos` / hook `useSiteCarteParking` |
+| Config site | `site_infos` / hook `useSiteTerrainConfig` (`fond_caisse`, `stand_confiserie`, `carte_parking`) |
 | Carte parking | Non à l’ouverture → RPC `report_parking_card_missing` (canal Bureau) |
 | RLS | Binôme planifié (`planning.user_id` / `double_id`) |
 

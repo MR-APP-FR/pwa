@@ -17,6 +17,7 @@ interface AssignmentBannerProps {
   todayMission: PlanningWithColleague | null;
   nextMission: PlanningWithColleague | null;
   nextDayLabel: string | null;
+  nextHoursLabel?: string | null;
   todayWeather?: SiteWeather | null;
   onWeatherOpen?: () => void;
 }
@@ -27,6 +28,7 @@ interface AssignmentCardProps {
   accentColor: string;
   accentMuted: string;
   dateLabel?: string | null;
+  hoursLabel?: string | null;
   emptyMessage: string;
   icon: LucideIcon;
   colors: ThemeColors;
@@ -84,6 +86,7 @@ function AssignmentCard({
   accentColor,
   accentMuted,
   dateLabel,
+  hoursLabel,
   emptyMessage,
   icon: Icon,
   colors,
@@ -168,6 +171,14 @@ function AssignmentCard({
                     {dateLabel}
                   </p>
                 )}
+                {hoursLabel && (
+                  <p
+                    className="mt-0.5 text-sm font-semibold uppercase leading-tight tracking-tight"
+                    style={{ color: colors.TEXT_SECONDARY, fontFamily: 'var(--font-display)' }}
+                  >
+                    {hoursLabel}
+                  </p>
+                )}
               </Link>
             </div>
           ) : (
@@ -196,6 +207,7 @@ export function AssignmentBanner({
   todayMission,
   nextMission,
   nextDayLabel,
+  nextHoursLabel,
   todayWeather,
   onWeatherOpen,
 }: AssignmentBannerProps) {
@@ -228,6 +240,7 @@ export function AssignmentBanner({
         accentColor={colors.PRIMARY}
         accentMuted={colors.PRIMARY_MUTED}
         dateLabel={nextDayLabel}
+        hoursLabel={nextHoursLabel}
         emptyMessage={t('screens.home.noNextAssignment')}
         icon={CalendarDays}
         colors={colors}

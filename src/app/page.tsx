@@ -19,6 +19,8 @@ import { useAvailability } from '../hooks/api/useAvailability';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
+import { useSitesHeuresOuverture } from '../hooks/api/useSitesHeuresOuverture';
+import { buildSiteDayHoursLabel } from '../lib/formatHeuresSite';
 import { isAvailabilityReminderWindow, toIsoDateString } from '../lib/parisTime';
 
 export default function HomePage() {
@@ -61,6 +63,18 @@ export default function HomePage() {
     );
   }, [nextMission]);
 
+  const homeSiteIds = [
+    ...(todayMission?.site_id ? [todayMission.site_id] : []),
+    ...(nextMission?.site_id ? [nextMission.site_id] : []),
+  ];
+  const { data: heuresBySite } = useSitesHeuresOuverture(homeSiteIds);
+
+  const nextHoursLabel = useMemo(() => {
+    if (!nextMission || !heuresBySite) return null;
+    const date = new Date(nextMission.year, nextMission.month - 1, nextMission.day);
+    return buildSiteDayHoursLabel(heuresBySite.get(nextMission.site_id), date);
+  }, [nextMission, heuresBySite]);
+
   const hasTodayMission = todayMission !== null;
   const todayIso = toIsoDateString(today);
   const unreadMessageCount = useUnreadStaffMessageCount();
@@ -97,6 +111,7 @@ export default function HomePage() {
         todayMission={todayMission}
         nextMission={nextMission}
         nextDayLabel={nextDayLabel}
+        nextHoursLabel={nextHoursLabel}
         todayWeather={todayWeather ?? null}
       />
       <LateOpeningPrompt todayMission={todayMission} todayIso={todayIso} />

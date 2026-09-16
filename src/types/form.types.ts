@@ -21,6 +21,8 @@ export interface ClosingFormData {
   pointCaisse13h: number | null;
   pointCaisse20h: number | null;
   avisGoogleCount: number | null;
+  /** CA confiserie (sites `stand_confiserie`). */
+  confiserie: number | null;
   observations: string;
   telecollectePhotoUri: string | null;
   /** Provenance de la photo (cf. closing_form.photo_source). */
