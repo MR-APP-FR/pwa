@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { MESSAGE_SOURCE_ICON, type StaffMessageWithAck } from '../../database/types';
 import { ackMessage } from '../../app/messages/actions';
+import {
+  patchStaffMessageAcked,
+  useStaffMessageCache,
+} from '../../hooks/api/useStaffMessages';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
@@ -19,6 +22,9 @@ import {
 interface ChatThreadProps {
   conversation: Conversation;
   messages: StaffMessageWithAck[];
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadOlder?: () => void;
 }
 
 function dayGroups(messages: StaffMessageWithAck[]) {
@@ -36,7 +42,7 @@ function dayGroups(messages: StaffMessageWithAck[]) {
 function MessageCard({ message }: { message: StaffMessageWithAck }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
+  const { queryClient, employeeId } = useStaffMessageCache();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const isAuto = message.source === 'appli';
@@ -52,12 +58,14 @@ function MessageCard({ message }: { message: StaffMessageWithAck }) {
     if (!canAck) return;
     setError(null);
     startTransition(async () => {
+      const at = new Date().toISOString();
+      patchStaffMessageAcked(queryClient, employeeId, message.id, at);
       const result = await ackMessage(message.id);
       if (!result.ok) {
         setError(result.error);
-        return;
+        void queryClient.invalidateQueries({ queryKey: ['staff-messages', employeeId] });
+        void queryClient.invalidateQueries({ queryKey: ['staff-message-badges', employeeId] });
       }
-      queryClient.invalidateQueries({ queryKey: ['staff-messages'] });
     });
   }
 
@@ -146,7 +154,13 @@ function MessageCard({ message }: { message: StaffMessageWithAck }) {
   );
 }
 
-export function MessagesChatThread({ conversation, messages }: ChatThreadProps) {
+export function MessagesChatThread({
+  conversation,
+  messages,
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  onLoadOlder,
+}: ChatThreadProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const listRef = useRef<HTMLDivElement>(null);
@@ -199,6 +213,26 @@ export function MessagesChatThread({ conversation, messages }: ChatThreadProps) 
                 ))}
               </section>
             ))}
+            {hasNextPage && onLoadOlder ? (
+              <button
+                type="button"
+                onClick={onLoadOlder}
+                disabled={isFetchingNextPage}
+                className="w-full px-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  minHeight: TOUCH_TARGET,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: colors.SETTINGS_SECTION_BG,
+                  color: colors.TEXT_PRIMARY,
+                  boxShadow: colors.CARD_SHADOW,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {isFetchingNextPage
+                  ? t('screens.messages.loadingOlder')
+                  : t('screens.messages.loadOlder')}
+              </button>
+            ) : null}
           </div>
         )}
       </div>

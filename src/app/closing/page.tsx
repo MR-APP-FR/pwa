@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect, useMemo, Suspense, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePlanning } from '../../hooks/api/usePlanning';
+import { usePlanningById } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -24,7 +24,6 @@ import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
 import { LockedPhotoThumb } from '../../components/forms/LockedPhotoThumb';
 import type { ClosingFormData } from '../../types/form.types';
 import Image from 'next/image';
-import { useAppDate } from '../../hooks/useAppDate';
 import { submitClosingForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
@@ -157,13 +156,13 @@ function ClosingContent() {
   const queryClient = useQueryClient();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { weekYear, weekMonth } = useAppDate();
-  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: currentUser } = useCurrentUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const missionId = Number(searchParams.get('id'));
-  const mission = planningData?.planning.find((m) => m.id === missionId);
+  const { data: mission } = usePlanningById(
+    Number.isFinite(missionId) && missionId > 0 ? missionId : null,
+  );
   const missionDateIso = mission ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}` : null;
 
   const { data: sujets } = useSujets(mission?.site_id);

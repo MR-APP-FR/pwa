@@ -13,7 +13,7 @@ Centre opérationnel d’une journée sur un site : état ouverture / info-jour 
 
 | Élément | Détail |
 |---|---|
-| Hooks | `useMissionForms`, `useSiteHeuresOuverture`, `useSiteDailyInfoQuestions`, `useOpenSiteInterventions` |
+| Hooks | `usePlanningById`, `useUpcomingPlanning`, `useMissionForms` |
 | Info-jour | [../../lib/actions/daily-info.ts](../../lib/actions/daily-info.ts) — `daily_info`, `sujets` |
 | Tables | `opening_form`, `closing_form`, `daily_info`, `sujets` |
 | Maps lien | `https://maps.google.com/?q=lat,lng` si coords site |

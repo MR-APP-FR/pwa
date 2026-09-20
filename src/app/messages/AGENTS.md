@@ -6,17 +6,20 @@ Messagerie direction → terrain. Un message cible **Tous** ou **une seule zone*
 
 ## Écran
 
-- Route : `/messages` → liste complète directe (pas de sélecteur de conversations / zones)
+- Route : `/messages` → liste paginée (pas de sélecteur de conversations / zones)
 - Page : [page.tsx](page.tsx)
 - Helpers fil / dates : [conversations.ts](conversations.ts) (`INBOX_CONVERSATION`)
-- Thread : [../../components/messages/MessagesChatThread.tsx](../../components/messages/MessagesChatThread.tsx)
+- Thread : [../../components/messages/MessagesChatThread.tsx](../../components/messages/MessagesChatThread.tsx) — bouton « Messages plus anciens »
 
 ## Technique
 
 | Élément | Détail |
 |---|---|
-| Actions | [actions.ts](actions.ts) — `markMessageRead`, `ackMessage` |
+| Actions | [actions.ts](actions.ts) — `markMessagesRead`, `ackMessage`, `markUnreadPlanningAssignedRead` |
 | Hooks | [../../hooks/api/useStaffMessages.ts](../../hooks/api/useStaffMessages.ts) |
+| Inbox | `useStaffMessagesList` — pages de 25, cursor `publie_at`, acks `.in(message_id)` |
+| Pastilles home | RPC `get_pwa_staff_message_badge_counts` via `useStaffMessageBadges` (pas de corps) |
+| Cache | Mark-read / ack **optimistes** (`patchStaffMessagesRead` / `patchStaffMessageAcked`) — pas de refetch full |
 | Tables | `staff_message`, `staff_message_ack` |
 | Push | CRM + Edge envoient ; PWA reçoit si abonnée ([../../lib/push/AGENTS.md](../../lib/push/AGENTS.md)) |
 
@@ -26,9 +29,11 @@ Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `sta
 
 - CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone Messages, dont Province découpée côté CRM seulement).
 - Canaux SQL auto : anniversaires / hebdo (`bureau`), taux déclaration + PDF CA (`ca`), pannes (`inter`). La PWA ne voit que `channel = staff`.
+- Planning PWA : `markUnreadPlanningAssignedRead` sans charger l’inbox.
 
 ## Ne pas casser
 
 - Ne pas filtrer côté client ce que RLS cache déjà — respecter `site_ids` / `user_ids`.
 - Ack = upsert `(message_id, user_id)`.
 - Ne pas réintroduire un split UI par groupe côté PWA sans demande produit.
+- Home badges = RPC count, **jamais** `useStaffMessagesList`.

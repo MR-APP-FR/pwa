@@ -175,6 +175,8 @@
       "sourceBureauName": "The Office",
       "ackButton": "I confirm I've read it",
       "ackedLabel": "Read confirmed",
+      "loadOlder": "Older messages",
+      "loadingOlder": "Loading…",
       "pinned": "Pinned",
       "zones": "Zones",
       "tous": "Everyone",

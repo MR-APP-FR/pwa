@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo, Suspense, useTransition, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePlanning } from '../../hooks/api/usePlanning';
+import { usePlanningById } from '../../hooks/api/usePlanning';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteDailyInfoQuestions } from '../../hooks/api/useSiteDailyInfoQuestions';
 import {
@@ -50,7 +50,6 @@ import { useSujets } from '../../hooks/api/useSujets';
 import { useOpenSiteInterventions } from '../../hooks/api/useOpenSiteInterventions';
 import type { PanneCheckinAnswer } from '../../database/types/intervention.types';
 import type { OpeningFormData } from '../../types/form.types';
-import { useAppDate } from '../../hooks/useAppDate';
 import { resolvePannesFromOpening, submitOpeningForm } from './actions';
 import { submitDailyInfo } from '../../lib/actions/daily-info';
 import { isBrowserOffline } from '../../lib/offline';
@@ -110,12 +109,12 @@ function OpeningContent() {
   const queryClient = useQueryClient();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { weekYear, weekMonth } = useAppDate();
-  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
   const { data: currentUser } = useCurrentUser();
 
   const missionId = Number(searchParams.get('id'));
-  const mission = planningData?.planning.find((m) => m.id === missionId);
+  const { data: mission } = usePlanningById(
+    Number.isFinite(missionId) && missionId > 0 ? missionId : null,
+  );
 
   const missionDateIso = useMemo(() => {
     if (!mission) return null;

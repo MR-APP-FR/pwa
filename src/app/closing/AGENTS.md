@@ -6,8 +6,8 @@ Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, G
 
 ## Écran
 
-- Route : `/closing`
-- Page : [page.tsx](page.tsx)
+- Route : `/closing` (`?id=` mission planning)
+- Page : [page.tsx](page.tsx) — mission via `usePlanningById`
 - **Déjà soumis** : `useExistingClosingForm(site, date)` → lecture seule (banner, champs figés, photos via `LockedPhotoThumb` + URL signée, footer Retour).
 
 ## Technique

@@ -175,6 +175,8 @@
       "sourceBureauName": "Le Bureau",
       "ackButton": "Je confirme avoir lu",
       "ackedLabel": "Lecture confirmée",
+      "loadOlder": "Messages plus anciens",
+      "loadingOlder": "Chargement…",
       "pinned": "Épinglés",
       "zones": "Zones",
       "tous": "Tous",

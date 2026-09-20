@@ -7,7 +7,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 ## Écran
 
 - Route : `/opening` (souvent `?id=` mission planning)
-- Page : [page.tsx](page.tsx)
+- Page : [page.tsx](page.tsx) — mission via `usePlanningById` (pas le triplet 3 mois)
 - **Déjà soumis** : `useExistingOpeningForm(site, date)` → lecture seule (banner, champs `readOnly`/`disabled`, footer Retour seul, photo nettoyage via `LockedPhotoThumb` + URL signée). Même pattern que fermeture.
 
 ## Technique

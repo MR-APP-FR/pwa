@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useMemo } from 'react';
-import { usePlanning } from '../../hooks/api/usePlanning';
+import { usePlanningById, useUpcomingPlanning } from '../../hooks/api/usePlanning';
 import { useMissionForms } from '../../hooks/api/useMissionForms';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -25,11 +25,12 @@ function MissionContent() {
   const router = useRouter();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const { today, weekYear, weekMonth } = useAppDate();
-  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
-
+  const { today } = useAppDate();
   const missionId = Number(searchParams.get('id'));
-  const mission = planningData?.planning.find((m) => m.id === missionId);
+  const { data: mission } = usePlanningById(
+    Number.isFinite(missionId) && missionId > 0 ? missionId : null,
+  );
+  const { data: upcomingData } = useUpcomingPlanning(60);
 
   const missionDateIso = mission
     ? `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`
@@ -38,19 +39,19 @@ function MissionContent() {
   const hasOpening = formsStatus?.hasOpening ?? false;
   const hasClosing = formsStatus?.hasClosing ?? false;
 
-  const sortedMissions = useMemo(
-    () => [...(planningData?.planning ?? [])].sort((a, b) => a.day - b.day),
-    [planningData?.planning],
-  );
-
-  const nextMission = useMemo(
-    () =>
-      sortedMissions.find((m) => {
+  const nextMission = useMemo(() => {
+    const sorted = [...(upcomingData?.planning ?? [])].sort((a, b) => {
+      const ta = new Date(a.year, a.month - 1, a.day).getTime();
+      const tb = new Date(b.year, b.month - 1, b.day).getTime();
+      return ta - tb;
+    });
+    return (
+      sorted.find((m) => {
         const mDate = new Date(m.year, m.month - 1, m.day);
         return mDate > today;
-      }) ?? null,
-    [sortedMissions, today],
-  );
+      }) ?? null
+    );
+  }, [upcomingData?.planning, today]);
 
   if (!mission) {
     return (

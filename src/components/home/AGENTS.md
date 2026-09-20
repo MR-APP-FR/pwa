@@ -20,10 +20,10 @@
 
 ## Hooks / données
 
-- `usePlanning`, `useAppDate` — affectation jour
+- `useUpcomingPlanning` — affectation jour + prochaine (fenêtre 60 j, pas 3 mois)
 - `useSitesHeuresOuverture` — horaires prochaine affectation
 - `useSiteWeather` — lit `site_weather` (écrit par Edge `weather-sync`)
-- `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount`
+- `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount` — RPC badges, pas d’inbox
 - `useAvailability` + `isAvailabilityReminderWindow` — badge dispos mercredi
 - `useHomeAssistantTodos` — badges (messages, planning, dispos, photo, CNI, push)
 

@@ -6,11 +6,13 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useSitesHeuresOuverture } from '../../hooks/api/useSitesHeuresOuverture';
-import { useStaffMessages } from '../../hooks/api/useStaffMessages';
+import {
+  invalidateStaffMessageBadges,
+  useStaffMessageCache,
+} from '../../hooks/api/useStaffMessages';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
-import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
 import { formatDayMonthYear } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -20,7 +22,7 @@ import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHead
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import type { HeuresSemaine } from '../../lib/parisTime';
 import { buildSiteDayHoursLabel } from '../../lib/formatHeuresSite';
-import { markMessagesRead } from '../messages/actions';
+import { markUnreadPlanningAssignedRead } from '../messages/actions';
 
 interface WeekDay {
   date: Date;
@@ -100,22 +102,18 @@ export default function PlanningPage() {
     date: formatDayMonthYear(viewedWeekStart),
   });
 
-  const { data: staffMessages } = useStaffMessages();
+  const { queryClient, employeeId } = useStaffMessageCache();
   const markedPlanningReadRef = useRef(false);
 
   useEffect(() => {
-    if (markedPlanningReadRef.current || !staffMessages?.length) return;
-    const unreadPlanningIds = staffMessages
-      .filter(
-        (m) =>
-          m.titre === PLANNING_ASSIGNED_MESSAGE_TITLE &&
-          (m.require_ack ? m.acked_at === null : m.read_at === null),
-      )
-      .map((m) => m.id);
-    if (unreadPlanningIds.length === 0) return;
+    if (markedPlanningReadRef.current) return;
     markedPlanningReadRef.current = true;
-    void markMessagesRead(unreadPlanningIds);
-  }, [staffMessages]);
+    void markUnreadPlanningAssignedRead().then((result) => {
+      if (result.ok) {
+        invalidateStaffMessageBadges(queryClient, employeeId);
+      }
+    });
+  }, [queryClient, employeeId]);
 
   return (
     <FormScrollLayout>

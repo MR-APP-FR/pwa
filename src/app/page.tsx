@@ -9,7 +9,7 @@ import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
 import { useHomeAssistantTodos } from '../hooks/useHomeAssistantTodos';
 import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
-import { usePlanning } from '../hooks/api/usePlanning';
+import { useUpcomingPlanning } from '../hooks/api/usePlanning';
 import { useSiteWeather } from '../hooks/api/useSiteWeather';
 import {
   useUnreadPlanningAssignedCount,
@@ -27,12 +27,17 @@ export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { today, weekYear, weekMonth, nextWeekStart, nextWeekEnd } = useAppDate();
-  const { data: planningData } = usePlanning({ year: weekYear, month: weekMonth });
+  const { today, nextWeekStart, nextWeekEnd } = useAppDate();
+  const { data: planningData } = useUpcomingPlanning(60);
   const missions = planningData?.planning ?? [];
 
   const sortedMissions = useMemo(
-    () => [...missions].sort((a, b) => a.day - b.day),
+    () =>
+      [...missions].sort((a, b) => {
+        const ta = new Date(a.year, a.month - 1, a.day).getTime();
+        const tb = new Date(b.year, b.month - 1, b.day).getTime();
+        return ta - tb;
+      }),
     [missions],
   );
 
