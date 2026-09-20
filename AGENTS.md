@@ -42,6 +42,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 10. **Photos** : buckets privés `telecollecte-photos` (terrain) et `site-photos` (fiche manège) — stocker le **path**, pas une URL publique.
 11. **Impact écosystème** : toute modif terrain / DB → proposer aussi CRM (dialogs, types, boards) — voir [../AGENTS.md](../AGENTS.md) § Impact écosystème.
 12. **Perf auth (bug sept. 2026 — ne pas réintroduire)** : middleware + `createClient` server = `getSession()` + **lock auth no-op**. Matcher exclut `/api/`. Ne **jamais** remettre `getUser()` / `getClaims()` sur le hot path (latence Auth / Web Locks ~10 s par requête). Même cause/fix que le CRM — voir [admin-desktop-app/AGENTS.md](../admin-desktop-app/AGENTS.md) § Shell CRM.
+13. **Région Vercel** : `cdg1` (Paris) dans `vercel.json` — aligné sur Supabase `eu-west-1`. Pas `iad1`.
 
 ## Commandes
 
