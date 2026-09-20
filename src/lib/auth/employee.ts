@@ -4,6 +4,7 @@ import { createClient } from '../supabase/server';
 /**
  * Résout l'employé terrain (`public.user.id`) depuis la session Auth.
  * S'appuie sur le helper SQL `current_employee_id()` (bridge email Auth ↔ public.user).
+ * Utilise `getSession()` (cookie) — pas `getUser()` réseau.
  */
 export async function requireEmployeeSession(): Promise<
   | { ok: true; userId: number; supabase: SupabaseClient }
@@ -11,10 +12,10 @@ export async function requireEmployeeSession(): Promise<
 > {
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session?.user) {
     return { ok: false, error: 'Non authentifié.' };
   }
 

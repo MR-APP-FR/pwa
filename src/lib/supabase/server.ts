@@ -1,10 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+/** Évite les blocages navigator.locks (~10 s) en Server Actions / RSC. */
+async function noOpAuthLock<R>(
+  _name: string,
+  _acquireTimeout: number,
+  fn: () => Promise<R>,
+): Promise<R> {
+  return await fn();
+}
+
 /**
  * Supabase cookie-bound server client (Server Components, Route Handlers,
- * Server Actions). Calque sur admin-desktop-app/lib/supabase/server.ts.
- * Session rafraîchie par `src/middleware.ts` / `lib/supabase/middleware.ts`.
+ * Server Actions). Session lue via cookie ; pas de getUser réseau systématique.
  */
 export async function createClient() {
   const cookieStore = await cookies();
@@ -23,11 +31,12 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Server Components peuvent ignorer ; les cookies seront refresh
-            // par le middleware côté Route Handler quand l'auth réelle sera
-            // livrée (GRE-88).
+            // Server Components peuvent ignorer ; refresh cookies via middleware.
           }
         },
+      },
+      auth: {
+        lock: noOpAuthLock,
       },
     },
   );

@@ -30,7 +30,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 
 ## Règles globales (toujours)
 
-1. **`user_id`** : toujours `requireEmployeeSession()` côté server action — jamais depuis le client ([src/lib/auth/employee.ts](src/lib/auth/employee.ts)).
+1. **`user_id`** : toujours `requireEmployeeSession()` côté server action — jamais depuis le client ([src/lib/auth/employee.ts](src/lib/auth/employee.ts)). Session via `getSession()` (cookie), pas `getUser()` réseau.
 2. **Formulaires terrain** : `upsert` sur `(site_id, date)` — une ligne par site × jour, pas par employé.
 3. **Dates** : Europe/Paris via [src/lib/parisTime.ts](src/lib/parisTime.ts) (`toIsoDateString`, `parseIsoDateAsLocalDate`).
 4. **Offline** : `isBrowserOffline()` bloque les submits — pas de queue offline.
@@ -41,6 +41,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 9. **Pas de sync Open-Meteo** dans Next — lecture `site_weather` seulement.
 10. **Photos** : buckets privés `telecollecte-photos` (terrain) et `site-photos` (fiche manège) — stocker le **path**, pas une URL publique.
 11. **Impact écosystème** : toute modif terrain / DB → proposer aussi CRM (dialogs, types, boards) — voir [../AGENTS.md](../AGENTS.md) § Impact écosystème.
+12. **Perf auth (bug sept. 2026 — ne pas réintroduire)** : middleware + `createClient` server = `getSession()` + **lock auth no-op**. Matcher exclut `/api/`. Ne **jamais** remettre `getUser()` / `getClaims()` sur le hot path (latence Auth / Web Locks ~10 s par requête). Même cause/fix que le CRM — voir [admin-desktop-app/AGENTS.md](../admin-desktop-app/AGENTS.md) § Shell CRM.
 
 ## Commandes
 

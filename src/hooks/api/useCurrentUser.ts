@@ -38,8 +38,9 @@ export function useCurrentUser() {
     queryFn: async () => {
       const supabase = createClient();
       const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const authUser = session?.user;
       if (!authUser) return null;
 
       const { data: employeeId, error: empError } = await supabase.rpc('current_employee_id');

@@ -1,9 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+/** Évite les blocages navigator.locks (~10 s) dans le middleware Edge. */
+async function noOpAuthLock<R>(
+  _name: string,
+  _acquireTimeout: number,
+  fn: () => Promise<R>,
+): Promise<R> {
+  return await fn();
+}
+
 /**
  * Rafraîchit la session Supabase et redirige vers /login si non authentifié.
- * Calqué sur admin-desktop-app/lib/supabase/middleware.ts.
+ * `getSession()` + lock no-op — pas de `getUser()` réseau (latence 5–10 s).
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -28,12 +37,16 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+      auth: {
+        lock: noOpAuthLock,
+      },
     },
   );
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   const pathname = request.nextUrl.pathname;
   const isPublicRoute =

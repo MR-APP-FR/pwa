@@ -23,6 +23,8 @@ Bridge SQL : `current_employee_id()` — `auth.users.email` ↔ `public.user.ema
 
 RLS `public.user` : SELECT des actifs (collègues) **ou** de sa propre ligne (`id = current_employee_id()`), même si `actif = false` — sinon profil / todos photo-CNI invisibles.
 
+**Perf (bug sept. 2026)** : middleware + server `createClient` = `getSession()` + lock auth no-op. Ne **pas** réintroduire `getUser()` sur le hot path (latence Auth / Web Locks ~10 s). Détail : [pwa/AGENTS.md](../../AGENTS.md) règle 12 + CRM `admin-desktop-app/AGENTS.md`.
+
 **Prod terrain** : Edge Function [`claim-login`](../../../supabase/functions/claim-login/) (service role côté Supabase, `verify_jwt: false`). La PWA Vercel n’a **pas** de service role.
 
 Flux claim :
