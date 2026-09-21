@@ -23,6 +23,8 @@ function AppShell({ children }: { children: ReactNode }) {
       >
         <PwaCutoverBootstrap />
         {children}
+        {/* Aussi sur /login : invite d'install avant session */}
+        <InstallBanner />
       </div>
     );
   }

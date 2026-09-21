@@ -1,7 +1,7 @@
 /**
  * Chrome de page — une seule source de vérité pour le logo.
  *
- * - Login : aucun header.
+ * - Login : aucun header (InstallBanner reste monté — invite d'install hors session).
  * - Accueil / profil / première connexion : Header sticky dans AppShell.
  * - Toutes les autres pages (formulaires, planning, boîte à idées, etc.) :
  *   Header défilant rendu par FormScrollLayout. AppShell ne doit PAS en
