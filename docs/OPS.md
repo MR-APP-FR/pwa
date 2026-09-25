@@ -45,6 +45,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `opening-late` | Créneaux matin / après-midi Paris : relance si ouverture manquante + Web Push | Web Push (VAPID) |
 | `availability-reminder` | Mercredi : rappel dispos N+1 + Web Push | Web Push (VAPID) |
 | `claim-login` | Login terrain par `public.user.login` **ou** `email` (sans filtre `actif`) : claim MDP 1re fois ou `signInWithPassword` ; `verify_jwt: false` | Auth Admin (service role) |
+| `admin-pwa-view` | Vue admin CRM sur PWA : `mint` (JWT admin → view_token) / `list` / `impersonate` (magic-link employé) ; `verify_jwt: false` | Auth Admin (service role) |
 | `ca-daily-pdf` | 21h Paris : message stub canal CA (PDF généré au clic CRM) | — |
 
 ## Déclenché par un humain (pas un cron)
@@ -60,6 +61,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Manques lundi (panneaux / affaires Non) | PWA | RPC `report_monday_opening_issues_to_bureau` → Bureau (`monday_opening_issues`) |
 | Création employé | CRM | `public.user` + login (pas d’Auth) ; claim PWA à la 1re connexion |
 | Login / claim MDP terrain | PWA → Edge `claim-login` | crée Auth si absent, sinon vérifie MDP |
+| Vue admin terrain | PWA login email `admin_emails` → Edge `admin-pwa-view` | cookie vue admin + switcher employé (`/profil`) |
 | `npm run provision:auth-users` | PWA local | sync Auth ← `public.user` (dev uniquement) |
 | `npm run weather:sync` / `backfill` / `enrich` | CRM local | même recette météo, service role |
 

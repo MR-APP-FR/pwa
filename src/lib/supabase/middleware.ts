@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { ADMIN_VIEW_COOKIE } from '../auth/adminView';
 
 /** Évite les blocages navigator.locks (~10 s) dans le middleware Edge. */
 async function noOpAuthLock<R>(
@@ -57,6 +58,8 @@ export async function updateSession(request: NextRequest) {
     pathname === '/manifest.json';
   const isPremiereConnexionRoute = pathname.startsWith('/premiere-connexion');
   const isApiRoute = pathname.startsWith('/api');
+  const isProfilRoute = pathname.startsWith('/profil');
+  const hasAdminView = Boolean(request.cookies.get(ADMIN_VIEW_COOKIE)?.value);
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
@@ -91,6 +94,28 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/premiere-connexion';
         return NextResponse.redirect(url);
       }
+    } else if (hasAdminView && !isProfilRoute) {
+      // Admin CRM sans ligne public.user : doit choisir un employé sur /profil.
+      const url = request.nextUrl.clone();
+      url.pathname = '/profil';
+      return NextResponse.redirect(url);
+    }
+  } else if (
+    user &&
+    hasAdminView &&
+    !isPublicRoute &&
+    !isProfilRoute &&
+    !isApiRoute &&
+    !isPremiereConnexionRoute
+  ) {
+    // Même garde hors enforcePasswordChange (ex. NODE_ENV=development).
+    const { data: employeeId } = await supabase.rpc('current_employee_id');
+    const hasEmployee =
+      typeof employeeId === 'number' ? employeeId > 0 : Number(employeeId) > 0;
+    if (!hasEmployee) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/profil';
+      return NextResponse.redirect(url);
     }
   }
 
@@ -108,6 +133,10 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/';
         return NextResponse.redirect(url);
       }
+    } else if (hasAdminView) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/profil';
+      return NextResponse.redirect(url);
     }
   }
 

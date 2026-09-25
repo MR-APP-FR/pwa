@@ -7,7 +7,7 @@ Carte des écrans sous `src/app/`. Layout global : [layout.tsx](layout.tsx) (fon
 | Route | Fichier | Rôle métier |
 |---|---|---|
 | `/` | [page.tsx](page.tsx) | Hub : affectation du jour, raccourcis mission, badges non-lus |
-| `/login` | [login/page.tsx](login/page.tsx) | Email + mot de passe (`public.user`) |
+| `/login` | [login/page.tsx](login/page.tsx) | Identifiant/email + MDP (`public.user`) **ou** email admin CRM (`admin_emails`) |
 | `/premiere-connexion` | [premiere-connexion/page.tsx](premiere-connexion/page.tsx) | Changement mot de passe temporaire (`must_change_password`) |
 | `/planning` | [planning/page.tsx](planning/page.tsx) | Missions mois courant |
 | `/availability` | [availability/page.tsx](availability/page.tsx) | Disponibilités semaine N+1 |
@@ -17,12 +17,13 @@ Carte des écrans sous `src/app/`. Layout global : [layout.tsx](layout.tsx) (fon
 | `/messages` | [messages/page.tsx](messages/page.tsx) | Conversations staff (canaux bureau, météo auto, etc.) |
 | `/suggestions` | [suggestions/page.tsx](suggestions/page.tsx) | Boîte à idées |
 | `/sites-map` | [sites-map/page.tsx](sites-map/page.tsx) | Carte Google des manèges |
-| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar |
+| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar ; **vue admin** = switcher employé |
 | `/training` | [training/page.tsx](training/page.tsx) | Parcours formation (contenu statique / léger) |
 
 ## Dev only
 
 - `dev/bypass-login`, `dev/switch-user` — jamais en prod Vercel sans garde-fous.
+- **Prod** : vue admin CRM = Edge `admin-pwa-view` + panneau `/profil` (pas le bypass local).
 
 ## Patterns techniques
 

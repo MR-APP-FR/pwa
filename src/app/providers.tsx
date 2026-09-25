@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
+import { AdminViewBanner } from '../components/auth/AdminViewBanner';
 import { Header } from '../components/layout/Header';
 import { isBarePath, showsShellHeader } from '../components/layout/pageChrome';
 import { InstallBanner } from '../components/pwa/InstallBanner';
@@ -36,6 +37,7 @@ function AppShell({ children }: { children: ReactNode }) {
     >
       <PwaCutoverBootstrap />
       <PushResubscribeOnAuth />
+      <AdminViewBanner />
       {shellHeader ? <Header /> : null}
       <main className="flex flex-1 flex-col">{children}</main>
       <InstallBanner />

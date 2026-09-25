@@ -8,7 +8,7 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 
 | Route | Rôle |
 |---|---|
-| `/profil` | [page.tsx](page.tsx) + [actions.ts](actions.ts) |
+| `/profil` | [page.tsx](page.tsx) + [actions.ts](actions.ts) ; panneau **Vue admin** si cookie `pwa_admin_view` |
 | `/premiere-connexion` | [../premiere-connexion/page.tsx](../premiere-connexion/page.tsx) — `changeTemporaryPassword` |
 
 ## Technique
@@ -25,6 +25,7 @@ Uploads : path en colonne, bucket privé (lecture CRM admin).
 ## Transverse
 
 - CRM [users](../../../admin-desktop-app/components/crm/users/) : fiche complète, édition admin ; login sans Auth à la création.
+- Admin CRM sur PWA : [AdminViewPanel](../../components/auth/AdminViewPanel.tsx) + Edge `admin-pwa-view` — voir [auth/AGENTS.md](../../lib/auth/AGENTS.md).
 
 ## Ne pas casser
 

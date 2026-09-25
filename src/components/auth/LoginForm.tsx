@@ -8,6 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
 import { claimLogin } from '../../app/login/actions';
+import { startAdminView } from '../../lib/auth/adminViewActions';
 
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
@@ -18,11 +19,74 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function finishWithSession(goProfilForAdminPick: boolean) {
+    if (goProfilForAdminPick) {
+      router.replace('/profil');
+    } else {
+      router.replace('/');
+    }
+    router.refresh();
+  }
+
+  /** Login admin CRM (mêmes id que le portail) + mint vue terrain. */
+  async function tryAdminSignIn(email: string, passwordValue: string): Promise<boolean> {
+    const supabase = createClient();
+    const normalized = email.trim().toLowerCase();
+
+    const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_email_admin', {
+      check_email: normalized,
+    });
+    if (adminCheckError || isAdmin !== true) {
+      return false;
+    }
+
+    const { data: signData, error: signError } = await supabase.auth.signInWithPassword({
+      email: normalized,
+      password: passwordValue,
+    });
+    if (signError || !signData.session?.access_token) {
+      setError(t('auth.loginError'));
+      return true; // c'était un admin, ne pas retomber sur claim-login
+    }
+
+    const { error: roleError } = await supabase.rpc('ensure_portal_admin_role');
+    if (roleError) {
+      console.error('ensure_portal_admin_role', roleError);
+    }
+
+    const view = await startAdminView(signData.session.access_token);
+    if (!view.ok) {
+      setError(t('auth.serverError'));
+      return true;
+    }
+
+    // Admin sans ligne public.user → obligé de choisir un employé sur /profil.
+    const { data: employeeId } = await supabase.rpc('current_employee_id');
+    const hasEmployee =
+      typeof employeeId === 'number'
+        ? employeeId > 0
+        : Number(employeeId) > 0;
+
+    await finishWithSession(!hasEmployee);
+    return true;
+  }
+
   async function doSignIn(loginValue: string, passwordValue: string) {
     setLoading(true);
     setError(null);
 
-    const result = await claimLogin(loginValue, passwordValue);
+    const trimmed = loginValue.trim();
+
+    // Email admin CRM → chemin dédié (bypass local équivalent, prod-safe).
+    if (trimmed.includes('@')) {
+      const handled = await tryAdminSignIn(trimmed, passwordValue);
+      if (handled) {
+        setLoading(false);
+        return;
+      }
+    }
+
+    const result = await claimLogin(trimmed, passwordValue);
 
     if (!result.ok) {
       if (result.code === 'unknown_login') {
@@ -50,8 +114,23 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
       return;
     }
 
-    router.replace('/');
-    router.refresh();
+    // Employé qui est aussi dans admin_emails → active aussi le switcher.
+    const {
+      data: { session: empSession },
+    } = await supabase.auth.getSession();
+    const authEmail = empSession?.user?.email;
+    if (authEmail && empSession?.access_token) {
+      const { data: isAdmin } = await supabase.rpc('is_email_admin', {
+        check_email: authEmail,
+      });
+      if (isAdmin === true) {
+        await supabase.rpc('ensure_portal_admin_role');
+        await startAdminView(empSession.access_token);
+      }
+    }
+
+    await finishWithSession(false);
+    setLoading(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {

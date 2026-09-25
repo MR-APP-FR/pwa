@@ -13,8 +13,10 @@ import { useSites } from '../../hooks/api/useSites';
 import { createClient } from '../../lib/supabase/client';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { AdminViewPanel } from '../../components/auth/AdminViewPanel';
 import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
 import { PushSettingsRow } from '../../components/pwa/PushSettingsRow';
+import { clearAdminViewCookies } from '../../lib/auth/adminViewActions';
 import { updatePreferredSites } from './actions';
 import { ProfileMediaCard } from '../../components/profil/ProfileMediaCard';
 
@@ -287,6 +289,7 @@ export default function ProfilPage() {
 
   async function handleSignOut() {
     setSigningOut(true);
+    await clearAdminViewCookies();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace('/login');
@@ -406,6 +409,7 @@ export default function ProfilPage() {
 
       {showPushOnTop ? null : <PushSettingsRow />}
 
+      <AdminViewPanel colors={colors} />
       <DevToolsPanel colors={colors} />
 
       <div className="mx-5 mt-8">
