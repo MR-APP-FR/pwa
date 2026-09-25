@@ -86,8 +86,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   // En local, le bypass / switcher d'employé ne doit pas être bloqué par
-  // le mur « première connexion ». En prod le flag reste obligatoire.
-  const enforcePasswordChange = process.env.NODE_ENV !== 'development';
+  // le mur « première connexion ». Idem en vue admin CRM (impersonation).
+  const enforcePasswordChange =
+    process.env.NODE_ENV !== 'development' && !hasAdminView;
 
   // Mot de passe temporaire (provisioning auto) : force /premiere-connexion tant que
   // public.user.must_change_password = true pour l'employé résolu depuis la session.
@@ -105,11 +106,6 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/premiere-connexion';
         return NextResponse.redirect(url);
       }
-    } else if (hasAdminView && !isProfilRoute) {
-      // Admin CRM sans ligne public.user : doit choisir un employé sur /profil.
-      const url = request.nextUrl.clone();
-      url.pathname = '/profil';
-      return NextResponse.redirect(url);
     }
   } else if (
     user &&
@@ -119,7 +115,6 @@ export async function updateSession(request: NextRequest) {
     !isApiRoute &&
     !isPremiereConnexionRoute
   ) {
-    // Même garde hors enforcePasswordChange (ex. NODE_ENV=development).
     const { data: employeeId } = await supabase.rpc('current_employee_id');
     const hasEmployee =
       typeof employeeId === 'number' ? employeeId > 0 : Number(employeeId) > 0;
@@ -128,6 +123,13 @@ export async function updateSession(request: NextRequest) {
       url.pathname = '/profil';
       return NextResponse.redirect(url);
     }
+  }
+
+  // Vue admin : sortir du mur première connexion (l'admin ne change pas le MDP employé).
+  if (user && isPremiereConnexionRoute && hasAdminView) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
   }
 
   if (user && isPremiereConnexionRoute) {
@@ -144,9 +146,9 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/';
         return NextResponse.redirect(url);
       }
-    } else if (hasAdminView) {
+    } else {
       const url = request.nextUrl.clone();
-      url.pathname = '/profil';
+      url.pathname = '/';
       return NextResponse.redirect(url);
     }
   }
