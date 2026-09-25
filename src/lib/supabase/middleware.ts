@@ -67,7 +67,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname.startsWith('/login')) {
+  // Ne pas rediriger les Server Actions POST depuis /login : après signIn les cookies
+  // session sont déjà là ; un redirect casserait startAdminView (spinner « Connexion… »).
+  const isServerAction = request.headers.has('next-action');
+  if (user && pathname.startsWith('/login') && request.method === 'GET' && !isServerAction) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     url.search = '';

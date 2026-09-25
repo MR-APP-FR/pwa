@@ -131,8 +131,7 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!url || !serviceKey || !anonKey) {
+  if (!url || !serviceKey) {
     return json(500, { error: "server_misconfigured" });
   }
 
@@ -176,11 +175,8 @@ Deno.serve(async (req) => {
     const jwt = bearerToken(req);
     if (!jwt) return json(401, { error: "missing_jwt" });
 
-    const userClient = createClient(url, anonKey, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data: userData, error: userError } = await userClient.auth.getUser();
+    // Service role : validation JWT fiable (évite hang / échec avec clé publishable).
+    const { data: userData, error: userError } = await admin.auth.getUser(jwt);
     if (userError || !userData.user?.email) {
       return json(401, { error: "invalid_jwt" });
     }
@@ -190,8 +186,11 @@ Deno.serve(async (req) => {
       return json(403, { error: "not_admin" });
     }
 
-    // Garantit is_admin() RLS si le compte Auth n'a pas encore le rôle portal.
-    const { error: roleError } = await userClient.rpc("ensure_portal_admin_role");
+    // Équivalent ensure_portal_admin_role (sans dépendre de auth.uid() RPC).
+    const { error: roleError } = await admin.from("user_roles").upsert(
+      { user_id: userData.user.id, role: "admin" },
+      { onConflict: "user_id" },
+    );
     if (roleError) {
       console.error("admin-pwa-view ensure role", roleError.message);
     }

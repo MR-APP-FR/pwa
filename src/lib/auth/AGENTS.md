@@ -27,7 +27,7 @@ RLS `public.user` : SELECT des actifs (collègues) **ou** de sa propre ligne (`i
 
 **Prod terrain** : Edge Function [`claim-login`](../../../supabase/functions/claim-login/) (service role côté Supabase, `verify_jwt: false`). La PWA Vercel n’a **pas** de service role.
 
-**Vue admin CRM (prod)** : un email listé dans `admin_emails` peut se connecter à la PWA avec les **mêmes** id/MDP que le CRM. Edge [`admin-pwa-view`](../../../supabase/functions/admin-pwa-view/) (`verify_jwt: false`) :
+**Vue admin CRM (prod)** : un email listé dans `admin_emails` peut se connecter à la PWA avec les **mêmes** id/MDP que le CRM. Edge [`admin-pwa-view`](../../../supabase/functions/admin-pwa-view/) (`verify_jwt: false`). Piège : middleware ne doit **pas** rediriger les Server Actions POST depuis `/login` (sinon spinner « Connexion… »).
 1. `mint` — JWT admin → cookie httpOnly `pwa_admin_view` (HMAC, 7 j)
 2. `list` / `impersonate` — view_token → liste employés / magic-link `token_hash` (session employé via `verifyOtp`)
 UI : bandeau + panneau sur `/profil` ([AdminViewPanel](../../../components/auth/AdminViewPanel.tsx)). Pas de service role Vercel. Déconnexion = fin de vue admin.

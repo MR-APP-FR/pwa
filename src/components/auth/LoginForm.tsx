@@ -75,62 +75,63 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
     setLoading(true);
     setError(null);
 
-    const trimmed = loginValue.trim();
+    try {
+      const trimmed = loginValue.trim();
 
-    // Email admin CRM → chemin dédié (bypass local équivalent, prod-safe).
-    if (trimmed.includes('@')) {
-      const handled = await tryAdminSignIn(trimmed, passwordValue);
-      if (handled) {
-        setLoading(false);
+      // Email admin CRM → chemin dédié (bypass local équivalent, prod-safe).
+      if (trimmed.includes('@')) {
+        const handled = await tryAdminSignIn(trimmed, passwordValue);
+        if (handled) return;
+      }
+
+      const result = await claimLogin(trimmed, passwordValue);
+
+      if (!result.ok) {
+        if (result.code === 'unknown_login') {
+          setError(t('auth.contactValeria'));
+        } else if (result.code === 'invalid_input') {
+          setError(t('auth.invalidInput'));
+        } else if (result.code === 'server_error') {
+          setError(t('auth.serverError'));
+        } else {
+          setError(t('auth.loginError'));
+        }
         return;
       }
-    }
 
-    const result = await claimLogin(trimmed, passwordValue);
-
-    if (!result.ok) {
-      if (result.code === 'unknown_login') {
-        setError(t('auth.contactValeria'));
-      } else if (result.code === 'invalid_input') {
-        setError(t('auth.invalidInput'));
-      } else if (result.code === 'server_error') {
-        setError(t('auth.serverError'));
-      } else {
-        setError(t('auth.loginError'));
-      }
-      setLoading(false);
-      return;
-    }
-
-    const supabase = createClient();
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-    });
-
-    if (sessionError) {
-      setError(t('auth.serverError'));
-      setLoading(false);
-      return;
-    }
-
-    // Employé qui est aussi dans admin_emails → active aussi le switcher.
-    const {
-      data: { session: empSession },
-    } = await supabase.auth.getSession();
-    const authEmail = empSession?.user?.email;
-    if (authEmail && empSession?.access_token) {
-      const { data: isAdmin } = await supabase.rpc('is_email_admin', {
-        check_email: authEmail,
+      const supabase = createClient();
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
       });
-      if (isAdmin === true) {
-        await supabase.rpc('ensure_portal_admin_role');
-        await startAdminView(empSession.access_token);
-      }
-    }
 
-    await finishWithSession(false);
-    setLoading(false);
+      if (sessionError) {
+        setError(t('auth.serverError'));
+        return;
+      }
+
+      // Employé qui est aussi dans admin_emails → active aussi le switcher.
+      const {
+        data: { session: empSession },
+      } = await supabase.auth.getSession();
+      const authEmail = empSession?.user?.email;
+      if (authEmail && empSession?.access_token) {
+        const { data: isAdmin } = await supabase.rpc('is_email_admin', {
+          check_email: authEmail,
+        });
+        if (isAdmin === true) {
+          await supabase.rpc('ensure_portal_admin_role');
+          await startAdminView(empSession.access_token);
+        }
+      }
+
+      await finishWithSession(false);
+    } catch (err) {
+      console.error('login error', err);
+      setError(t('auth.serverError'));
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
