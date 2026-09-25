@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -13,19 +12,16 @@ import { startAdminView } from '../../lib/auth/adminViewActions';
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const router = useRouter();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function finishWithSession(goProfilForAdminPick: boolean) {
-    if (goProfilForAdminPick) {
-      router.replace('/profil');
-    } else {
-      router.replace('/');
-    }
-    router.refresh();
+    // Navigation pleine page après auth : les soft nav (replace + refresh) laissent
+    // parfois une coquille AppShell beige vide (PWA / cookies session + vue admin).
+    const path = goProfilForAdminPick ? '/profil' : '/';
+    window.location.assign(path);
   }
 
   /** Login admin CRM (mêmes id que le portail) + mint vue terrain. */

@@ -1,7 +1,9 @@
+import { cookies } from 'next/headers';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { LoginForm } from '../../components/auth/LoginForm';
+import { ADMIN_VIEW_COOKIE } from '../../lib/auth/adminView';
 
 export default async function LoginPage() {
   const supabase = await createClient();
@@ -10,6 +12,14 @@ export default async function LoginPage() {
   } = await supabase.auth.getSession();
 
   if (session) {
+    const store = await cookies();
+    const hasAdminView = Boolean(store.get(ADMIN_VIEW_COOKIE)?.value);
+    if (hasAdminView) {
+      const { data: employeeId } = await supabase.rpc('current_employee_id');
+      const hasEmployee =
+        typeof employeeId === 'number' ? employeeId > 0 : Number(employeeId) > 0;
+      redirect(hasEmployee ? '/' : '/profil');
+    }
     redirect('/');
   }
 

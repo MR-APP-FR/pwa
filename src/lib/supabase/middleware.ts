@@ -72,8 +72,16 @@ export async function updateSession(request: NextRequest) {
   const isServerAction = request.headers.has('next-action');
   if (user && pathname.startsWith('/login') && request.method === 'GET' && !isServerAction) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
     url.search = '';
+    // Admin sans employé : aller direct sur /profil (évite / → /profil et page beige vide).
+    if (hasAdminView) {
+      const { data: employeeId } = await supabase.rpc('current_employee_id');
+      const hasEmployee =
+        typeof employeeId === 'number' ? employeeId > 0 : Number(employeeId) > 0;
+      url.pathname = hasEmployee ? '/' : '/profil';
+    } else {
+      url.pathname = '/';
+    }
     return NextResponse.redirect(url);
   }
 
