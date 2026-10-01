@@ -22,6 +22,7 @@ interface PlanningRowDb {
   double_id: number | null;
   user_confirmed: boolean | null;
   double_confirmed: boolean | null;
+  closed: boolean | null;
   site:
     | {
         name: string | null;
@@ -62,7 +63,7 @@ interface UserColleagueRow {
 }
 
 const PLANNING_SELECT =
-  'id, year, month, day, site_id, user_id, double_id, user_confirmed, double_confirmed, site:site_id(name, adresse, metro, indication, latitude, longitude)';
+  'id, year, month, day, site_id, user_id, double_id, user_confirmed, double_confirmed, closed, site:site_id(name, adresse, metro, indication, latitude, longitude)';
 
 function planningMonthTriplet(year: number, month: number): { year: number; month: number }[] {
   const prev = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
@@ -135,6 +136,7 @@ function toPlanningWithColleague(
     double_id: row.double_id,
     user_confirmed: row.user_confirmed ?? false,
     double_confirmed: row.double_confirmed,
+    closed: row.closed === true,
     role,
     colleague,
   };
