@@ -14,7 +14,7 @@ L’identité métier reste `public.user.id` (int), pas `auth.uid()`.
 | [employee.ts](employee.ts) | `requireEmployeeSession()` |
 | [../../app/login/page.tsx](../../app/login/page.tsx) | Formulaire login |
 | [claimLogin.ts](claimLogin.ts) | Fetch client → Edge `claim-login` (pas de Server Action : un RSC refresh vidait le form) |
-| [../../components/auth/LoginForm.tsx](../../components/auth/LoginForm.tsx) | UI + `setSession` |
+| [../../components/auth/LoginForm.tsx](../../components/auth/LoginForm.tsx) | UI FormData + `setSession` (pas d’inputs `disabled` iOS ; pas de Server Action claim) |
 | [../../app/premiere-connexion/](../../app/premiere-connexion/) | MDP temporaire (créations CRM) |
 
 ## Technique

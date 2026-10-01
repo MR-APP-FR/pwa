@@ -12,8 +12,6 @@ import { startAdminView } from '../../lib/auth/adminViewActions';
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const [login, setLogin] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,7 +92,6 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
         } else {
           setError(t('auth.loginError'));
         }
-        // Ne pas vider login/password : l'erreur doit rester lisible.
         return;
       }
 
@@ -133,9 +130,15 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    await doSignIn(login, password);
+    e.stopPropagation();
+    // Lit le DOM au submit : évite iOS qui vide les inputs controlled quand
+    // on disable, et survit mieux à un remount partiel.
+    const fd = new FormData(e.currentTarget);
+    const loginValue = String(fd.get('login') ?? '');
+    const passwordValue = String(fd.get('password') ?? '');
+    await doSignIn(loginValue, passwordValue);
   }
 
   const inputStyle = {
@@ -146,23 +149,24 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   } as const;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <div className="space-y-2">
         <label htmlFor="login" className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
           {t('auth.login')}
         </label>
         <input
           id="login"
+          name="login"
           type="text"
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
           placeholder={t('auth.loginPlaceholder')}
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
+          defaultValue=""
           required
-          disabled={loading}
+          // Ne pas disabled pendant loading : iOS Safari vide souvent password/email.
+          readOnly={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}
         />
@@ -177,12 +181,12 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
         </label>
         <input
           id="password"
+          name="password"
           type="password"
           autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          defaultValue=""
           required
-          disabled={loading}
+          readOnly={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}
         />

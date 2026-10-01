@@ -1,9 +1,10 @@
-const CACHE_NAME = 'manege-v3';
-const STATIC_ASSETS = ['/', '/planning', '/profil'];
+const CACHE_NAME = 'manege-v4';
+// Ne pas pré-cacher les pages HTML (sinon login / bundles obsolètes sur iOS PWA).
+const STATIC_ASSETS = ['/logo.png', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => undefined),
   );
   self.skipWaiting();
 });
@@ -11,31 +12,38 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
+    ),
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  // Ne jamais mettre en cache les appels Supabase (évite une liste vide figée sur iOS PWA)
-  if (url.hostname.includes('supabase.co')) {
+
+  // Ne jamais mettre en cache Auth / API / navigations HTML / JS Next.
+  if (
+    url.hostname.includes('supabase.co') ||
+    event.request.method !== 'GET' ||
+    event.request.mode === 'navigate' ||
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/api')
+  ) {
     return;
   }
 
-  // Network-first strategy: try network, fall back to cache
+  // Network-first pour le reste (icônes, etc.)
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful responses for offline use
-        if (response.ok && event.request.method === 'GET') {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request)),
   );
 });
 
@@ -55,7 +63,7 @@ self.addEventListener('push', (event) => {
         badge: '/logo.png',
         data: { url: data.url || '/messages' },
       });
-    })()
+    })(),
   );
 });
 
@@ -73,6 +81,6 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
       await clients.openWindow(url);
-    })()
+    })(),
   );
 });
