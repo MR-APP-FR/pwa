@@ -2,7 +2,7 @@
 
 État au **2026-09-20**. Source de vérité des jobs : `supabase/migrations/20260827220000_gre_supabase_cron_jobs.sql`, `20260828120000_gre_week_staff_dispatch.sql`, `20260906184500_gre_messages_ca_inter_channels.sql`, `20260906164900_gre_weather_brief_cron.sql`.
 
-Pastilles CRM (admin) : RPC `get_crm_badge_counts` (`20260920094133_gre_crm_badge_counts_rpc.sql`) — compteurs ouverture/fermeture en retard + bureau non lu ; consommée par `CrmBadgesProvider` (poll 30s).
+Pastilles CRM (admin) : RPC `get_crm_badge_counts` — compteurs ouverture en retard + bureau non lu (`late_closing` toujours 0) ; consommée par `CrmBadgesProvider` (poll 30s).
 
 Hygiène RLS/index (`20260920100000_gre_crm_perf_rls_indexes.sql`) : initplan `auth.uid()` / `is_admin()`, drop SELECT admin redondants, drop indexes planning dupliqués.
 

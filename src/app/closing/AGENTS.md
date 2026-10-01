@@ -2,7 +2,7 @@
 
 ## Métier
 
-Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site ou avant 20h05 Paris) exige une raison et alerte le canal Bureau.
+Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site ou avant `heures_semaine.ferme` + 5 min Paris) exige une raison et alerte le canal Bureau.
 
 ## Écran
 
@@ -21,7 +21,7 @@ Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, G
 | Frais | `frais` numeric + `frais_raison` text (obligatoire si frais > 0) |
 | Nettoyage | `nettoyage_fait`, `photo_seau_url` / `photo_seau_source` / `photo_seau_captured_at`, `nettoyage_raison` |
 | Geo | [../../lib/geo.ts](../../lib/geo.ts) `evaluateClosingForce` |
-| Deadline | [../../lib/parisTime.ts](../../lib/parisTime.ts) `closingDeadlineParisFromDateIso` |
+| Deadline | [../../lib/parisTime.ts](../../lib/parisTime.ts) `getExpectedClosingDeadline` (`ferme` + 5 min) |
 | Photo | Storage `telecollecte-photos` — path en DB (`photo_url`, `photo_parking_url`, `photo_seau_url`) |
 | Parking | Si `site_infos.carte_parking` : photo carte **ou** `photo_parking_raison` |
 | Confiserie | Si `site_infos.stand_confiserie` : champ `closing_form.confiserie` → sync `data.confiserie` |

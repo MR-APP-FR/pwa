@@ -18,6 +18,7 @@ import { useSiteClosingChecklist,
   type ClosingChecklistItemKey,
 } from '../../hooks/api/useSiteClosingChecklist';
 import { useSiteTerrainConfig } from '../../hooks/api/useSiteTerrainConfig';
+import { useSiteHeuresOuverture } from '../../hooks/api/useSiteHeuresOuverture';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
 import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
@@ -32,7 +33,10 @@ import { formatDateTime, formatMissionDate } from '../../lib/formatDate';
 import { getDevDateOverride } from '../../lib/dev/dateOverrideClient';
 import { evaluateClosingForce, GEO_CLOSE_MAX_METERS } from '../../lib/geo';
 import { requestGeolocation, type GeoFix } from '../../lib/geolocation';
-import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
+import {
+  getExpectedClosingDeadline,
+  PARIS_TIME_ZONE,
+} from '../../lib/parisTime';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -44,6 +48,19 @@ import { RADIUS } from '../../constants/design';
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
+}
+
+/** Libellé deadline fermeture type `19H05` (Europe/Paris). */
+function formatClosingDeadlineLabel(deadline: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: PARIS_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(deadline);
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
+  const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
+  return `${hour}H${minute}`;
 }
 
 function formatEurAmount(n: number): string {
@@ -108,11 +125,6 @@ const PAIE_SECTION: ClosingSection = {
       unit: 'eur',
     },
     {
-      key: 'payeDuDouble',
-      labelKey: 'forms.closing.payeDuDouble',
-      unit: 'eur',
-    },
-    {
       key: 'payeManquanteRecuperee',
       labelKey: 'forms.closing.payeManquanteRecuperee',
       unit: 'eur',
@@ -122,6 +134,11 @@ const PAIE_SECTION: ClosingSection = {
       labelKey: 'forms.closing.frais',
       unit: 'eur',
       helpKey: 'forms.closing.fraisHelp',
+    },
+    {
+      key: 'payeDuDouble',
+      labelKey: 'forms.closing.payeDuDouble',
+      unit: 'eur',
     },
   ],
 };
@@ -168,6 +185,7 @@ function ClosingContent() {
   const { data: sujets } = useSujets(mission?.site_id);
   const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
   const { data: terrainConfig } = useSiteTerrainConfig(mission?.site_id);
+  const { data: heuresSemaine } = useSiteHeuresOuverture(mission?.site_id);
   const showParkingPhoto = terrainConfig?.carteParkingEnabled === true;
   const showConfiserie = terrainConfig?.standConfiserie === true;
   const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
@@ -286,7 +304,12 @@ function ClosingContent() {
     setEnvelopeConfirmed(true);
   }, [existingClosing, missionId]);
 
-  const closingDeadline = missionDateIso ? closingDeadlineParisFromDateIso(missionDateIso) : null;
+  const closingDeadline = missionDateIso
+    ? getExpectedClosingDeadline(missionDateIso, heuresSemaine ?? null)
+    : null;
+  const closingDeadlineLabel = closingDeadline
+    ? formatClosingDeadlineLabel(closingDeadline)
+    : '20H05';
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -319,9 +342,9 @@ function ClosingContent() {
     beforeDeadline: isBeforeClosingDeadline,
   });
   const isFar = geoFix?.ok === true && forceCheck.distanceM != null;
-  // Avant 20h05 on laisse remplir le formulaire : la validation classique
-  // attend l'heure. « Forcer » seulement si trop loin, GPS KO déjà révélé,
-  // ou choix explicite de fermer le site plus tôt.
+  // Avant l'échéance (ferme + 5 min) on laisse remplir le formulaire : la
+  // validation classique attend l'heure. « Forcer » seulement si trop loin,
+  // GPS KO déjà révélé, ou choix explicite de fermer le site plus tôt.
   const needsForceUi = forceRevealed || isFar;
   const forceModalTitleKey = isFar
     ? 'forms.closing.forceReasonLabelFar'
@@ -765,7 +788,7 @@ function ClosingContent() {
               : needsForceUi
                 ? t('forms.closing.forceSubmit')
                 : isBeforeClosingDeadline
-                  ? t('forms.closing.waitSubmit')
+                  ? t('forms.closing.waitSubmit', { time: closingDeadlineLabel })
                   : t('forms.closing.submit')}
           </PrimaryButton>
           {isBeforeClosingDeadline && !needsForceUi && (
@@ -1215,7 +1238,7 @@ function ClosingContent() {
       isOpen={forceModalOpen}
       onClose={() => setForceModalOpen(false)}
       colors={colors}
-      title={t(forceModalTitleKey)}
+      title={t(forceModalTitleKey, { time: closingDeadlineLabel })}
       titleId="closing-force-reason-title"
       closeAriaLabel={t('common.cancel')}
       doneLabel={t('forms.closing.forceSubmit')}
@@ -1223,7 +1246,7 @@ function ClosingContent() {
     >
       <textarea
         autoFocus
-        placeholder={t(forceModalPlaceholderKey)}
+        placeholder={t(forceModalPlaceholderKey, { time: closingDeadlineLabel })}
         value={forceReason}
         onChange={(e) => {
           setForceReason(e.target.value);

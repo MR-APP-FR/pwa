@@ -113,9 +113,55 @@ export function parisWallClockToDate(
   return new Date(utc);
 }
 
-/** Échéance fermeture commune 20h05 Europe/Paris sur `dateIso`. */
+/**
+ * Marge télécollecte après l'heure `ferme` du manège (minutes).
+ * `heures_semaine.ferme` = fermeture manège ; deadline PWA = ferme + cette marge.
+ */
+export const CLOSING_AFTER_FERME_MINUTES = 5;
+
+/** Défaut si `ferme` absent : 20h00 (la marge 5 min est ajoutée à part). */
+const DEFAULT_FERME_CLOCK = { hour: 20, minute: 0, second: 0 } as const;
+
+/** Parse `HH:mm` / `HH:mm:ss` → instant Europe/Paris sur `dateIso`. */
+export function closingFermeParisFromDateIso(
+  dateIso: string,
+  fermeRaw: string | null | undefined,
+): Date | null {
+  if (fermeRaw == null || String(fermeRaw).trim() === '') return null;
+  const m = String(fermeRaw).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+  return parisWallClockToDate(dateIso, { hour: h, minute: min, second: 0 });
+}
+
+/** Échéance validation classique = `ferme` + {@link CLOSING_AFTER_FERME_MINUTES}. */
+export function closingDeadlineParisFromFerme(
+  dateIso: string,
+  fermeRaw: string | null | undefined,
+): Date | null {
+  const base =
+    closingFermeParisFromDateIso(dateIso, fermeRaw) ??
+    parisWallClockToDate(dateIso, DEFAULT_FERME_CLOCK);
+  if (!base) return null;
+  return new Date(base.getTime() + CLOSING_AFTER_FERME_MINUTES * 60_000);
+}
+
+/** @deprecated Préférer `getExpectedClosingDeadline` (horaire site). Défaut 20h05. */
 export function closingDeadlineParisFromDateIso(dateIso: string): Date | null {
-  return parisWallClockToDate(dateIso, { hour: 20, minute: 5, second: 0 });
+  return closingDeadlineParisFromFerme(dateIso, null);
+}
+
+/** Heure de fermeture attendue du site pour `dateIso` (+ marge 5 min). */
+export function getExpectedClosingDeadline(
+  dateIso: string,
+  heures: HeuresSemaine | null,
+): Date | null {
+  if (!heures) return closingDeadlineParisFromFerme(dateIso, null);
+  const key = dateIsoToJourSemaineKey(dateIso);
+  const jour = heures[key];
+  return closingDeadlineParisFromFerme(dateIso, jour?.ferme ?? null);
 }
 
 /**

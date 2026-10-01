@@ -4,15 +4,18 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { requireEmployeeSession } from '../../lib/auth/employee';
 import type { PhotoSource } from '../../database/types';
 import { evaluateClosingForce } from '../../lib/geo';
-import { closingDeadlineParisFromDateIso } from '../../lib/parisTime';
+import {
+  getExpectedClosingDeadline,
+  type HeuresSemaine,
+} from '../../lib/parisTime';
 import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
 
 /**
  * Submit fermeture : upload photo télécollecte puis upsert `closing_form`.
  * `user_id` dérivé de la session, jamais du client.
  * Distance / horaire recalculés côté serveur : une fermeture loin de
- * l'ouverture ou avant 20h05 n'est acceptée qu'avec une raison, et alerte
- * le canal bureau.
+ * l'ouverture ou avant (`ferme` + 5 min) n'est acceptée qu'avec une raison,
+ * et alerte le canal bureau.
  */
 
 export type SubmitClosingResult =
@@ -190,7 +193,16 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     .eq('date', date)
     .maybeSingle();
 
-  const deadline = closingDeadlineParisFromDateIso(date);
+  const { data: siteInfosRow } = await supabase
+    .from('site_infos')
+    .select('heures_semaine')
+    .eq('site_id', siteId)
+    .maybeSingle();
+
+  const deadline = getExpectedClosingDeadline(
+    date,
+    (siteInfosRow?.heures_semaine ?? null) as HeuresSemaine | null,
+  );
   const effectiveNow = (await getDevOverrideNow()) ?? new Date();
   const beforeDeadline = deadline !== null && effectiveNow < deadline;
 
