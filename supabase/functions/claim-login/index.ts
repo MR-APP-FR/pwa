@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
   const selectCols = "id, login, email, actif";
 
   // Prefers login match; falls back to email.
+  // Ne jamais filtrer sur `actif` : un compte inactif doit pouvoir se connecter / claim.
   const byLogin = await admin.from("user").select(selectCols).ilike("login", escaped).limit(2);
   if (byLogin.error) {
     console.error("claim-login lookup login", byLogin.error.message);
@@ -127,12 +128,21 @@ Deno.serve(async (req) => {
 
   if (createError) {
     const msg = (createError.message ?? "").toLowerCase();
+    // Politique MDP (ex. min 6) → ne pas masquer en « incorrect ».
+    if (
+      msg.includes("password") ||
+      msg.includes("at least") ||
+      msg.includes("weak") ||
+      msg.includes("shortest")
+    ) {
+      return json(400, { error: "weak_password" });
+    }
     if (
       msg.includes("already") ||
       msg.includes("registered") ||
-      msg.includes("exists") ||
-      createError.status === 422
+      msg.includes("exists")
     ) {
+      // Auth déjà présent + MDP saisi faux (signIn a échoué juste avant).
       return json(401, { error: "invalid_credentials" });
     }
     console.error("claim-login createUser", createError.message);

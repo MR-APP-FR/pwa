@@ -15,6 +15,7 @@
     "loginError": "Identifiant, email ou mot de passe incorrect.",
     "contactValeria": "Identifiant ou email inconnu. Contacte Valeria.",
     "invalidInput": "Identifiant (ou email) et mot de passe requis.",
+    "weakPassword": "Mot de passe trop court (6 caractères minimum).",
     "serverError": "Connexion impossible pour le moment. Réessaie."
   },
   "firstLogin": {

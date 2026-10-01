@@ -15,6 +15,7 @@
     "loginError": "Incorrect username, email or password.",
     "contactValeria": "Unknown username or email. Contact Valeria.",
     "invalidInput": "Username (or email) and password required.",
+    "weakPassword": "Password too short (minimum 6 characters).",
     "serverError": "Sign-in unavailable right now. Try again."
   },
   "firstLogin": {

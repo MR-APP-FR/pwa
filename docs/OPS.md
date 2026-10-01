@@ -44,7 +44,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `weather-brief` | 9h Paris : 1 `staff_message` + Web Push par employé planifié (catalogue encourage) | Web Push (VAPID) |
 | `opening-late` | Créneaux matin / après-midi Paris : relance si ouverture manquante + Web Push | Web Push (VAPID) |
 | `availability-reminder` | Mercredi : rappel dispos N+1 + Web Push | Web Push (VAPID) |
-| `claim-login` | Login terrain par `public.user.login` **ou** `email` (sans filtre `actif`) : claim MDP 1re fois ou `signInWithPassword` ; `verify_jwt: false` | Auth Admin (service role) |
+| `claim-login` | Login terrain par `public.user.login` **ou** `email` (**sans filtre `actif`**) : claim MDP 1re fois ou `signInWithPassword` ; MDP trop court → `weak_password` ; `verify_jwt: false` | Auth Admin (service role) |
 | `admin-pwa-view` | Vue admin CRM sur PWA : `mint` (JWT admin → view_token) / `list` / `impersonate` (magic-link employé) ; `verify_jwt: false` | Auth Admin (service role) |
 | `ca-daily-pdf` | 21h Paris : message stub canal CA (PDF généré au clic CRM) | — |
 

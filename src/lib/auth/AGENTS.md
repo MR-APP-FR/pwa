@@ -13,7 +13,7 @@ L’identité métier reste `public.user.id` (int), pas `auth.uid()`.
 |---|---|
 | [employee.ts](employee.ts) | `requireEmployeeSession()` |
 | [../../app/login/page.tsx](../../app/login/page.tsx) | Formulaire login |
-| [../../app/login/actions.ts](../../app/login/actions.ts) | Appelle Edge `claim-login` |
+| [claimLogin.ts](claimLogin.ts) | Fetch client → Edge `claim-login` (pas de Server Action : un RSC refresh vidait le form) |
 | [../../components/auth/LoginForm.tsx](../../components/auth/LoginForm.tsx) | UI + `setSession` |
 | [../../app/premiere-connexion/](../../app/premiere-connexion/) | MDP temporaire (créations CRM) |
 
@@ -33,10 +33,11 @@ RLS `public.user` : SELECT des actifs (collègues) **ou** de sa propre ligne (`i
 UI : bandeau + panneau sur `/profil` ([AdminViewPanel](../../../components/auth/AdminViewPanel.tsx)). Après login : **navigation pleine page** (`location.assign`) — soft nav laissait une page beige vide. Pas de service role Vercel. Déconnexion = fin de vue admin.
 
 Flux claim :
-1. Lookup `public.user` par `login`, sinon par `email` (email profil requis pour Auth ; `actif` non filtré)
+1. Lookup `public.user` par `login`, sinon par `email` (email profil requis pour Auth ; **`actif` non filtré** — un compte inactif peut se connecter)
 2. `signInWithPassword` si Auth existe déjà
 3. Sinon `createUser` + session (`must_change_password = false`)
 4. Auth déjà présent + mauvais MDP → erreur (pas de réécriture)
+5. MDP trop court (< 6) à la 1re claim → erreur `weak_password` (pas « incorrect »)
 
 Provisioning local (dev / tests) :
 

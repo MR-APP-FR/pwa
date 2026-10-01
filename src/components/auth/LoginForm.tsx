@@ -6,7 +6,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
-import { claimLogin } from '../../app/login/actions';
+import { claimLogin } from '../../lib/auth/claimLogin';
 import { startAdminView } from '../../lib/auth/adminViewActions';
 
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
@@ -87,11 +87,14 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           setError(t('auth.contactValeria'));
         } else if (result.code === 'invalid_input') {
           setError(t('auth.invalidInput'));
+        } else if (result.code === 'weak_password') {
+          setError(t('auth.weakPassword'));
         } else if (result.code === 'server_error') {
           setError(t('auth.serverError'));
         } else {
           setError(t('auth.loginError'));
         }
+        // Ne pas vider login/password : l'erreur doit rester lisible.
         return;
       }
 
