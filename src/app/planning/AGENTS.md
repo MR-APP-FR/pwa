@@ -1,31 +1,35 @@
-# Planning (lecture missions)
+# Planning (lecture + validation)
 
 ## Métier
 
-Vue mensuelle des affectations : où l’employé est teneur ou double. Badge non lu si le bureau a publié un planning assigné (message staff).
+Vue hebdomadaire des affectations : où l’employé est teneur ou double. Après envoi CRM N+1, validation **semaine entière** (`planning_week_ack` + RPC `validate_planning_week`). Todo home si ack `pending` (lien `?week=`).
 
 ## Écran
 
-- Route : `/planning`
+- Route : `/planning` (query `?week=YYYY-MM-DD` = lundi cible)
 - Page : [page.tsx](page.tsx)
+- Action : [actions.ts](actions.ts) — `validatePlanningWeek`
 
 ## Technique
 
 | Élément | Détail |
 |---|---|
 | Hook | [../../hooks/api/usePlanning.ts](../../hooks/api/usePlanning.ts) — `usePlanning` (semaine ±1 mois) |
-| Table | `planning` (year, month, day, site_id, user_id, double_id, `closed`) |
-| RLS | SELECT si `user_id = me OR double_id = me` |
-| Messages | `markUnreadPlanningAssignedRead` à l’ouverture — pastille via RPC badges, **sans** inbox |
+| Acks | [../../hooks/api/usePlanningWeekAcks.ts](../../hooks/api/usePlanningWeekAcks.ts) — pending own |
+| Table | `planning` (year, month, day, site_id, user_id, double_id, `closed`, `user_confirmed`, `double_confirmed`) |
+| Ack | `planning_week_ack` (week_start, user_id, status, fingerprint) |
+| RLS | SELECT si `user_id = me OR double_id = me` ; validation via RPC security definer |
+| Messages | `markUnreadPlanningAssignedRead` à l’ouverture — pastille via RPC badges |
 
-Pas de mutation ici — édition planning = CRM uniquement. Case `closed` : pas d’affectation → invisible côté PWA (RLS / query own).
+Validation = bouton « Valider mes attributions » → ack `validated` + flags confirmation sur les cases de la semaine.
 
 ## Transverse
 
-- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : grille éditable + envoi semaine N+1.
+- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : envoi + dots rouges pending + re-notif si modif post-envoi.
 - Ouverture / fermeture / info-jour : accès RLS binôme dérivé de cette table.
 
 ## Ne pas casser
 
-- Filtrer par mois courant via `useAppDate` — cohérent avec accueil et dispos.
+- Filtrer via `useAppDate` — cohérent avec accueil et dispos.
+- Deep-link `?week=` pour la todo home.
 - Ne pas exposer le planning des autres employés (RLS suffit — ne pas bypass).

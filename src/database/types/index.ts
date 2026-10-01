@@ -37,5 +37,6 @@ export type { SiteWeather, WeatherCondition, WeatherSource, CrowdLevel } from '.
 export type { PushSubscriptionRow } from './push.types';
 export type { AvailabilityRow } from './availability.types';
 export type { WeekStaffDispatchRow } from './week-staff-dispatch.types';
+export type { PlanningWeekAckRow } from './planning-week-ack.types';
 export type { Sujet } from './sujet.types';
 export type { OpenSiteIntervention, OpenInterventionStatus, PanneCheckinAnswer } from './intervention.types';

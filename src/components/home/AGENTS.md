@@ -24,8 +24,9 @@
 - `useSitesHeuresOuverture` — horaires prochaine affectation
 - `useSiteWeather` — lit `site_weather` (écrit par Edge `weather-sync`)
 - `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount` — RPC badges, pas d’inbox
+- `usePendingPlanningAcks` — validation planning pending → todo + deep-link `?week=`
 - `useAvailability` + `isAvailabilityReminderWindow` — badge dispos mercredi
-- `useHomeAssistantTodos` — badges (messages, planning, dispos, photo, CNI, push)
+- `useHomeAssistantTodos` — badges (messages, **validation planning**, dispos, photo, CNI, push)
 
 ## Transverse
 

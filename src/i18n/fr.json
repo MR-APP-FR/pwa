@@ -83,7 +83,7 @@
       "assistantPush": "Active les notifications dans les paramètres",
       "assistantMessagesOne": "Tu as reçu un message que tu n'as pas lu",
       "assistantMessagesMany": "Tu as %{count} messages non lus",
-      "assistantPlanning": "Un nouveau jour a été ajouté à ton planning",
+      "assistantPlanning": "Valide tes attributions de planning",
       "assistantAvailability": "Remplis tes disponibilités pour la semaine prochaine",
       "assistantAriaIdle": "Assistant, rien à faire",
       "assistantAriaBusy": "Assistant, %{count} action(s) à faire"
@@ -125,6 +125,9 @@
       "previousWeek": "Précédente",
       "nextWeek": "Suivante",
       "availabilityReminder": "N'oubliez pas de bien noté vos jours",
+      "validatePrompt": "Tu as reçu des attributions pour cette semaine. Merci de les valider.",
+      "validateCta": "Valider mes attributions",
+      "validating": "Validation…",
       "hour": "9h00",
       "go": "Y aller ?",
       "opening": "Ouverture",

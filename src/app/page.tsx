@@ -15,6 +15,7 @@ import {
   useUnreadPlanningAssignedCount,
   useUnreadStaffMessageCount,
 } from '../hooks/api/useStaffMessages';
+import { usePendingPlanningAcks } from '../hooks/api/usePlanningWeekAcks';
 import { useAvailability } from '../hooks/api/useAvailability';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
@@ -92,6 +93,8 @@ export default function HomePage() {
   const nextWeekEndIso = toIsoDateString(nextWeekEnd);
   const { data: nextWeekAvailability } = useAvailability(nextWeekStartIso, nextWeekEndIso);
   const unreadPlanningCount = useUnreadPlanningAssignedCount();
+  const { data: pendingAcks } = usePendingPlanningAcks();
+  const pendingPlanningWeekStart = pendingAcks?.[0]?.week_start ?? null;
 
   const availabilityBadgeCount = useMemo(() => {
     if (!isAvailabilityReminderWindow()) return 0;
@@ -99,11 +102,12 @@ export default function HomePage() {
     return filledDays >= 7 ? 0 : 1;
   }, [nextWeekAvailability]);
 
-  const planningBadgeCount = unreadPlanningCount > 0 ? 1 : 0;
+  const planningBadgeCount =
+    pendingPlanningWeekStart || unreadPlanningCount > 0 ? 1 : 0;
   const nextWeekAvailabilityHref = `/availability?startDate=${nextWeekStartIso}&endDate=${nextWeekEndIso}`;
   const assistantTodos = useHomeAssistantTodos({
     unreadMessageCount,
-    planningBadgeCount,
+    pendingPlanningWeekStart,
     availabilityBadgeCount,
     nextWeekAvailabilityHref,
   });
@@ -143,7 +147,13 @@ export default function HomePage() {
         <HomeButton
           icon="calendar-outline"
           label={t('screens.home.planningButton')}
-          onPress={() => router.push('/planning')}
+          onPress={() =>
+            router.push(
+              pendingPlanningWeekStart
+                ? `/planning?week=${pendingPlanningWeekStart}`
+                : '/planning',
+            )
+          }
           badgeCount={planningBadgeCount}
         />
         <HomeButton

@@ -25,7 +25,8 @@ function isBlank(value: string | null | undefined): boolean {
 
 export function useHomeAssistantTodos(params: {
   unreadMessageCount: number;
-  planningBadgeCount: number;
+  /** Semaine ISO (lundi) à valider, ou null. */
+  pendingPlanningWeekStart: string | null;
   availabilityBadgeCount: number;
   nextWeekAvailabilityHref: string;
 }): HomeAssistantTodo[] {
@@ -67,10 +68,10 @@ export function useHomeAssistantTodos(params: {
         titleParams: { count: String(params.unreadMessageCount) },
       });
     }
-    if (params.planningBadgeCount > 0) {
+    if (params.pendingPlanningWeekStart) {
       todos.push({
         id: 'planning',
-        href: '/planning',
+        href: `/planning?week=${params.pendingPlanningWeekStart}`,
         titleKey: 'screens.home.assistantPlanning',
       });
     }
@@ -87,7 +88,7 @@ export function useHomeAssistantTodos(params: {
     data,
     status,
     params.unreadMessageCount,
-    params.planningBadgeCount,
+    params.pendingPlanningWeekStart,
     params.availabilityBadgeCount,
     params.nextWeekAvailabilityHref,
   ]);

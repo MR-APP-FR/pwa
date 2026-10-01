@@ -83,7 +83,7 @@
       "assistantPush": "Turn on notifications in settings",
       "assistantMessagesOne": "You have an unread message",
       "assistantMessagesMany": "You have %{count} unread messages",
-      "assistantPlanning": "A new day was added to your planning",
+      "assistantPlanning": "Validate your planning attributions",
       "assistantAvailability": "Fill in your availability for next week",
       "assistantAriaIdle": "Assistant, nothing to do",
       "assistantAriaBusy": "Assistant, %{count} action(s) to do"
@@ -125,6 +125,9 @@
       "previousWeek": "Previous",
       "nextWeek": "Next",
       "availabilityReminder": "Don't forget to note your days carefully",
+      "validatePrompt": "You received attributions for this week. Please validate them.",
+      "validateCta": "Validate my attributions",
+      "validating": "Validating…",
       "hour": "9:00 AM",
       "go": "Go there?",
       "opening": "Opening",
