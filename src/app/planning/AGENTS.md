@@ -14,11 +14,11 @@ Vue mensuelle des affectations : où l’employé est teneur ou double. Badge no
 | Élément | Détail |
 |---|---|
 | Hook | [../../hooks/api/usePlanning.ts](../../hooks/api/usePlanning.ts) — `usePlanning` (semaine ±1 mois) |
-| Table | `planning` (year, month, day, site_id, user_id, double_id) |
+| Table | `planning` (year, month, day, site_id, user_id, double_id, `closed`) |
 | RLS | SELECT si `user_id = me OR double_id = me` |
 | Messages | `markUnreadPlanningAssignedRead` à l’ouverture — pastille via RPC badges, **sans** inbox |
 
-Pas de mutation ici — édition planning = CRM uniquement.
+Pas de mutation ici — édition planning = CRM uniquement. Case `closed` : pas d’affectation → invisible côté PWA (RLS / query own).
 
 ## Transverse
 

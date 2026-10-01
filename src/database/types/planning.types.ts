@@ -8,6 +8,8 @@ export interface Planning {
   double_id: number | null;
   user_confirmed: boolean;
   double_confirmed: boolean | null;
+  /** Site volontairement fermé ce jour (CRM planning). */
+  closed: boolean;
 }
 
 export interface PlanningColleague {
