@@ -8,6 +8,7 @@ import { Header } from '../components/layout/Header';
 import { isBarePath, showsShellHeader } from '../components/layout/pageChrome';
 import { InstallBanner } from '../components/pwa/InstallBanner';
 import { PwaCutoverBootstrap, PushResubscribeOnAuth } from '../components/pwa/PwaCutover';
+import { PwaVersionWatcher } from '../components/pwa/PwaVersionWatcher';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 function AppShell({ children }: { children: ReactNode }) {
@@ -23,6 +24,7 @@ function AppShell({ children }: { children: ReactNode }) {
         style={{ backgroundColor: colors.BG_SECONDARY }}
       >
         <PwaCutoverBootstrap />
+        <PwaVersionWatcher />
         {children}
         {/* Aussi sur /login : invite d'install avant session */}
         <InstallBanner />
@@ -36,6 +38,7 @@ function AppShell({ children }: { children: ReactNode }) {
       style={{ backgroundColor: colors.BG_SECONDARY }}
     >
       <PwaCutoverBootstrap />
+      <PwaVersionWatcher />
       <PushResubscribeOnAuth />
       <AdminViewBanner />
       {shellHeader ? <Header /> : null}

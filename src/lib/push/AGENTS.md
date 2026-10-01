@@ -12,7 +12,8 @@ Notifications navigateur pour messages bureau, relances ouverture tardive, rappe
 | [../../app/push/actions.ts](../../app/push/actions.ts) | Persist `push_subscription` |
 | [../../components/pwa/PushEnableBanner.tsx](../../components/pwa/PushEnableBanner.tsx) | UI accueil |
 | [../../components/pwa/PwaCutover.tsx](../../components/pwa/PwaCutover.tsx) | Cutover SW + re-subscribe si permission déjà `granted` |
-| Service worker | [`../../../public/sw.js`](../../../public/sw.js) (`manege-v3`) |
+| [../../components/pwa/PwaVersionWatcher.tsx](../../components/pwa/PwaVersionWatcher.tsx) | Reload auto si nouveau deploy (voir [../pwa/AGENTS.md](../pwa/AGENTS.md)) |
+| Service worker | [`../../../public/sw.js`](../../../public/sw.js) (`manege-v4`) |
 
 ## Env
 
@@ -25,7 +26,7 @@ Notifications navigateur pour messages bureau, relances ouverture tardive, rappe
 - Table : `push_subscription` (endpoint par employé/appareil).
 - iOS : push **uniquement** PWA installée (`canUseWebPush`).
 - Protocole W3C via lib `web-push` — pas FCM serveur dédié.
-- Après cutover DNS (même domaine) : `PwaCutoverBootstrap` purge SW/caches une fois (`pwa-cutover-v1`) ; `PushResubscribeOnAuth` réécrit l’abonnement si permission déjà accordée.
+- Après cutover DNS (même domaine) : `PwaCutoverBootstrap` purge SW/caches une fois (`pwa-cutover-v2-login-fix`) ; `PushResubscribeOnAuth` réécrit l’abonnement si permission déjà accordée.
 
 ## Ne pas casser
 

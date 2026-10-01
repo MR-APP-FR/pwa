@@ -23,6 +23,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 | Boîte à idées | [src/app/suggestions/AGENTS.md](src/app/suggestions/AGENTS.md) |
 | Auth / identité RLS | [src/lib/auth/AGENTS.md](src/lib/auth/AGENTS.md) |
 | Web Push | [src/lib/push/AGENTS.md](src/lib/push/AGENTS.md) |
+| Cutover / version PWA | [src/lib/pwa/AGENTS.md](src/lib/pwa/AGENTS.md) |
 | Crons / Edge Functions | [supabase/functions/AGENTS.md](supabase/functions/AGENTS.md) |
 | Ops (APIs, pg_cron) | [docs/OPS.md](docs/OPS.md) |
 | Architecture transverse | [../AGENTS.md](../AGENTS.md) (workspace) |
