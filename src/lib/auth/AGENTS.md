@@ -46,6 +46,7 @@ npm run provision:auth-users  # SUPABASE_SERVICE_ROLE_KEY — pas le flux prod c
 ```
 
 CRM `createUser` : profil + `login` seulement (pas d’Auth). Même flux claim à la 1re connexion PWA.
+CRM fiche staff : **Réinit. connexion PWA** (`resetEmployeePwaAuth`) supprime Auth pour un nouveau claim.
 
 ## Ne pas casser
 
