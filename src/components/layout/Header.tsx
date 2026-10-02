@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Settings } from 'lucide-react';
+import { isAdminViewUiActive, navigateFullPage } from '../../lib/auth/fullPageNav';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSettingsTodoCount } from '../../hooks/useSettingsTodoCount';
@@ -30,6 +31,11 @@ export function Header({ variant = 'sticky' }: HeaderProps) {
           href="/"
           className="flex min-w-0 flex-1 items-center justify-center no-underline"
           aria-label="Accueil Les Manèges Ravoire"
+          onClick={(e) => {
+            if (!isAdminViewUiActive()) return;
+            e.preventDefault();
+            navigateFullPage('/');
+          }}
         >
           <Image
             src="/logo.png"

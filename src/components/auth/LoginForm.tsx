@@ -7,6 +7,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
 import { claimLogin } from '../../lib/auth/claimLogin';
+import { navigateFullPage } from '../../lib/auth/fullPageNav';
 import { startAdminView } from '../../lib/auth/adminViewActions';
 
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
@@ -16,10 +17,8 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const [error, setError] = useState<string | null>(null);
 
   async function finishWithSession(goProfilForAdminPick: boolean) {
-    // Navigation pleine page après auth : les soft nav (replace + refresh) laissent
-    // parfois une coquille AppShell beige vide (PWA / cookies session + vue admin).
     const path = goProfilForAdminPick ? '/profil' : '/';
-    window.location.assign(path);
+    navigateFullPage(path);
   }
 
   /** Login admin CRM (mêmes id que le portail) + mint vue terrain. */

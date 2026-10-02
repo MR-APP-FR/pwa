@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
+import { navigateFullPage } from '../../lib/auth/fullPageNav';
 import {
   listAdminSwitchableUsers,
   requestAdminImpersonation,
@@ -15,7 +15,6 @@ import type { AdminSwitchableUser } from '../../lib/auth/adminView';
  * Visible uniquement si le cookie view_token est présent.
  */
 export function AdminViewPanel({ colors }: { colors: Record<string, string> }) {
-  const router = useRouter();
   const [active, setActive] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminSwitchableUser[]>([]);
@@ -62,8 +61,7 @@ export function AdminViewPanel({ colors }: { colors: Record<string, string> }) {
       return;
     }
 
-    router.replace('/');
-    router.refresh();
+    navigateFullPage('/');
   }
 
   return (
