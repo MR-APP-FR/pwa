@@ -32,7 +32,10 @@ export function dayStartRawForRole(
   return null;
 }
 
-/** Libellé horaires du jour : `10H00` ou `10H00 – 20H05` (double → `13H00 – …`). */
+/**
+ * Heure d'arrivée affichée (pastille planning / prochain jour).
+ * Teneur → `ouvre` ; double → `double` (fallback `ouvre`). Pas de `ferme`.
+ */
 export function buildSiteDayHoursLabel(
   heures: HeuresSemaine | undefined,
   date: Date,
@@ -40,8 +43,5 @@ export function buildSiteDayHoursLabel(
 ): string | null {
   if (!heures) return null;
   const jour = heures[dateIsoToJourSemaineKey(toIsoDateString(date))];
-  const start = formatHeureCourte(dayStartRawForRole(jour, opts?.isDouble === true));
-  const ferme = formatHeureCourte(jour?.ferme);
-  if (start && ferme) return `${start} – ${ferme}`;
-  return start ?? ferme ?? null;
+  return formatHeureCourte(dayStartRawForRole(jour, opts?.isDouble === true));
 }

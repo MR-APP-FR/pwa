@@ -2,7 +2,7 @@
 
 ## Métier
 
-Vue hebdomadaire des affectations : où l’employé est teneur ou double. Horaires affichés : `ouvre`–`ferme` (teneur) ou `double`–`ferme` (rôle double, fallback `ouvre`). Après envoi CRM N+1, validation **semaine entière** (`planning_week_ack` + RPC `validate_planning_week`). Todo home si ack `pending` (lien `?week=`).
+Vue hebdomadaire des affectations : où l’employé est teneur ou double. Pastille : nom du manège + heure d’arrivée seule (`site_infos.heures_semaine`) — `ouvre` (teneur) ou `double` (rôle double, fallback `ouvre`) ; pas de `ferme`. Ouverture / fermeture terrain utilisent les mêmes champs (`ouvre` / `double` / `ferme`). Après envoi CRM N+1, validation **semaine entière** (`planning_week_ack` + RPC `validate_planning_week`). Todo home si ack `pending` (lien `?week=`).
 
 ## Écran
 
