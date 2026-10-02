@@ -14,15 +14,34 @@ export function formatHeureCourte(raw: string | null | undefined): string | null
   return `${h}H${String(min).padStart(2, '0')}`;
 }
 
-/** Libellé horaires du jour : `10H00` ou `10H00 – 20H05`. */
+/**
+ * Heure de début affichée pour une affectation.
+ * Teneur : `ouvre`. Double : `double` si renseigné, sinon `ouvre`.
+ */
+export function dayStartRawForRole(
+  jour: { ouvre?: string | null; double?: string | null } | null | undefined,
+  isDouble: boolean,
+): string | null {
+  if (!jour) return null;
+  if (isDouble) {
+    const d = jour.double;
+    if (d != null && String(d).trim() !== '') return String(d).trim();
+  }
+  const o = jour.ouvre;
+  if (o != null && String(o).trim() !== '') return String(o).trim();
+  return null;
+}
+
+/** Libellé horaires du jour : `10H00` ou `10H00 – 20H05` (double → `13H00 – …`). */
 export function buildSiteDayHoursLabel(
   heures: HeuresSemaine | undefined,
   date: Date,
+  opts?: { isDouble?: boolean },
 ): string | null {
   if (!heures) return null;
   const jour = heures[dateIsoToJourSemaineKey(toIsoDateString(date))];
-  const ouvre = formatHeureCourte(jour?.ouvre);
+  const start = formatHeureCourte(dayStartRawForRole(jour, opts?.isDouble === true));
   const ferme = formatHeureCourte(jour?.ferme);
-  if (ouvre && ferme) return `${ouvre} – ${ferme}`;
-  return ouvre ?? ferme ?? null;
+  if (start && ferme) return `${start} – ${ferme}`;
+  return start ?? ferme ?? null;
 }

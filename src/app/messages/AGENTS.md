@@ -28,7 +28,7 @@ Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `sta
 ## Transverse
 
 - CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone Messages, dont Province découpée côté CRM seulement).
-- Canaux SQL auto : anniversaires / hebdo (`bureau`), taux déclaration + PDF CA (`ca`), pannes (`inter`). La PWA ne voit que `channel = staff`.
+- Canaux SQL auto : anniversaires / hebdo / taux déclaration (`bureau`), PDF CA (`ca`), pannes (`inter`). La PWA ne voit que `channel = staff`.
 - Planning PWA : `markUnreadPlanningAssignedRead` sans charger l’inbox.
 
 ## Ne pas casser

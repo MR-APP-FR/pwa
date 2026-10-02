@@ -45,7 +45,11 @@ function buildTimeRange(
   heuresBySite: Map<number, HeuresSemaine>,
 ): string | undefined {
   if (!mission) return undefined;
-  return buildSiteDayHoursLabel(heuresBySite.get(mission.site_id), date) ?? undefined;
+  return (
+    buildSiteDayHoursLabel(heuresBySite.get(mission.site_id), date, {
+      isDouble: mission.role === 'double',
+    }) ?? undefined
+  );
 }
 
 function getWeekDays(

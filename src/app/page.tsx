@@ -78,7 +78,9 @@ export default function HomePage() {
   const nextHoursLabel = useMemo(() => {
     if (!nextMission || !heuresBySite) return null;
     const date = new Date(nextMission.year, nextMission.month - 1, nextMission.day);
-    return buildSiteDayHoursLabel(heuresBySite.get(nextMission.site_id), date);
+    return buildSiteDayHoursLabel(heuresBySite.get(nextMission.site_id), date, {
+      isDouble: nextMission.role === 'double',
+    });
   }, [nextMission, heuresBySite]);
 
   const hasTodayMission = todayMission !== null;

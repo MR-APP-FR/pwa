@@ -18,7 +18,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | Prefill lock | [useExistingOpeningForm](../../hooks/api/useExistingOpeningForm.ts) — `opening_form` + `daily_info` ; hydrate une fois via `useRef` |
 | Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s ; section juste avant remarques ; roulette min/s (`FormDurationInput` `readOnly` si lock) |
 | Lundi | [MondayOpeningChecks](../../components/forms/MondayOpeningChecks.tsx) — panneaux collés/volants + affaires (reste si absent) ; prop `disabled` si lock |
-| Retard | [late-opening-actions.ts](late-opening-actions.ts) |
+| Retard | [late-opening-actions.ts](late-opening-actions.ts) → RPC `report_late_opening_to_bureau` (Bureau : heure d’ouverture + retard) ; enrichi au submit `opening_form` |
 | Table | `opening_form` — upsert `onConflict: site_id,date` ; colonnes JSON `panneaux`, `affaires` |
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking, `panneaux`, `affaires` |
 | RPC | `report_chrono_out_of_range` — message canal `bureau` + `intervention` urgente |

@@ -45,6 +45,11 @@ export function LateOpeningPrompt({
       setOpen(false);
       return;
     }
+    // Ouverture site = responsabilité du teneur ; le double arrive à `heures.double`.
+    if (todayMission.role === 'double' && todayMission.user_id > 0) {
+      setOpen(false);
+      return;
+    }
     if (!heuresFetched) return;
 
     const deadline = getExpectedOpeningDeadline(todayIso, heures ?? null);

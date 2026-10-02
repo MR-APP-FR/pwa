@@ -19,7 +19,7 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 | `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — message canal Bureau « Anniversaires » (corps 🎂) |
 | `bureau-birthdays-utc5` | `0 5 * * *` | 07:00 | Idem (2e passage si le 1er a loupé / fuseau) |
 | `bureau-weekly-utc7` | `0 7 * * 1` | lundi 09:00 | SQL `internal.post_bureau_weekly()` — message hebdo Bureau |
-| `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `ca`, taux de déclaration |
+| `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `bureau`, taux de déclaration (`onoff` On **ou** `declaree`) |
 | `ca-daily-pdf-utc19` | `0 19 * * *` | 21:00 | Edge `ca-daily-pdf` : message stub canal CA (PDF au clic admin) |
 | `ca-daily-pdf-utc20` | `0 20 * * *` | 22:00 été / 21:00 hiver | Idem (2e passage fuseau) |
 | `weather-sync-utc4` | `0 4 * * *` | 06:00 | Edge Function `weather-sync` via `internal.invoke_edge` |

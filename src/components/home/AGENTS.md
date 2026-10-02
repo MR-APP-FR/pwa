@@ -9,11 +9,11 @@
 | Fichier | Rôle |
 |---|---|
 | [../../app/page.tsx](../../app/page.tsx) | Page |
-| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission ; **prochaine affectation** affiche aussi les horaires (`ouvre`–`ferme`) |
+| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission ; **prochaine affectation** affiche les horaires (`ouvre`–`ferme`, ou `double`–`ferme` si rôle double) |
 | [WeatherEncourageBanner.tsx](WeatherEncourageBanner.tsx) | Popup météo (toujours positif) |
 | [../../lib/weather/encourageCopy.ts](../../lib/weather/encourageCopy.ts) | Titre + corps brief ; sélection par tags |
 | [../../lib/weather/encourageMessages.fr.json](../../lib/weather/encourageMessages.fr.json) | ~100 variantes FR (météo, jour, saison, passage) |
-| [LateOpeningPrompt.tsx](LateOpeningPrompt.tsx) | Relance si ouverture manquante |
+| [LateOpeningPrompt.tsx](LateOpeningPrompt.tsx) | Relance si ouverture manquante (teneur seulement ; pas le double quand un teneur est planifié) |
 | [HomeButton.tsx](HomeButton.tsx) | Tuiles navigation |
 | [HomeAssistantCard.tsx](HomeAssistantCard.tsx) | Carte bas d’écran : robot zzz si rien à faire, sinon liste des actions badge |
 | [../pwa/PushEnableBanner.tsx](../pwa/PushEnableBanner.tsx) | Activation Web Push |
