@@ -2,7 +2,7 @@
  * Version affichée aux employés (login + paramètres).
  * À incrémenter à chaque release / deploy notable pour le support bugs.
  */
-export const APP_DISPLAY_VERSION = '1.0.0';
+export const APP_DISPLAY_VERSION = '1.0.1';
 
 /** Version embarquée dans le bundle client (inlinée au build via next.config). */
 export const CLIENT_APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || 'dev';
