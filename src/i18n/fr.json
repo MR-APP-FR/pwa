@@ -7,7 +7,7 @@
     "login": "Identifiant ou email",
     "loginPlaceholder": "Ton identifiant ou email",
     "password": "Mot de passe",
-    "passwordHint": "Utilise ton mot de passe habituel (celui de l'ancienne appli).",
+    "passwordHint": "Même mot de passe que l'ancienne appli. Si tu t'es déjà connectée une fois ici, reprends celui que tu avais choisi.",
     "signIn": "Se connecter",
     "signingIn": "Connexion…",
     "signOut": "Se déconnecter",

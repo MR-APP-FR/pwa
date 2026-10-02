@@ -1,41 +1,70 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
-import { changeTemporaryPassword } from '../../app/premiere-connexion/actions';
+import { createClient } from '../../lib/supabase/client';
+import { navigateFullPage } from '../../lib/auth/fullPageNav';
 
+/**
+ * Première connexion (MDP temporaire CRM).
+ * Pas de Server Action / type=submit : même piège iOS que LoginForm
+ * (GET natif + disabled qui vide les champs + refresh RSC).
+ */
 export function NewPasswordForm() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
-  const router = useRouter();
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function doChangePassword() {
+    if (loading) return;
+
     setLoading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.set('password', password);
-    formData.set('passwordConfirmation', passwordConfirmation);
+    try {
+      if (password.length < 8) {
+        setError('Le mot de passe doit contenir au moins 8 caractères.');
+        return;
+      }
+      if (password !== passwordConfirmation) {
+        setError('Les mots de passe ne correspondent pas.');
+        return;
+      }
 
-    const result = await changeTemporaryPassword(formData);
+      const supabase = createClient();
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        setError(`Impossible de changer le mot de passe : ${updateError.message}`);
+        return;
+      }
 
-    if (!result.ok) {
-      setError(result.error);
+      const { error: flagError } = await supabase.rpc('mark_password_changed');
+      if (flagError) {
+        setError(
+          `Mot de passe changé mais mise à jour du statut échouée : ${flagError.message}`,
+        );
+        return;
+      }
+
+      navigateFullPage('/');
+    } catch (err) {
+      console.error('change password', err);
+      setError('Impossible de changer le mot de passe pour le moment.');
+    } finally {
       setLoading(false);
-      return;
     }
+  }
 
-    router.replace('/');
-    router.refresh();
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    void doChangePassword();
   }
 
   const inputStyle = {
@@ -58,7 +87,13 @@ export function NewPasswordForm() {
           {t('firstLogin.subtitle')}
         </p>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        method="post"
+        action="/premiere-connexion"
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        noValidate
+      >
         <div className="space-y-2">
           <label
             htmlFor="password"
@@ -69,13 +104,13 @@ export function NewPasswordForm() {
           </label>
           <input
             id="password"
+            name="password"
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            disabled={loading}
             className="w-full border px-3 py-3 text-base outline-none"
             style={inputStyle}
           />
@@ -90,22 +125,27 @@ export function NewPasswordForm() {
           </label>
           <input
             id="passwordConfirmation"
+            name="passwordConfirmation"
             type="password"
             autoComplete="new-password"
             value={passwordConfirmation}
             onChange={(e) => setPasswordConfirmation(e.target.value)}
             required
             minLength={8}
-            disabled={loading}
             className="w-full border px-3 py-3 text-base outline-none"
             style={inputStyle}
           />
         </div>
-        <PrimaryButton type="submit" disabled={loading} className="w-full py-3 text-sm">
+        <PrimaryButton
+          type="button"
+          disabled={loading}
+          className="w-full py-3 text-sm"
+          onClick={() => void doChangePassword()}
+        >
           {loading ? t('firstLogin.submitting') : t('firstLogin.submit')}
         </PrimaryButton>
         {error && (
-          <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
+          <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }} role="alert">
             {error}
           </p>
         )}

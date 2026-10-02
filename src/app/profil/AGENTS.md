@@ -9,7 +9,7 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 | Route | Rôle |
 |---|---|
 | `/profil` | [page.tsx](page.tsx) + [actions.ts](actions.ts) ; panneau **Vue admin** si cookie `pwa_admin_view` |
-| `/premiere-connexion` | [../premiere-connexion/page.tsx](../premiere-connexion/page.tsx) — `changeTemporaryPassword` |
+| `/premiere-connexion` | [../premiere-connexion/page.tsx](../premiere-connexion/page.tsx) — `NewPasswordForm` (client) |
 
 ## Technique
 

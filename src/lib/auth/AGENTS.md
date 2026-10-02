@@ -14,10 +14,12 @@ L’identité métier reste `public.user.id` (int), pas `auth.uid()`.
 | [employee.ts](employee.ts) | `requireEmployeeSession()` |
 | [../../app/login/page.tsx](../../app/login/page.tsx) | Formulaire login |
 | [claimLogin.ts](claimLogin.ts) | Fetch client → Edge `claim-login` (pas de Server Action : un RSC refresh vidait le form) |
-| [../../components/auth/LoginForm.tsx](../../components/auth/LoginForm.tsx) | UI FormData + `setSession` (pas d’inputs `disabled` iOS ; pas de Server Action claim) |
-| [../../app/premiere-connexion/](../../app/premiere-connexion/) | MDP temporaire (créations CRM) |
+| [../../components/auth/LoginForm.tsx](../../components/auth/LoginForm.tsx) | UI controlled + bouton `type=button` + draft `sessionStorage` (iOS signet : submit GET natif vidait le form) ; `setSession` ; pas de Server Action claim |
+| [../../app/premiere-connexion/](../../app/premiere-connexion/) | MDP temporaire — [NewPasswordForm](../../components/auth/NewPasswordForm.tsx) client (`updateUser` + RPC, pas de submit HTML) |
 
 ## Technique
+
+**iOS signet / PWA (oct. 2026)** : un `type="submit"` + form sans `method` faisait un GET `/login?login=…` qui rechargeait la page vide (pas d’erreur, pas d’appel `claim-login`). Toujours `type="button"` + `preventDefault` + `method="post"`. `PrimaryButton` force `type="button"` (ignore un `type="submit"` passé en props). Seuls vrais `<form>` : login + premiere-connexion — le reste (ouverture, fermeture, dispos…) est déjà en `onClick`.
 
 Bridge SQL : `current_employee_id()` — `auth.users.email` ↔ `public.user.email`.
 

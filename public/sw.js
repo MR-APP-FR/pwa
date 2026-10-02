@@ -1,4 +1,4 @@
-const CACHE_NAME = 'manege-v4';
+const CACHE_NAME = 'manege-v5';
 // Ne pas pré-cacher les pages HTML (sinon login / bundles obsolètes sur iOS PWA).
 const STATIC_ASSETS = ['/logo.png', '/manifest.json'];
 

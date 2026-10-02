@@ -8,7 +8,19 @@ interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-export function PrimaryButton({ children, className = '', style, disabled, ...props }: PrimaryButtonProps) {
+/**
+ * Toujours `type="button"` : un `type="submit"` passé en props déclenchait
+ * un GET natif sur iOS signet/PWA (login qui se vidait). Les formulaires
+ * doivent appeler `onClick` / `onSubmit` + preventDefault, pas le submit HTML.
+ */
+export function PrimaryButton({
+  children,
+  className = '',
+  style,
+  disabled,
+  type: _type,
+  ...props
+}: PrimaryButtonProps) {
   const { colors } = useThemeColors();
 
   return (

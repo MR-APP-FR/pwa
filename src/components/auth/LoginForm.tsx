@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -10,13 +10,64 @@ import { claimLogin } from '../../lib/auth/claimLogin';
 import { navigateFullPage } from '../../lib/auth/fullPageNav';
 import { startAdminView } from '../../lib/auth/adminViewActions';
 
+/** Survit à un reload iOS Safari (submit GET natif / remount PWA). */
+const LOGIN_DRAFT_KEY = 'pwa-login-draft';
+
+type LoginDraft = {
+  login?: string;
+  password?: string;
+  error?: string | null;
+};
+
+function readDraft(): LoginDraft | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(LOGIN_DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as LoginDraft;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: LoginDraft) {
+  try {
+    sessionStorage.setItem(LOGIN_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // private mode / quota
+  }
+}
+
+function clearDraft() {
+  try {
+    sessionStorage.removeItem(LOGIN_DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
+
+  // Restaure login/MDP/erreur après un reload Safari qui vidait le form.
+  useEffect(() => {
+    const draft = readDraft();
+    if (draft) {
+      if (typeof draft.login === 'string') setLogin(draft.login);
+      if (typeof draft.password === 'string') setPassword(draft.password);
+      if (typeof draft.error === 'string' && draft.error) setError(draft.error);
+    }
+    setRestored(true);
+  }, []);
 
   async function finishWithSession(goProfilForAdminPick: boolean) {
+    clearDraft();
     const path = goProfilForAdminPick ? '/profil' : '/';
     navigateFullPage(path);
   }
@@ -56,21 +107,22 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
     // Admin sans ligne public.user → obligé de choisir un employé sur /profil.
     const { data: employeeId } = await supabase.rpc('current_employee_id');
     const hasEmployee =
-      typeof employeeId === 'number'
-        ? employeeId > 0
-        : Number(employeeId) > 0;
+      typeof employeeId === 'number' ? employeeId > 0 : Number(employeeId) > 0;
 
     await finishWithSession(!hasEmployee);
     return true;
   }
 
   async function doSignIn(loginValue: string, passwordValue: string) {
+    if (loading) return;
+
+    const trimmed = loginValue.trim();
+    writeDraft({ login: trimmed, password: passwordValue, error: null });
+
     setLoading(true);
     setError(null);
 
     try {
-      const trimmed = loginValue.trim();
-
       // Email admin CRM → chemin dédié (bypass local équivalent, prod-safe).
       if (trimmed.includes('@')) {
         const handled = await tryAdminSignIn(trimmed, passwordValue);
@@ -80,17 +132,18 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
       const result = await claimLogin(trimmed, passwordValue);
 
       if (!result.ok) {
+        let message = t('auth.loginError');
         if (result.code === 'unknown_login') {
-          setError(t('auth.contactValeria'));
+          message = t('auth.contactValeria');
         } else if (result.code === 'invalid_input') {
-          setError(t('auth.invalidInput'));
+          message = t('auth.invalidInput');
         } else if (result.code === 'weak_password') {
-          setError(t('auth.weakPassword'));
+          message = t('auth.weakPassword');
         } else if (result.code === 'server_error') {
-          setError(t('auth.serverError'));
-        } else {
-          setError(t('auth.loginError'));
+          message = t('auth.serverError');
         }
+        setError(message);
+        writeDraft({ login: trimmed, password: passwordValue, error: message });
         return;
       }
 
@@ -101,7 +154,9 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
       });
 
       if (sessionError) {
-        setError(t('auth.serverError'));
+        const message = t('auth.serverError');
+        setError(message);
+        writeDraft({ login: trimmed, password: passwordValue, error: message });
         return;
       }
 
@@ -123,21 +178,19 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
       await finishWithSession(false);
     } catch (err) {
       console.error('login error', err);
-      setError(t('auth.serverError'));
+      const message = t('auth.serverError');
+      setError(message);
+      writeDraft({ login: trimmed, password: passwordValue, error: message });
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    // Empêche le submit HTML natif (GET /login?… sur iOS signet = page vide).
     e.preventDefault();
     e.stopPropagation();
-    // Lit le DOM au submit : évite iOS qui vide les inputs controlled quand
-    // on disable, et survit mieux à un remount partiel.
-    const fd = new FormData(e.currentTarget);
-    const loginValue = String(fd.get('login') ?? '');
-    const passwordValue = String(fd.get('password') ?? '');
-    await doSignIn(loginValue, passwordValue);
+    void doSignIn(login, password);
   }
 
   const inputStyle = {
@@ -147,8 +200,19 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
     borderRadius: RADIUS.md,
   } as const;
 
+  // Évite un flash vide avant restore sessionStorage.
+  if (!restored) {
+    return <div className="space-y-4" aria-hidden />;
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form
+      method="post"
+      action="/login"
+      onSubmit={handleSubmit}
+      className="space-y-4"
+      noValidate
+    >
       <div className="space-y-2">
         <label htmlFor="login" className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
           {t('auth.login')}
@@ -157,15 +221,15 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           id="login"
           name="login"
           type="text"
+          inputMode="email"
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
           placeholder={t('auth.loginPlaceholder')}
-          defaultValue=""
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
           required
-          // Ne pas disabled pendant loading : iOS Safari vide souvent password/email.
-          readOnly={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}
         />
@@ -183,9 +247,9 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           name="password"
           type="password"
           autoComplete="current-password"
-          defaultValue=""
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
-          readOnly={loading}
           className="w-full border px-3 py-3 text-base outline-none"
           style={inputStyle}
         />
@@ -193,11 +257,17 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           {t('auth.passwordHint')}
         </p>
       </div>
-      <PrimaryButton type="submit" disabled={loading} className="w-full py-3 text-sm">
+      {/* type=button : ne jamais laisser iOS faire un submit GET natif. */}
+      <PrimaryButton
+        type="button"
+        disabled={loading}
+        className="w-full py-3 text-sm"
+        onClick={() => void doSignIn(login, password)}
+      >
         {loading ? t('auth.signingIn') : t('auth.signIn')}
       </PrimaryButton>
       {error && (
-        <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
+        <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }} role="alert">
           {error}
         </p>
       )}
