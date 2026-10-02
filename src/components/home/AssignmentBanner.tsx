@@ -17,6 +17,7 @@ interface AssignmentBannerProps {
   todayMission: PlanningWithColleague | null;
   nextMission: PlanningWithColleague | null;
   nextDayLabel: string | null;
+  todayHoursLabel?: string | null;
   nextHoursLabel?: string | null;
   todayWeather?: SiteWeather | null;
   onWeatherOpen?: () => void;
@@ -207,6 +208,7 @@ export function AssignmentBanner({
   todayMission,
   nextMission,
   nextDayLabel,
+  todayHoursLabel,
   nextHoursLabel,
   todayWeather,
   onWeatherOpen,
@@ -227,6 +229,7 @@ export function AssignmentBanner({
         mission={todayMission}
         accentColor={colors.ACCENT_RED}
         accentMuted={colors.ACCENT_RED_MUTED}
+        hoursLabel={todayHoursLabel}
         emptyMessage={t('screens.home.noAssignmentToday')}
         icon={MapPin}
         colors={colors}

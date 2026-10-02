@@ -9,7 +9,7 @@
 | Fichier | Rôle |
 |---|---|
 | [../../app/page.tsx](../../app/page.tsx) | Page |
-| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission ; **prochaine affectation** affiche les horaires (`ouvre`–`ferme`, ou `double`–`ferme` si rôle double) |
+| [AssignmentBanner.tsx](AssignmentBanner.tsx) | Site + météo + lien mission ; **jour** et **prochaine** affichent l’heure d’arrivée (`ouvre`, ou `double` si rôle double — fallback `ouvre`) |
 | [WeatherEncourageBanner.tsx](WeatherEncourageBanner.tsx) | Popup météo (toujours positif) |
 | [../../lib/weather/encourageCopy.ts](../../lib/weather/encourageCopy.ts) | Titre + corps brief ; sélection par tags |
 | [../../lib/weather/encourageMessages.fr.json](../../lib/weather/encourageMessages.fr.json) | ~100 variantes FR (météo, jour, saison, passage) |
@@ -21,7 +21,7 @@
 ## Hooks / données
 
 - `useUpcomingPlanning` — affectation jour + prochaine (fenêtre 60 j, pas 3 mois)
-- `useSitesHeuresOuverture` — horaires prochaine affectation
+- `useSitesHeuresOuverture` — horaires affectation du jour + prochaine
 - `useSiteWeather` — lit `site_weather` (écrit par Edge `weather-sync`)
 - `useUnreadStaffMessageCount`, `useUnreadPlanningAssignedCount` — RPC badges, pas d’inbox
 - `usePendingPlanningAcks` — validation planning pending → todo + deep-link `?week=`

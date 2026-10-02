@@ -75,6 +75,14 @@ export default function HomePage() {
   ];
   const { data: heuresBySite } = useSitesHeuresOuverture(homeSiteIds);
 
+  const todayHoursLabel = useMemo(() => {
+    if (!todayMission || !heuresBySite) return null;
+    const date = new Date(todayMission.year, todayMission.month - 1, todayMission.day);
+    return buildSiteDayHoursLabel(heuresBySite.get(todayMission.site_id), date, {
+      isDouble: todayMission.role === 'double',
+    });
+  }, [todayMission, heuresBySite]);
+
   const nextHoursLabel = useMemo(() => {
     if (!nextMission || !heuresBySite) return null;
     const date = new Date(nextMission.year, nextMission.month - 1, nextMission.day);
@@ -122,6 +130,7 @@ export default function HomePage() {
         todayMission={todayMission}
         nextMission={nextMission}
         nextDayLabel={nextDayLabel}
+        todayHoursLabel={todayHoursLabel}
         nextHoursLabel={nextHoursLabel}
         todayWeather={todayWeather ?? null}
       />
