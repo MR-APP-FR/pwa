@@ -53,17 +53,15 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [restored, setRestored] = useState(false);
 
-  // Restaure login/MDP/erreur après un reload Safari qui vidait le form.
+  // Restaure login/MDP/erreur après un reload Safari. Ne jamais masquer le
+  // formulaire en attendant (sur iOS le useEffect peut ne pas tourner → page blanche).
   useEffect(() => {
     const draft = readDraft();
-    if (draft) {
-      if (typeof draft.login === 'string') setLogin(draft.login);
-      if (typeof draft.password === 'string') setPassword(draft.password);
-      if (typeof draft.error === 'string' && draft.error) setError(draft.error);
-    }
-    setRestored(true);
+    if (!draft) return;
+    if (typeof draft.login === 'string') setLogin(draft.login);
+    if (typeof draft.password === 'string') setPassword(draft.password);
+    if (typeof draft.error === 'string' && draft.error) setError(draft.error);
   }, []);
 
   async function finishWithSession(goProfilForAdminPick: boolean) {
@@ -199,11 +197,6 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
     color: colors.TEXT_PRIMARY,
     borderRadius: RADIUS.md,
   } as const;
-
-  // Évite un flash vide avant restore sessionStorage.
-  if (!restored) {
-    return <div className="space-y-4" aria-hidden />;
-  }
 
   return (
     <form
