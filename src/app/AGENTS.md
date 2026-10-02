@@ -7,7 +7,7 @@ Carte des écrans sous `src/app/`. Layout global : [layout.tsx](layout.tsx) (fon
 | Route | Fichier | Rôle métier |
 |---|---|---|
 | `/` | [page.tsx](page.tsx) | Hub : affectation du jour, raccourcis mission, badges non-lus |
-| `/login` | [login/page.tsx](login/page.tsx) | Identifiant/email + MDP (`public.user`) **ou** email admin CRM (`admin_emails`) |
+| `/login` | [login/page.tsx](login/page.tsx) | Identifiant/email + MDP (`public.user`) **ou** email admin CRM (`admin_emails`) ; version app en bas |
 | `/premiere-connexion` | [premiere-connexion/page.tsx](premiere-connexion/page.tsx) | Changement mot de passe temporaire (`must_change_password`) |
 | `/planning` | [planning/page.tsx](planning/page.tsx) | Missions mois courant |
 | `/availability` | [availability/page.tsx](availability/page.tsx) | Disponibilités semaine N+1 |

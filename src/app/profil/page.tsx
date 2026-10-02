@@ -16,6 +16,7 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { AdminViewPanel } from '../../components/auth/AdminViewPanel';
 import { DevToolsPanel } from '../../components/dev/DevToolsPanel';
 import { PushSettingsRow } from '../../components/pwa/PushSettingsRow';
+import { AppVersionLabel } from '../../components/pwa/AppVersionLabel';
 import { clearAdminViewCookies } from '../../lib/auth/adminViewActions';
 import { updatePreferredSites } from './actions';
 import { ProfileMediaCard } from '../../components/profil/ProfileMediaCard';
@@ -429,6 +430,8 @@ export default function ProfilPage() {
           {signingOut ? t('auth.signingOut') : t('auth.signOut')}
         </button>
       </div>
+
+      <AppVersionLabel className="mt-6 text-center text-xs tabular-nums" />
 
       <EditSitesModal
         isOpen={isEditSitesOpen}

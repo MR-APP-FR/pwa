@@ -19,6 +19,7 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 | RLS | Own via `current_employee_id()` |
 | Flag | `user.must_change_password` → redirect 1re connexion |
 | Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». |
+| Version app | Bas de page (`AppVersionLabel`) — voir [pwa/AGENTS.md](../../lib/pwa/AGENTS.md) ; bump `APP_DISPLAY_VERSION` à chaque release |
 
 Uploads : path en colonne, bucket privé (lecture CRM admin).
 

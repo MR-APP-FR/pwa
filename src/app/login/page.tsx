@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { LoginForm } from '../../components/auth/LoginForm';
+import { AppVersionLabel } from '../../components/pwa/AppVersionLabel';
 import { ADMIN_VIEW_COOKIE } from '../../lib/auth/adminView';
 
 export default async function LoginPage() {
@@ -55,6 +56,9 @@ export default async function LoginPage() {
         </div>
       </div>
       <LoginForm devBypassEmail={devBypassEmail} />
+      <div className="mt-auto pt-10 pb-2">
+        <AppVersionLabel />
+      </div>
     </div>
   );
 }
