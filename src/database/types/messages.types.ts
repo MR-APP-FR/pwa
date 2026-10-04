@@ -38,5 +38,7 @@ export interface StaffMessageWithAck extends StaffMessageRow {
 }
 
 /** Titres des messages automatiques / bureau (badges accueil). */
-export const AVAILABILITY_REMINDER_TITLE = 'Disponibilités';
-export const PLANNING_ASSIGNED_MESSAGE_TITLE = 'Planning semaine prochaine';
+export const AVAILABILITY_REMINDER_TITLE = '⚠️ Disponibilités';
+export const PLANNING_ASSIGNED_MESSAGE_TITLE = '⚠️ Planning';
+/** Ancien titre planning (messages déjà envoyés / ack). */
+export const PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY = 'Planning semaine prochaine';

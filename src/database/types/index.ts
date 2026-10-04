@@ -32,8 +32,8 @@ export {
   MESSAGE_SOURCE_ICON,
   AVAILABILITY_REMINDER_TITLE,
   PLANNING_ASSIGNED_MESSAGE_TITLE,
-} from './messages.types';
-export type { SiteWeather, WeatherCondition, WeatherSource, CrowdLevel } from './weather.types';
+  PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY,
+} from './messages.types';export type { SiteWeather, WeatherCondition, WeatherSource, CrowdLevel } from './weather.types';
 export type { PushSubscriptionRow } from './push.types';
 export type { AvailabilityRow } from './availability.types';
 export type { WeekStaffDispatchRow } from './week-staff-dispatch.types';

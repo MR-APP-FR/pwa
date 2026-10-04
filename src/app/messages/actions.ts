@@ -1,7 +1,10 @@
 'use server';
 
 import { requireEmployeeSession } from '../../lib/auth/employee';
-import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
+import {
+  PLANNING_ASSIGNED_MESSAGE_TITLE,
+  PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY,
+} from '../../database/types';
 
 /**
  * Marquage lecture / confirmation d'un `staff_message` (B5).
@@ -54,7 +57,10 @@ export async function markUnreadPlanningAssignedRead(): Promise<MessageAckResult
     .from('staff_message')
     .select('id, require_ack')
     .eq('channel', 'staff')
-    .eq('titre', PLANNING_ASSIGNED_MESSAGE_TITLE)
+    .in('titre', [
+      PLANNING_ASSIGNED_MESSAGE_TITLE,
+      PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY,
+    ])
     .order('publie_at', { ascending: false })
     .limit(50);
 

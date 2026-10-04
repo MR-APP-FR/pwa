@@ -2,9 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
 
-const AVAILABILITY_TITLE = "Disponibilités";
+const AVAILABILITY_TITLE = "⚠️ Disponibilités";
 const AVAILABILITY_BODY =
-  "Pense à remplir tes disponibilités pour la semaine prochaine.";
+  "📅 Semaine prochaine\n💬 Pense à remplir tes disponibilités pour la semaine prochaine.";
 
 const WD_TO_KEY: Record<string, string> = {
   Sun: "7",

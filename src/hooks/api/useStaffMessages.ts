@@ -10,7 +10,17 @@ import {
 import { createClient } from '../../lib/supabase/client';
 import { useCurrentUser } from './useCurrentUser';
 import type { StaffMessageWithAck } from '../../database/types';
-import { PLANNING_ASSIGNED_MESSAGE_TITLE } from '../../database/types';
+import {
+  PLANNING_ASSIGNED_MESSAGE_TITLE,
+  PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY,
+} from '../../database/types';
+
+function isPlanningAssignedTitle(titre: string): boolean {
+  return (
+    titre === PLANNING_ASSIGNED_MESSAGE_TITLE ||
+    titre === PLANNING_ASSIGNED_MESSAGE_TITLE_LEGACY
+  );
+}
 
 export const STAFF_MESSAGES_PAGE_SIZE = 25;
 export const staffMessagesQueryKey = (employeeId: number | null) =>
@@ -189,7 +199,7 @@ export function patchStaffMessagesRead(
             if (!idSet.has(m.id) || m.read_at != null) return m;
             if (!m.require_ack && isUnread(m)) freeCleared += 1;
             if (
-              m.titre === PLANNING_ASSIGNED_MESSAGE_TITLE &&
+              isPlanningAssignedTitle(m.titre) &&
               !m.require_ack &&
               isUnread(m)
             ) {
@@ -242,7 +252,7 @@ export function patchStaffMessageAcked(
           messages: page.messages.map((m) => {
             if (m.id !== messageId) return m;
             wasUnread = isUnread(m);
-            wasPlanning = m.titre === PLANNING_ASSIGNED_MESSAGE_TITLE;
+            wasPlanning = isPlanningAssignedTitle(m.titre);
             return { ...m, read_at: m.read_at ?? at, acked_at: at };
           }),
         })),

@@ -81,8 +81,12 @@ Deno.serve(async (req) => {
   const label = formatFrDate(dateIso);
   const filename = `CA ${label}.pdf`;
   const { error: insertError } = await supabase.from("staff_message").insert({
-    titre: "CA du jour",
-    corps: `PDF CA du ${label} — ouvrir pour générer / télécharger.`,
+    titre: "⚠️ CA",
+    corps: [
+      "📄 PDF CA du jour",
+      `📅 Date : ${label}`,
+      "💬 Ouvrir pour générer / télécharger.",
+    ].join("\n"),
     source: "appli",
     channel: "ca",
     auteur_uuid: null,

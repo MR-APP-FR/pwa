@@ -202,8 +202,13 @@ function pickEncourageMessage(weather: WeatherBriefInput): EncourageMessage | nu
   return top[seed % top.length] ?? null;
 }
 
-export function weatherBriefTitleFr(weather: WeatherBriefInput): string {
-  const chips: string[] = [SKY_LABEL_FR[weather.condition] ?? SKY_LABEL_FR.normal];
+export function weatherBriefTitleFr(_weather: WeatherBriefInput): string {
+  return "⚠️ Météo";
+}
+
+export function weatherBriefBodyFr(weather: WeatherBriefInput): string {
+  const sky = SKY_LABEL_FR[weather.condition] ?? SKY_LABEL_FR.normal;
+  const chips: string[] = [];
   if (weather.is_holiday) chips.push(weather.holiday_name?.trim() || "Férié");
   else if (weather.is_bridge) chips.push("Pont");
   if (weather.is_weekend) chips.push("Week-end");
@@ -211,16 +216,27 @@ export function weatherBriefTitleFr(weather: WeatherBriefInput): string {
 
   const min = formatTemp(weather.temp_min);
   const max = formatTemp(weather.temp_max);
-  if (min != null && max != null) chips.push(`${min}° / ${max}°`);
-  else if (min != null) chips.push(`${min}°`);
+  let temp = "-";
+  if (min != null && max != null) temp = `${min}° / ${max}°`;
+  else if (min != null) temp = `${min}°`;
 
-  return chips.join(" · ");
-}
+  const dateLabel = weather.date.includes("-")
+    ? weather.date.split("-").reverse().join("/")
+    : weather.date;
 
-export function weatherBriefBodyFr(weather: WeatherBriefInput): string {
   const picked = pickEncourageMessage(weather);
-  if (picked) return picked.text;
-  return FALLBACK_BODY[weather.condition] ?? FALLBACK_BODY.normal;
+  const encourage = picked?.text ?? FALLBACK_BODY[weather.condition] ?? FALLBACK_BODY.normal;
+
+  const lines = [
+    `🌤️ Ciel : ${sky}`,
+    `🌡️ Temp : ${temp}`,
+    `📅 Date : ${dateLabel}`,
+  ];
+  if (chips.length > 0) {
+    lines.push(`📌 Infos : ${chips.join(" · ")}`);
+  }
+  lines.push(`💬 ${encourage}`);
+  return lines.join("\n");
 }
 
 export function truncatePushBody(text: string, max = 140): string {
