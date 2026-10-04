@@ -16,7 +16,7 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 
 | Job | Cron UTC | Paris (été) | Action |
 |---|---|---|---|
-| `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — message canal Bureau « Anniversaires » (corps 🎂) |
+| `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — Bureau titre `⚠️ Anniversaires` (corps 🎂) |
 | `bureau-birthdays-utc5` | `0 5 * * *` | 07:00 | Idem (2e passage si le 1er a loupé / fuseau) |
 | `bureau-weekly-utc7` | `0 7 * * 1` | lundi 09:00 | SQL `internal.post_bureau_weekly()` — message hebdo Bureau |
 | `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `bureau`, taux de déclaration (`onoff` On **ou** `declaree`) |
@@ -57,7 +57,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
 | Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau + intervention urgente |
 | Carte parking absente (ouverture Non) | PWA | RPC `report_parking_card_missing` → canal Bureau |
-| Stock bas à l’ouverture | PWA | RPC `report_opening_low_stock_to_bureau` → Bureau (feuilles < 10 / tickets < 500) |
+| Stock bas à l’ouverture | PWA | RPC `report_opening_low_stock_to_bureau` → Bureau (feuilles/FDJ < 20 / tickets < 500) |
 | Manques lundi (panneaux / affaires Non) | PWA | RPC `report_monday_opening_issues_to_bureau` → Bureau (`monday_opening_issues`) |
 | Création employé | CRM | `public.user` + login (pas d’Auth) ; claim PWA à la 1re connexion |
 | Login / claim MDP terrain | PWA → Edge `claim-login` | crée Auth si absent, sinon vérifie MDP |

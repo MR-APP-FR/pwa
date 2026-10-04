@@ -2,7 +2,7 @@
 
 ## Métier
 
-Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse (**montant par site** via `site_infos.fond_caisse`, défaut 100 €), observations, GPS, chrono **lundi** (2 min 25–35, sinon retry puis alerte Bureau + intervention urgente), option carte parking si configurée sur le site. Seuils stock : feuilles < 10 ou tickets < 500 → alerte Bureau (idempotent site × jour × type). **Lundi** : checklist panneaux + affaires (`opening_form.panneaux` / `affaires`) ; manquants → Bureau `monday_opening_issues`.
+Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tickets, fond caisse (**montant par site** via `site_infos.fond_caisse`, défaut 100 €), observations, GPS, chrono **lundi** (2 min 25–35, sinon retry puis alerte Bureau + intervention urgente), option carte parking si configurée sur le site. Seuils stock : feuilles / FDJ < 20 ou tickets < 500 → alerte Bureau (idempotent site × jour × type). **Lundi** : checklist panneaux + affaires (`opening_form.panneaux` / `affaires`) ; manquants → Bureau `monday_opening_issues`.
 
 ## Écran
 
@@ -18,11 +18,11 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | Prefill lock | [useExistingOpeningForm](../../hooks/api/useExistingOpeningForm.ts) — `opening_form` + `daily_info` ; hydrate une fois via `useRef` |
 | Chrono | [chrono.ts](chrono.ts) — lundi uniquement, bornes 145–155 s ; section juste avant remarques ; roulette min/s (`FormDurationInput` `readOnly` si lock) |
 | Lundi | [MondayOpeningChecks](../../components/forms/MondayOpeningChecks.tsx) — panneaux collés/volants + affaires (reste si absent) ; prop `disabled` si lock |
-| Retard | [late-opening-actions.ts](late-opening-actions.ts) → RPC `report_late_opening_to_bureau` (Bureau : heure d’ouverture + retard) ; enrichi au submit `opening_form` |
+| Retard | [late-opening-actions.ts](late-opening-actions.ts) → RPC `report_late_opening_to_bureau` (titre `⚠️ Ouverture`, corps Site/Teneur/Date/Raison/`🕒 Heure d'ouverture`) ; enrichi au submit `opening_form` |
 | Table | `opening_form` — upsert `onConflict: site_id,date` ; colonnes JSON `panneaux`, `affaires` |
 | Colonnes récentes | `client_lat`, `client_lng`, `chrono_seconds`, parking, `panneaux`, `affaires` |
 | RPC | `report_chrono_out_of_range` — message canal `bureau` + `intervention` urgente |
-| RPC stock | `report_opening_low_stock_to_bureau` — Bureau si feuilles < 10 (`opening_low_feuilles`) ou tickets < 500 (`opening_low_tickets`) |
+| RPC stock | `report_opening_low_stock_to_bureau` — Bureau si feuilles/FDJ < 20 (`opening_low_feuilles`) ou tickets < 500 (`opening_low_tickets`) |
 | RPC lundi | `report_monday_opening_issues_to_bureau` — kind `monday_opening_issues` si panneau/affaire manquant |
 | Config site | `site_infos` / hook `useSiteTerrainConfig` (`fond_caisse`, `stand_confiserie`, `carte_parking`) |
 | Carte parking | Non à l’ouverture → RPC `report_parking_card_missing` (canal Bureau) |

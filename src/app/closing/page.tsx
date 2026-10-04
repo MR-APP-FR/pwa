@@ -89,23 +89,8 @@ type ClosingSection = {
   fields: ClosingSectionField[];
 };
 
+/** Ordre admin : Points caisse → Rémunération (chiffres + payes) → Tickets. */
 const EARLY_SECTIONS: ClosingSection[] = [
-  {
-    titleKey: 'forms.closing.sectionRecettes',
-    fields: [
-      { key: 'recetteTotale', labelKey: 'forms.closing.recetteTotale', unit: 'eur', required: true },
-      { key: 'carteBleue', labelKey: 'forms.closing.carteBleue', unit: 'eur' },
-      { key: 'confiserie', labelKey: 'forms.closing.confiserie', unit: 'eur' },
-    ],
-  },
-  {
-    titleKey: 'forms.closing.sectionComptages',
-    fields: [
-      { key: 'nombreEnfants', labelKey: 'forms.closing.nombreEnfants', unit: 'count', inputMode: 'numeric' },
-      { key: 'ticketsOuverture', labelKey: 'forms.closing.ticketsOuverture', unit: 'count', inputMode: 'numeric' },
-      { key: 'ticketsFermeture', labelKey: 'forms.closing.ticketsFermeture', unit: 'count', inputMode: 'numeric' },
-    ],
-  },
   {
     titleKey: 'forms.closing.sectionPointsCaisse',
     fields: [
@@ -113,37 +98,53 @@ const EARLY_SECTIONS: ClosingSection[] = [
       { key: 'pointCaisse20h', labelKey: 'forms.closing.pointCaisse20h', unit: 'eur' },
     ],
   },
+  {
+    titleKey: 'forms.closing.sectionPaie',
+    fields: [
+      { key: 'recetteTotale', labelKey: 'forms.closing.recetteTotale', unit: 'eur', required: true },
+      { key: 'carteBleue', labelKey: 'forms.closing.carteBleue', unit: 'eur' },
+      { key: 'confiserie', labelKey: 'forms.closing.confiserie', unit: 'eur' },
+      {
+        key: 'nombreEnfants',
+        labelKey: 'forms.closing.nombreEnfants',
+        unit: 'count',
+        inputMode: 'numeric',
+      },
+      { key: 'payeDuJour', labelKey: 'forms.closing.payeDuJour', unit: 'eur' },
+      {
+        key: 'payeManquanteRecuperee',
+        labelKey: 'forms.closing.payeManquanteRecuperee',
+        unit: 'eur',
+      },
+      { key: 'payeDuDouble', labelKey: 'forms.closing.payeDuDouble', unit: 'eur' },
+      {
+        key: 'frais',
+        labelKey: 'forms.closing.frais',
+        unit: 'eur',
+        helpKey: 'forms.closing.fraisHelp',
+      },
+    ],
+  },
+  {
+    titleKey: 'forms.closing.sectionTickets',
+    fields: [
+      {
+        key: 'ticketsOuverture',
+        labelKey: 'forms.closing.ticketsOuverture',
+        unit: 'count',
+        inputMode: 'numeric',
+      },
+      {
+        key: 'ticketsFermeture',
+        labelKey: 'forms.closing.ticketsFermeture',
+        unit: 'count',
+        inputMode: 'numeric',
+      },
+    ],
+  },
 ];
 
-/** Section Paie en fin de formulaire (avant notes / photo / submit). */
-const PAIE_SECTION: ClosingSection = {
-  titleKey: 'forms.closing.sectionPaie',
-  fields: [
-    {
-      key: 'payeDuJour',
-      labelKey: 'forms.closing.payeDuJour',
-      unit: 'eur',
-    },
-    {
-      key: 'payeManquanteRecuperee',
-      labelKey: 'forms.closing.payeManquanteRecuperee',
-      unit: 'eur',
-    },
-    {
-      key: 'frais',
-      labelKey: 'forms.closing.frais',
-      unit: 'eur',
-      helpKey: 'forms.closing.fraisHelp',
-    },
-    {
-      key: 'payeDuDouble',
-      labelKey: 'forms.closing.payeDuDouble',
-      unit: 'eur',
-    },
-  ],
-};
-
-const ALL_NUMERIC_FIELDS = [...EARLY_SECTIONS, PAIE_SECTION].flatMap((s) => s.fields);
+const ALL_NUMERIC_FIELDS = EARLY_SECTIONS.flatMap((s) => s.fields);
 
 const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   missionId: null,
@@ -890,8 +891,6 @@ function ClosingContent() {
               />
               )}
             </FormSection>
-
-            {renderNumericSection(PAIE_SECTION)}
 
             {closingChecklistItems && closingChecklistItems.length > 0 && (
               <FormSection title={t('forms.closing.sectionChecklist')}>
