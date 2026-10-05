@@ -89,15 +89,8 @@ type ClosingSection = {
   fields: ClosingSectionField[];
 };
 
-/** Ordre admin : Points caisse → Rémunération (chiffres + payes) → Tickets. */
+/** Ordre : Rémunération (chiffres + payes) → Points caisse → Tickets. */
 const EARLY_SECTIONS: ClosingSection[] = [
-  {
-    titleKey: 'forms.closing.sectionPointsCaisse',
-    fields: [
-      { key: 'pointCaisse13h', labelKey: 'forms.closing.pointCaisse13h', unit: 'eur' },
-      { key: 'pointCaisse20h', labelKey: 'forms.closing.pointCaisse20h', unit: 'eur' },
-    ],
-  },
   {
     titleKey: 'forms.closing.sectionPaie',
     fields: [
@@ -123,6 +116,13 @@ const EARLY_SECTIONS: ClosingSection[] = [
         unit: 'eur',
         helpKey: 'forms.closing.fraisHelp',
       },
+    ],
+  },
+  {
+    titleKey: 'forms.closing.sectionPointsCaisse',
+    fields: [
+      { key: 'pointCaisse13h', labelKey: 'forms.closing.pointCaisse13h', unit: 'eur' },
+      { key: 'pointCaisse20h', labelKey: 'forms.closing.pointCaisse20h', unit: 'eur' },
     ],
   },
   {

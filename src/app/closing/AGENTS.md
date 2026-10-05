@@ -2,7 +2,7 @@
 
 ## Métier
 
-Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Sections numériques : **Points caisse** → **Rémunération** (recette / CB / enfants / payes / frais) → **Tickets**. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site ou avant `heures_semaine.ferme` Paris) exige une raison et alerte le canal Bureau.
+Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Sections numériques : **Rémunération** (recette / CB / enfants / payes / frais) → **Points caisse** → **Tickets**. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site ou avant `heures_semaine.ferme` Paris) exige une raison et alerte le canal Bureau.
 
 ## Écran
 
