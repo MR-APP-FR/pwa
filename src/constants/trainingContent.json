@@ -203,7 +203,7 @@
     "sections": [
       {
         "items": [
-          { "type": "point", "number": 1, "text": "Ne jamais commencer à compter avant 20h00 (ou l'heure du jour). Ne jamais sortir sa télécollecte avant 20h05 (ou 5 minutes après l'heure du jour). Dans les parcs, se fier aux gardiens (chaque minute compte)." },
+          { "type": "point", "number": 1, "text": "Ne jamais commencer à compter avant 20h00 (ou l'heure de fermeture du jour). Ne jamais sortir sa télécollecte avant cette heure. Dans les parcs, se fier aux gardiens (chaque minute compte)." },
           { "type": "point", "number": 2, "text": "Être discret en faisant sa recette, regarder qu'il n'y ait personne qui vous regarde." },
           { "type": "point", "number": 3, "text": "Ne jamais parler de son chiffre de la journée à qui que ce soit. Si nous apprenons que quelqu'un parle des chiffres ou de quoi que ce soit du travail (commerçant du tour, copains, cousines, famille, qui que ce soit), alors nous stopperons instantanément de travailler ensemble." },
           {

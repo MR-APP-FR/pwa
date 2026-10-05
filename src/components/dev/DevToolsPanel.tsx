@@ -7,7 +7,7 @@ import { getDevDateOverride } from '../../lib/dev/dateOverrideClient';
 
 /**
  * Panneau dev local uniquement : changer d'employé sans repasser par le login,
- * et simuler la date du jour (planning, dispo, blocage 20h05 de fermeture).
+ * et simuler la date du jour (planning, dispo, blocage horaire de fermeture).
  * Ne rend rien en dehors de NODE_ENV=development (inline au build par Next).
  */
 export function DevToolsPanel({ colors }: { colors: Record<string, string> }) {
@@ -90,7 +90,7 @@ export function DevToolsPanel({ colors }: { colors: Record<string, string> }) {
           )}
         </div>
         <p className="mt-1 text-[11px]" style={{ color: colors.TEXT_SECONDARY }}>
-          Affecte l&apos;accueil, planning, dispo et le blocage 20h05 de fermeture (garde serveur
+          Affecte l&apos;accueil, planning, dispo et le blocage horaire de fermeture (garde serveur
           inclus). N&apos;affecte pas les horodatages déjà écrits en base.
         </p>
       </div>

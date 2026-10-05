@@ -14,7 +14,7 @@ import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
  * Submit fermeture : upload photo télécollecte puis upsert `closing_form`.
  * `user_id` dérivé de la session, jamais du client.
  * Distance / horaire recalculés côté serveur : une fermeture loin de
- * l'ouverture ou avant (`ferme` + 5 min) n'est acceptée qu'avec une raison,
+ * l'ouverture ou avant `ferme` n'est acceptée qu'avec une raison,
  * et alerte le canal bureau.
  */
 

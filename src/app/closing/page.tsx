@@ -310,7 +310,7 @@ function ClosingContent() {
     : null;
   const closingDeadlineLabel = closingDeadline
     ? formatClosingDeadlineLabel(closingDeadline)
-    : '20H05';
+    : '20H00';
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -343,7 +343,7 @@ function ClosingContent() {
     beforeDeadline: isBeforeClosingDeadline,
   });
   const isFar = geoFix?.ok === true && forceCheck.distanceM != null;
-  // Avant l'échéance (ferme + 5 min) on laisse remplir le formulaire : la
+  // Avant l'échéance (`ferme`) on laisse remplir le formulaire : la
   // validation classique attend l'heure. « Forcer » seulement si trop loin,
   // GPS KO déjà révélé, ou choix explicite de fermer le site plus tôt.
   const needsForceUi = forceRevealed || isFar;

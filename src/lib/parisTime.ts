@@ -113,13 +113,7 @@ export function parisWallClockToDate(
   return new Date(utc);
 }
 
-/**
- * Marge télécollecte après l'heure `ferme` du manège (minutes).
- * `heures_semaine.ferme` = fermeture manège ; deadline PWA = ferme + cette marge.
- */
-export const CLOSING_AFTER_FERME_MINUTES = 5;
-
-/** Défaut si `ferme` absent : 20h00 (la marge 5 min est ajoutée à part). */
+/** Défaut si `ferme` absent : 20h00. */
 const DEFAULT_FERME_CLOCK = { hour: 20, minute: 0, second: 0 } as const;
 
 /** Parse `HH:mm` / `HH:mm:ss` → instant Europe/Paris sur `dateIso`. */
@@ -136,24 +130,23 @@ export function closingFermeParisFromDateIso(
   return parisWallClockToDate(dateIso, { hour: h, minute: min, second: 0 });
 }
 
-/** Échéance validation classique = `ferme` + {@link CLOSING_AFTER_FERME_MINUTES}. */
+/** Échéance validation classique = `heures_semaine.ferme` (défaut 20h00). */
 export function closingDeadlineParisFromFerme(
   dateIso: string,
   fermeRaw: string | null | undefined,
 ): Date | null {
-  const base =
+  return (
     closingFermeParisFromDateIso(dateIso, fermeRaw) ??
-    parisWallClockToDate(dateIso, DEFAULT_FERME_CLOCK);
-  if (!base) return null;
-  return new Date(base.getTime() + CLOSING_AFTER_FERME_MINUTES * 60_000);
+    parisWallClockToDate(dateIso, DEFAULT_FERME_CLOCK)
+  );
 }
 
-/** @deprecated Préférer `getExpectedClosingDeadline` (horaire site). Défaut 20h05. */
+/** @deprecated Préférer `getExpectedClosingDeadline` (horaire site). Défaut 20h00. */
 export function closingDeadlineParisFromDateIso(dateIso: string): Date | null {
   return closingDeadlineParisFromFerme(dateIso, null);
 }
 
-/** Heure de fermeture attendue du site pour `dateIso` (+ marge 5 min). */
+/** Heure de fermeture attendue du site pour `dateIso` (`ferme`). */
 export function getExpectedClosingDeadline(
   dateIso: string,
   heures: HeuresSemaine | null,
