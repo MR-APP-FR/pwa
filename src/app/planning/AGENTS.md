@@ -25,7 +25,7 @@ Validation = bouton « Valider mes attributions » → ack `validated` + flags c
 
 ## Transverse
 
-- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : envoi + dots rouges pending + re-notif si modif post-envoi.
+- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : envoi + dots rouges pending ; resend = re-validation seulement si créneau ajouté ; retrait = message/notif détail (pas de nouveau pending).
 - Ouverture / fermeture / info-jour : accès RLS binôme dérivé de cette table.
 
 ## Ne pas casser
