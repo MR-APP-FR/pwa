@@ -16,7 +16,7 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 
 | Job | Cron UTC | Paris (été) | Action |
 |---|---|---|---|
-| `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — Bureau titre `⚠️ Anniversaires` (corps 🎂) |
+| `bureau-birthdays-utc4` | `0 4 * * *` | 06:00 | SQL `internal.post_bureau_birthdays()` — Bureau titre `⚠️ Anniversaire` (🎂 Anniversaire de X + date) |
 | `bureau-birthdays-utc5` | `0 5 * * *` | 07:00 | Idem (2e passage si le 1er a loupé / fuseau) |
 | `bureau-weekly-utc7` | `0 7 * * 1` | lundi 09:00 | SQL `internal.post_bureau_weekly()` — message hebdo Bureau |
 | `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `bureau`, taux de déclaration (`onoff` On **ou** `declaree`) |
