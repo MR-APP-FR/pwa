@@ -2,7 +2,7 @@
 
 ## Métier
 
-Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Sections numériques : **Rémunération** (recette / CB / enfants / payes / frais) → **Points caisse** → **Tickets**. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site ou avant `heures_semaine.ferme` Paris) exige une raison et alerte le canal Bureau.
+Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Sections numériques : **Rémunération** (recette / CB / enfants / payes / frais) → **Points caisse** → **Tickets**. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site, GPS KO, ou avant `heures_semaine.ferme` Paris) exige une raison et alerte le canal Bureau ; l’UI PWA affiche **chaque** motif actif (bannières), pas un seul.
 
 ## Écran
 
@@ -31,7 +31,7 @@ Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, G
 ## Transverse
 
 - CRM lit fermeture + CA agrégé + frais dans preview PWA ; même formule enveloppe [`closing-enveloppe.ts`](../../../admin-desktop-app/lib/utils/closing-enveloppe.ts).
-- Message Bureau auto si fermeture forcée (RPC) : titre `⚠️ Fermeture`, corps `🔒 Fermeture forcée` + Site/Teneur/Date/Raison/`🕒 Heure de fermeture`.
+- Message Bureau auto si fermeture forcée (RPC) : titre `⚠️ Fermeture`, corps `🔒 Fermeture forcée` + Site/Teneur/Date/Raison/`🕒 Heure de fermeture`. Motifs techniques (early / distance / GPS) dans `meta` — la card CRM affiche **tous** les motifs actifs (pas un seul).
 
 ## Ne pas casser
 

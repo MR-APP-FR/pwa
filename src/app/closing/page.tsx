@@ -590,6 +590,7 @@ function ClosingContent() {
 
   function handleCloseEarly() {
     if (!assertClosingFormReady()) return;
+    setForceRevealed(true);
     setForceReasonEmpty(false);
     setForceModalOpen(true);
   }
@@ -831,6 +832,19 @@ function ClosingContent() {
         )}
         <div className="px-4 pb-3 pt-3">
           {isLocked && <FormLockedBanner label={t('forms.closing.lockedBanner')} />}
+          {!isLocked && needsForceUi && isBeforeClosingDeadline && (
+            <div
+              className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: colors.DANGER,
+                color: colors.DANGER,
+                backgroundColor: colors.ACCENT_RED_MUTED,
+              }}
+              role="status"
+            >
+              {t('forms.closing.forceEarly', { time: closingDeadlineLabel })}
+            </div>
+          )}
           {!isLocked && needsForceUi && forceCheck.distanceM != null && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
@@ -847,7 +861,7 @@ function ClosingContent() {
               })}
             </div>
           )}
-          {!isLocked && needsForceUi && forceRevealed && forceCheck.geoFailed && (
+          {!isLocked && needsForceUi && forceCheck.geoFailed && (
             <div
               className="mb-3 rounded-xl border px-3 py-2.5 text-sm font-semibold"
               style={{
