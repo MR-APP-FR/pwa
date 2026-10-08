@@ -25,7 +25,7 @@ Copy partagée : [`_shared/encourage.ts`](_shared/encourage.ts) + catalogue JSON
 
 Helper : `internal.invoke_edge(name)` — POST Edge avec secret Vault **`supabase_anon_key`**.
 
-Jobs SQL sans Edge : anniversaires, hebdo bureau, CR auto mensuel (`internal.post_*`).
+Jobs SQL sans Edge : anniversaires, hebdo bureau, CR auto mensuel (`internal.post_*`), catégories staff lundi (`internal.compute_staff_pool_scores` — migration `20261008190000_gre_staff_pool_score_weekly_cron.sql`).
 
 ## Ops
 
