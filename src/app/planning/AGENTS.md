@@ -2,7 +2,7 @@
 
 ## Métier
 
-Vue hebdomadaire des affectations : où l’employé est teneur ou double. Pastille : nom du manège + heure d’arrivée seule (`site_infos.heures_semaine`) — `ouvre` (teneur) ou `double` (rôle double, fallback `ouvre`) ; pas de `ferme`. Ouverture / fermeture terrain utilisent les mêmes champs (`ouvre` / `double` / `ferme`). Après envoi CRM N+1, validation **semaine entière** (`planning_week_ack` + RPC `validate_planning_week`). Todo home si ack `pending` (lien `?week=`).
+Vue hebdomadaire des affectations : où l’employé est teneur ou double. Pastille : nom du manège + heure d’arrivée seule (`site_infos.heures_semaine`) — `ouvre` (teneur) ou `double` (rôle double, fallback `ouvre`) ; pas de `ferme`. Ouverture / fermeture terrain utilisent les mêmes champs (`ouvre` / `double` / `ferme`). Après envoi CRM, validation via `planning_week_ack` + RPC `validate_planning_week` (un clic valide la semaine). Resend avec créneaux ajoutés : seuls les jours non confirmés sont mis en avant (bordure / pastille) ; le bandeau liste ces jours (`validatePromptPartial`). Todo home si ack `pending` (lien `?week=`).
 
 ## Écran
 
@@ -25,7 +25,7 @@ Validation = bouton « Valider mes attributions » → ack `validated` + flags c
 
 ## Transverse
 
-- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : envoi + dots rouges pending ; resend = re-validation seulement si créneau ajouté ; retrait = message/notif détail (pas de nouveau pending).
+- CRM [planning](../../../admin-desktop-app/components/crm/planning/) : envoi + dots rouges sur créneaux non confirmés ; resend = re-validation seulement des créneaux ajoutés ; retrait = message/notif détail (pas de nouveau pending).
 - Ouverture / fermeture / info-jour : accès RLS binôme dérivé de cette table.
 
 ## Ne pas casser

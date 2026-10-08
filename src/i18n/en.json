@@ -126,6 +126,7 @@
       "nextWeek": "Next",
       "availabilityReminder": "Don't forget to note your days carefully",
       "validatePrompt": "You received attributions for this week. Please validate them.",
+      "validatePromptPartial": "New attributions to validate: %{days}.",
       "validateCta": "Validate my attributions",
       "validating": "Validating…",
       "hour": "9:00 AM",

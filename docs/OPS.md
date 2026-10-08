@@ -54,7 +54,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 
 | Action | Où | Effet |
 |---|---|---|
-| Envoi planning semaine courante ou N+1 | CRM | Messages + Web Push + `planning_week_ack` (`week_staff_dispatch`) ; re-notif manuelle si modif post-envoi (re-validation = ajouts seulement ; retraits = notif détail jour/site) |
+| Envoi planning semaine courante ou N+1 | CRM | Messages + Web Push + `planning_week_ack` (`week_staff_dispatch`) ; re-notif manuelle si modif post-envoi (re-validation = ajouts seulement, flags confirm reset sur ces créneaux ; retraits = notif détail jour/site) |
 | Création / envoi message staff | CRM | Web Push immédiat |
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
 | Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau (sans « Attendu », noms courts) + intervention urgente |

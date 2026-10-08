@@ -20,7 +20,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PlanningWithColleague } from '../../database/types';
 import { useAppDate } from '../../hooks/useAppDate';
-import { formatDayMonthYear } from '../../lib/formatDate';
+import { formatDayMonth, formatDayMonthYear, formatWeekday } from '../../lib/formatDate';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -139,6 +139,36 @@ function PlanningPageInner() {
   const { ack: pendingAck } = usePendingAckForWeek(viewedWeekStartIso);
   const hasMissionThisWeek = weekDays.some((d) => d.mission != null);
 
+  const daysNeedingValidation = useMemo(() => {
+    if (!pendingAck) return [] as WeekDay[];
+    return weekDays.filter((d) => {
+      const m = d.mission;
+      if (!m) return false;
+      if (m.role === 'double') return m.double_confirmed !== true;
+      return m.user_confirmed !== true;
+    });
+  }, [weekDays, pendingAck]);
+
+  const needsValidationKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of daysNeedingValidation) set.add(d.date.toISOString());
+    return set;
+  }, [daysNeedingValidation]);
+
+  const validatePromptText = useMemo(() => {
+    if (daysNeedingValidation.length === 0) {
+      return t('screens.planning.validatePrompt');
+    }
+    const missionCount = weekDays.filter((d) => d.mission != null).length;
+    if (missionCount === daysNeedingValidation.length) {
+      return t('screens.planning.validatePrompt');
+    }
+    const labels = daysNeedingValidation
+      .map((d) => `${formatWeekday(d.date)} ${formatDayMonth(d.date)}`)
+      .join(', ');
+    return t('screens.planning.validatePromptPartial', { days: labels });
+  }, [daysNeedingValidation, weekDays, t]);
+
   const { queryClient: badgeQueryClient, employeeId } = useStaffMessageCache();
   const markedPlanningReadRef = useRef(false);
 
@@ -162,6 +192,7 @@ function PlanningPageInner() {
         return;
       }
       invalidatePendingPlanningAcks(queryClient, currentUser?.user.id);
+      void queryClient.invalidateQueries({ queryKey: ['planning'] });
       invalidateStaffMessageBadges(badgeQueryClient, employeeId);
     } catch (err) {
       setValidateError(err instanceof Error ? err.message : 'Erreur inattendue');
@@ -197,7 +228,7 @@ function PlanningPageInner() {
               }}
             >
               <p className="text-sm font-medium" style={{ color: colors.TEXT_PRIMARY }}>
-                {t('screens.planning.validatePrompt')}
+                {validatePromptText}
               </p>
               {validateError ? (
                 <p className="text-sm" style={{ color: colors.DANGER }}>
@@ -272,6 +303,7 @@ function PlanningPageInner() {
                 mission={day.mission}
                 isToday={day.isToday}
                 timeRange={day.timeRange}
+                needsValidation={needsValidationKeys.has(day.date.toISOString())}
               />
             ))}
           </div>

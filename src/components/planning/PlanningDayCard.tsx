@@ -13,14 +13,27 @@ interface PlanningDayCardProps {
   mission: PlanningWithColleague | null;
   isToday: boolean;
   timeRange?: string;
+  /** Créneau à (re)valider — pastille / bordure d’attention. */
+  needsValidation?: boolean;
 }
 
-export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningDayCardProps) {
+export function PlanningDayCard({
+  date,
+  mission,
+  isToday,
+  timeRange,
+  needsValidation = false,
+}: PlanningDayCardProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const router = useRouter();
 
   const dateLabel = `${formatWeekday(date)} ${formatDayMonth(date)}`.toUpperCase();
+  const borderColor = needsValidation
+    ? colors.DANGER
+    : isToday
+      ? colors.ACCENT_GREEN
+      : colors.BORDER;
 
   return (
     <div
@@ -30,7 +43,7 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
         backgroundColor: colors.SETTINGS_SECTION_BG,
         borderRadius: RADIUS.sm,
         boxShadow: colors.CARD_SHADOW,
-        border: `1px solid ${isToday ? colors.ACCENT_GREEN : colors.BORDER}`,
+        border: `1px solid ${borderColor}`,
         cursor: mission ? 'pointer' : undefined,
       }}
       role={mission ? 'button' : undefined}
@@ -54,19 +67,30 @@ export function PlanningDayCard({ date, mission, isToday, timeRange }: PlanningD
         {dateLabel}
       </p>
       {mission ? (
-        <span
-          className="flex min-w-0 max-w-[62%] shrink items-center px-2.5 text-sm font-semibold leading-tight"
-          style={{
-            color: colors.TEXT_INVERSE,
-            backgroundColor: colors.ACCENT_GREEN,
-            borderRadius: RADIUS.sm,
-            fontFamily: 'var(--font-body)',
-            paddingTop: 4,
-            paddingBottom: 4,
-          }}
-        >
-          <span className="min-w-0 truncate">{mission.site_name}</span>
-          {timeRange ? <span className="shrink-0">&nbsp;{t('screens.planning.atTime', { time: timeRange })}</span> : null}
+        <span className="flex min-w-0 max-w-[62%] shrink items-center gap-1.5">
+          {needsValidation ? (
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: colors.DANGER }}
+              aria-label={t('screens.planning.pending')}
+            />
+          ) : null}
+          <span
+            className="flex min-w-0 shrink items-center px-2.5 text-sm font-semibold leading-tight"
+            style={{
+              color: colors.TEXT_INVERSE,
+              backgroundColor: needsValidation ? colors.DANGER : colors.ACCENT_GREEN,
+              borderRadius: RADIUS.sm,
+              fontFamily: 'var(--font-body)',
+              paddingTop: 4,
+              paddingBottom: 4,
+            }}
+          >
+            <span className="min-w-0 truncate">{mission.site_name}</span>
+            {timeRange ? (
+              <span className="shrink-0">&nbsp;{t('screens.planning.atTime', { time: timeRange })}</span>
+            ) : null}
+          </span>
         </span>
       ) : (
         <span
