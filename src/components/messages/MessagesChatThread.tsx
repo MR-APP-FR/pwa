@@ -18,6 +18,7 @@ import {
   reverseChronological,
   type Conversation,
 } from '../../app/messages/conversations';
+import { BureauMessageBody } from './BureauMessageBody';
 
 interface ChatThreadProps {
   conversation: Conversation;
@@ -79,76 +80,80 @@ function MessageCard({ message }: { message: StaffMessageWithAck }) {
         boxShadow: colors.CARD_SHADOW,
       }}
     >
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 text-[17px] leading-none" aria-hidden>
-          {icon}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-2">
-            <p
-              className="truncate text-[12px] font-semibold"
-              style={{ color: accentFg, fontFamily: 'var(--font-display)' }}
-            >
-              {sourceName}
-            </p>
-            <time
-              className="shrink-0 text-[11px] font-medium"
-              style={{ color: colors.TEXT_SECONDARY }}
-              dateTime={message.publie_at}
-            >
-              {formatChatClock(message.publie_at)}
-            </time>
-          </div>
-          {isAuto && message.titre && message.titre !== message.corps ? (
-            <p
-              className="text-[13px] font-semibold leading-snug"
-              style={{ color: colors.TEXT_PRIMARY }}
-            >
-              {message.titre}
-            </p>
-          ) : null}
-          <p
-            className="whitespace-pre-wrap text-[15px] leading-snug"
-            style={{ color: colors.TEXT_PRIMARY }}
-          >
-            {message.corps}
-          </p>
-          {message.require_ack && canAck ? (
-            <div className="pt-1.5">
-              {needsAck ? (
-                <button
-                  type="button"
-                  onClick={handleAck}
-                  disabled={pending}
-                  className="w-full px-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
-                  style={{
-                    minHeight: TOUCH_TARGET,
-                    borderRadius: RADIUS.sm,
-                    backgroundColor: colors.ACCENT_GREEN_MUTED,
-                    color: colors.ACCENT_GREEN,
-                    boxShadow: `inset 0 0 0 1.5px ${colors.ACCENT_GREEN}`,
-                    fontFamily: 'var(--font-display)',
-                  }}
-                >
-                  {pending ? '…' : t('screens.messages.ackButton')}
-                </button>
-              ) : (
+      <div className="min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            {isAuto ? (
+              <BureauMessageBody
+                senderEmoji={icon}
+                senderLabel={sourceName}
+                senderColor={accentFg}
+                titre={message.titre}
+                corps={message.corps}
+                textColor={colors.TEXT_PRIMARY}
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-1.5">
+                  <span className="text-center text-[12px] leading-none" aria-hidden>
+                    {icon}
+                  </span>
+                  <p className="truncate text-[12px] font-semibold" style={{ color: accentFg }}>
+                    {sourceName}
+                  </p>
+                </div>
                 <p
-                  className="flex items-center gap-1 text-xs font-semibold"
-                  style={{ color: colors.SUCCESS }}
+                  className="whitespace-pre-wrap text-[15px] leading-snug"
+                  style={{ color: colors.TEXT_PRIMARY }}
                 >
-                  <Check size={13} strokeWidth={2.75} />
-                  {t('screens.messages.ackedLabel')}
+                  {message.corps}
                 </p>
-              )}
-            </div>
-          ) : null}
-          {error ? (
-            <p className="pt-1 text-xs font-semibold" style={{ color: colors.DANGER }}>
-              {error}
-            </p>
-          ) : null}
+              </>
+            )}
+          </div>
+          <time
+            className="shrink-0 pt-0.5 text-[11px] font-medium"
+            style={{ color: colors.TEXT_SECONDARY }}
+            dateTime={message.publie_at}
+          >
+            {formatChatClock(message.publie_at)}
+          </time>
         </div>
+        {message.require_ack && canAck ? (
+          <div className="pt-1.5">
+            {needsAck ? (
+              <button
+                type="button"
+                onClick={handleAck}
+                disabled={pending}
+                className="w-full px-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  minHeight: TOUCH_TARGET,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: colors.ACCENT_GREEN_MUTED,
+                  color: colors.ACCENT_GREEN,
+                  boxShadow: `inset 0 0 0 1.5px ${colors.ACCENT_GREEN}`,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {pending ? '…' : t('screens.messages.ackButton')}
+              </button>
+            ) : (
+              <p
+                className="flex items-center gap-1 text-xs font-semibold"
+                style={{ color: colors.SUCCESS }}
+              >
+                <Check size={13} strokeWidth={2.75} />
+                {t('screens.messages.ackedLabel')}
+              </p>
+            )}
+          </div>
+        ) : null}
+        {error ? (
+          <p className="pt-1 text-xs font-semibold" style={{ color: colors.DANGER }}>
+            {error}
+          </p>
+        ) : null}
       </div>
     </article>
   );

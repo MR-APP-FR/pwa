@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 /**
  * 21h Paris : poste un message stub canal CA (pas de PDF).
- * Le PDF est généré au clic admin dans le CRM.
+ * Affichage CRM : titre « 📈 CA du jour » + carte PDF au clic.
  * pg_cron : ca-daily-pdf-utc19 + utc20 → internal.invoke_edge('ca-daily-pdf')
  * Secrets : SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (déjà présents).
  */
@@ -81,12 +81,8 @@ Deno.serve(async (req) => {
   const label = formatFrDate(dateIso);
   const filename = `CA ${label}.pdf`;
   const { error: insertError } = await supabase.from("staff_message").insert({
-    titre: "⚠️ CA",
-    corps: [
-      "📄 PDF CA du jour",
-      `📅 Date : ${label}`,
-      "💬 Ouvrir pour générer / télécharger.",
-    ].join("\n"),
+    titre: "📈 CA du jour",
+    corps: "",
     source: "appli",
     channel: "ca",
     auteur_uuid: null,
