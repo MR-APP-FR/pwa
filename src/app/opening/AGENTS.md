@@ -25,7 +25,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 | RPC stock | `report_opening_low_stock_to_bureau` — Bureau si feuilles/FDJ < 20 (`opening_low_feuilles`) ou tickets < 500 (`opening_low_tickets`) |
 | RPC lundi | `report_monday_opening_issues_to_bureau` — kind `monday_opening_issues` si panneau/affaire manquant |
 | Config site | `site_infos` / hook `useSiteTerrainConfig` (`fond_caisse`, `stand_confiserie`, `carte_parking`) |
-| Carte parking | Non à l’ouverture → RPC `report_parking_card_missing` (canal Bureau) |
+| Carte parking | Non à l’ouverture → RPC `report_parking_card_missing` (Bureau + message zone + DM/push déclarant) |
 | RLS | Binôme planifié (`planning.user_id` / `double_id`) |
 
 `user_id` = dernier soumetteur via `requireEmployeeSession()`.

@@ -15,6 +15,7 @@ Jobs automatiques côté Supabase (plus de cron Vercel). Déclenchés par `pg_cr
 | [claim-login/index.ts](claim-login/index.ts) | Login / claim MDP terrain par `login` ou `email` (appel PWA, `verify_jwt: false`) | Auth Admin |
 | [admin-pwa-view/index.ts](admin-pwa-view/index.ts) | Vue terrain admin CRM : mint view_token + list/impersonate employés (`verify_jwt: false`) | Auth Admin |
 | [ca-daily-pdf/index.ts](ca-daily-pdf/index.ts) | 21h Paris : stub canal `ca` (`📈 CA du jour`, corps vide, PDF au clic CRM) | — |
+| [staff-push/index.ts](staff-push/index.ts) | Push ciblé (body `{ pushes: [{ userId, title, body, url? }] }`) — ex. DM carte parking | Web Push |
 
 ## pg_cron
 
@@ -23,7 +24,7 @@ Rappel dispos : [../migrations/20260828120000_gre_week_staff_dispatch.sql](../mi
 Brief météo : [../migrations/20260906164900_gre_weather_brief_cron.sql](../migrations/20260906164900_gre_weather_brief_cron.sql)  
 Copy partagée : [`_shared/encourage.ts`](_shared/encourage.ts) + catalogue JSON (aligné PWA `encourageCopy`).
 
-Helper : `internal.invoke_edge(name)` — POST Edge avec secret Vault **`supabase_anon_key`**.
+Helpers : `internal.invoke_edge(name)` / `internal.invoke_edge_json(name, body)` — POST Edge avec secret Vault **`supabase_anon_key`**.
 
 Jobs SQL sans Edge : anniversaires, hebdo bureau, CR auto mensuel (`internal.post_*`), catégories staff lundi (`internal.compute_staff_pool_scores` — migration `20261008190000_gre_staff_pool_score_weekly_cron.sql`).
 

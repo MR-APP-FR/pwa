@@ -58,7 +58,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Création / envoi message staff | CRM | Web Push immédiat |
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
 | Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau (sans « Attendu », noms courts) + intervention urgente |
-| Carte parking absente (ouverture Non) | PWA | RPC `report_parking_card_missing` → canal Bureau |
+| Carte parking absente (ouverture Non) | PWA | RPC `report_parking_card_missing` → Bureau + message zone staff + DM/push déclarant (`staff-push`) |
 | Stock bas à l’ouverture | PWA | RPC `report_opening_low_stock_to_bureau` → Bureau (feuilles/FDJ < 20 / tickets < 500) |
 | Manques lundi (panneaux / affaires Non) | PWA | RPC `report_monday_opening_issues_to_bureau` → Bureau (`monday_opening_issues`) |
 | Recalculer les catégories staff | CRM `/crm/users` | RPC `compute_staff_pool_scores` (force) — aussi cron lundi auto |
@@ -77,7 +77,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `sync_closing_form_to_data` | `closing_form` | alimente `data` (CA) |
 | fermeture forcée → Bureau | `closing_form` | message canal Bureau |
 | `report_chrono_out_of_range` | ouverture lundi (RPC) | message Bureau + intervention urgente |
-| `report_parking_card_missing` | ouverture (RPC) | message Bureau carte parking absente |
+| `report_parking_card_missing` | ouverture (RPC) | Bureau + zone staff + DM/push déclarant (carte parking absente) |
 | `report_opening_low_stock_to_bureau` | ouverture (RPC) | message Bureau stock feuilles / tickets bas |
 | `report_monday_opening_issues_to_bureau` | ouverture lundi (RPC) | message Bureau panneaux / affaires manquants |
 | `resolve_pannes_from_opening` | RPC ouverture | cloture tickets + message Inter |
