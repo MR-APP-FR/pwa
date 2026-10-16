@@ -8,6 +8,7 @@ import {
   getExpectedClosingDeadline,
   type HeuresSemaine,
 } from '../../lib/parisTime';
+import { effectiveHeuresForDate } from '../../lib/siteDayHours';
 import { getDevOverrideNow } from '../../lib/dev/dateOverrideServer';
 
 /**
@@ -193,15 +194,20 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     .eq('date', date)
     .maybeSingle();
 
-  const { data: siteInfosRow } = await supabase
-    .from('site_infos')
-    .select('heures_semaine')
-    .eq('site_id', siteId)
-    .maybeSingle();
+  const [{ data: siteInfosRow }, { data: dayHoursRow }] = await Promise.all([
+    supabase.from('site_infos').select('heures_semaine').eq('site_id', siteId).maybeSingle(),
+    supabase.from('site_day_hours').select('ouvre, ferme').eq('site_id', siteId).eq('day', date).maybeSingle(),
+  ]);
 
   const deadline = getExpectedClosingDeadline(
     date,
-    (siteInfosRow?.heures_semaine ?? null) as HeuresSemaine | null,
+    effectiveHeuresForDate(
+      (siteInfosRow?.heures_semaine ?? null) as HeuresSemaine | null,
+      date,
+      dayHoursRow
+        ? { ouvre: dayHoursRow.ouvre ?? null, ferme: dayHoursRow.ferme ?? null }
+        : null,
+    ),
   );
   const effectiveNow = (await getDevOverrideNow()) ?? new Date();
   const beforeDeadline = deadline !== null && effectiveNow < deadline;

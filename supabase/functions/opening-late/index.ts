@@ -129,7 +129,7 @@ Deno.serve(async () => {
   const vapidOk = vapidPublic.length > 20 && vapidPrivate.length > 20;
 
   try {
-    const [planningRes, infosRes, openingsRes] = await Promise.all([
+    const [planningRes, infosRes, hoursRes, openingsRes] = await Promise.all([
       supabase
         .from("planning")
         .select("site_id, user_id, double_id")
@@ -137,16 +137,23 @@ Deno.serve(async () => {
         .eq("month", paris.month)
         .eq("day", paris.day),
       supabase.from("site_infos").select("site_id, heures_semaine"),
+      supabase.from("site_day_hours").select("site_id, ouvre").eq("day", paris.dateIso),
       supabase.from("opening_form").select("site_id").eq("date", paris.dateIso),
     ]);
     if (planningRes.error) throw planningRes.error;
     if (infosRes.error) throw infosRes.error;
+    if (hoursRes.error) throw hoursRes.error;
     if (openingsRes.error) throw openingsRes.error;
 
     const opened = new Set((openingsRes.data ?? []).map((r) => Number(r.site_id)));
     const heuresBySite = new Map<number, ReturnType<typeof parseHeures>>();
     for (const row of infosRes.data ?? []) {
       heuresBySite.set(Number(row.site_id), parseHeures(row.heures_semaine));
+    }
+    const ouvreOverride = new Map<number, string>();
+    for (const row of hoursRes.data ?? []) {
+      const raw = row.ouvre == null ? "" : String(row.ouvre).trim();
+      if (raw) ouvreOverride.set(Number(row.site_id), raw);
     }
 
     const due: {
@@ -164,7 +171,7 @@ Deno.serve(async () => {
       if (p.user_id == null && p.double_id == null) continue;
       if (opened.has(siteId)) continue;
       const heures = heuresBySite.get(siteId);
-      const ouvreRaw = heures?.[paris.jourSemaineKey]?.ouvre;
+      const ouvreRaw = ouvreOverride.get(siteId) ?? heures?.[paris.jourSemaineKey]?.ouvre;
       if (ouvreRaw == null || String(ouvreRaw).trim() === "") continue;
       const openingHour = openingHourFromRaw(String(ouvreRaw));
       if (openingHour == null) continue;

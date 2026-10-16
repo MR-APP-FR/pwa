@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { useSiteHeuresOuverture } from '../../hooks/api/useSiteHeuresOuverture';
+import { useSiteDayHours } from '../../hooks/api/useSiteDayHours';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getDevDateOverride } from '../../lib/dev/dateOverrideClient';
@@ -13,6 +14,7 @@ import {
   getExpectedOpeningDeadline,
   lateOpeningPromptCutoffFromDateIso,
 } from '../../lib/parisTime';
+import { dayHourKey, effectiveHeuresForDate } from '../../lib/siteDayHours';
 import { BottomSheetModal } from '../common/BottomSheetModal';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { RADIUS } from '../../constants/design';
@@ -32,6 +34,21 @@ export function LateOpeningPrompt({
   const { data: heures, isFetched: heuresFetched } = useSiteHeuresOuverture(
     todayMission?.site_id,
   );
+  const { data: hourOverrides, isFetched: overridesFetched } = useSiteDayHours(
+    todayMission?.site_id ? [todayMission.site_id] : [],
+    todayIso ? [todayIso] : [],
+  );
+  const heuresEffectives = useMemo(
+    () =>
+      effectiveHeuresForDate(
+        heures,
+        todayIso,
+        todayMission
+          ? hourOverrides?.get(dayHourKey(todayMission.site_id, todayIso))
+          : null,
+      ),
+    [heures, todayIso, todayMission, hourOverrides],
+  );
 
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -50,9 +67,9 @@ export function LateOpeningPrompt({
       setOpen(false);
       return;
     }
-    if (!heuresFetched) return;
+    if (!heuresFetched || !overridesFetched) return;
 
-    const deadline = getExpectedOpeningDeadline(todayIso, heures ?? null);
+    const deadline = getExpectedOpeningDeadline(todayIso, heuresEffectives ?? null);
     if (!deadline) {
       setOpen(false);
       return;
@@ -68,7 +85,7 @@ export function LateOpeningPrompt({
       return;
     }
 
-    const raw = heures?.[dateIsoToJourSemaineKey(todayIso)]?.ouvre ?? null;
+    const raw = heuresEffectives?.[dateIsoToJourSemaineKey(todayIso)]?.ouvre ?? null;
     const label = formatHeureOuvertureDisplay(raw) || '10H00';
     setHourLabel(label);
 
@@ -118,7 +135,7 @@ export function LateOpeningPrompt({
       cancelled = true;
       window.clearTimeout(hideAtCutoff);
     };
-  }, [todayMission, todayIso, heures, heuresFetched, currentUser?.user]);
+  }, [todayMission, todayIso, heures, heuresFetched, heuresEffectives, overridesFetched, currentUser?.user]);
 
   if (!todayMission) return null;
   const mission = todayMission;

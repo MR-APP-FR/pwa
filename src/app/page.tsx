@@ -21,7 +21,9 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAppDate } from '../hooks/useAppDate';
 import { formatWeekdayDayMonth } from '../lib/formatDate';
 import { useSitesHeuresOuverture } from '../hooks/api/useSitesHeuresOuverture';
+import { useSiteDayHours } from '../hooks/api/useSiteDayHours';
 import { buildSiteDayHoursLabel } from '../lib/formatHeuresSite';
+import { dayHourKey, effectiveHeuresForDate } from '../lib/siteDayHours';
 import { isAvailabilityReminderWindow, toIsoDateString } from '../lib/parisTime';
 
 export default function HomePage() {
@@ -74,22 +76,43 @@ export default function HomePage() {
     ...(nextMission?.site_id ? [nextMission.site_id] : []),
   ];
   const { data: heuresBySite } = useSitesHeuresOuverture(homeSiteIds);
+  const homeHourDays = [
+    ...(todayMission
+      ? [`${todayMission.year}-${String(todayMission.month).padStart(2, '0')}-${String(todayMission.day).padStart(2, '0')}`]
+      : []),
+    ...(nextMission
+      ? [`${nextMission.year}-${String(nextMission.month).padStart(2, '0')}-${String(nextMission.day).padStart(2, '0')}`]
+      : []),
+  ];
+  const { data: hourOverrides } = useSiteDayHours(homeSiteIds, homeHourDays);
 
   const todayHoursLabel = useMemo(() => {
     if (!todayMission || !heuresBySite) return null;
     const date = new Date(todayMission.year, todayMission.month - 1, todayMission.day);
-    return buildSiteDayHoursLabel(heuresBySite.get(todayMission.site_id), date, {
+    const dateIso = toIsoDateString(date);
+    const heures = effectiveHeuresForDate(
+      heuresBySite.get(todayMission.site_id),
+      dateIso,
+      hourOverrides?.get(dayHourKey(todayMission.site_id, dateIso)),
+    );
+    return buildSiteDayHoursLabel(heures ?? undefined, date, {
       isDouble: todayMission.role === 'double',
     });
-  }, [todayMission, heuresBySite]);
+  }, [todayMission, heuresBySite, hourOverrides]);
 
   const nextHoursLabel = useMemo(() => {
     if (!nextMission || !heuresBySite) return null;
     const date = new Date(nextMission.year, nextMission.month - 1, nextMission.day);
-    return buildSiteDayHoursLabel(heuresBySite.get(nextMission.site_id), date, {
+    const dateIso = toIsoDateString(date);
+    const heures = effectiveHeuresForDate(
+      heuresBySite.get(nextMission.site_id),
+      dateIso,
+      hourOverrides?.get(dayHourKey(nextMission.site_id, dateIso)),
+    );
+    return buildSiteDayHoursLabel(heures ?? undefined, date, {
       isDouble: nextMission.role === 'double',
     });
-  }, [nextMission, heuresBySite]);
+  }, [nextMission, heuresBySite, hourOverrides]);
 
   const hasTodayMission = todayMission !== null;
   const todayIso = toIsoDateString(today);

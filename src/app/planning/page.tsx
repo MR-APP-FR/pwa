@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PlanningDayCard } from '../../components/planning/PlanningDayCard';
 import { usePlanning } from '../../hooks/api/usePlanning';
 import { useSitesHeuresOuverture } from '../../hooks/api/useSitesHeuresOuverture';
+import { useSiteDayHours } from '../../hooks/api/useSiteDayHours';
 import {
   invalidateStaffMessageBadges,
   useStaffMessageCache,
@@ -28,6 +29,7 @@ import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHead
 import { RADIUS, TOUCH_TARGET } from '../../constants/design';
 import type { HeuresSemaine } from '../../lib/parisTime';
 import { buildSiteDayHoursLabel } from '../../lib/formatHeuresSite';
+import { dayHourKey, effectiveHeuresForDate, type DayHourOverride } from '../../lib/siteDayHours';
 import { parseIsoDateAsLocalDate, toIsoDateString } from '../../lib/parisTime';
 import { markUnreadPlanningAssignedRead } from '../messages/actions';
 import { validatePlanningWeek } from './actions';
@@ -43,10 +45,17 @@ function buildTimeRange(
   mission: PlanningWithColleague | null,
   date: Date,
   heuresBySite: Map<number, HeuresSemaine>,
+  overrides: Map<string, DayHourOverride>,
 ): string | undefined {
   if (!mission) return undefined;
+  const dateIso = toIsoDateString(date);
+  const heures = effectiveHeuresForDate(
+    heuresBySite.get(mission.site_id),
+    dateIso,
+    overrides.get(dayHourKey(mission.site_id, dateIso)),
+  );
   return (
-    buildSiteDayHoursLabel(heuresBySite.get(mission.site_id), date, {
+    buildSiteDayHoursLabel(heures ?? undefined, date, {
       isDouble: mission.role === 'double',
     }) ?? undefined
   );
@@ -57,6 +66,7 @@ function getWeekDays(
   missions: PlanningWithColleague[],
   today: Date,
   heuresBySite: Map<number, HeuresSemaine>,
+  overrides: Map<string, DayHourOverride>,
 ): WeekDay[] {
   const days: WeekDay[] = [];
   for (let i = 0; i < 7; i++) {
@@ -76,7 +86,7 @@ function getWeekDays(
         date.getDate() === today.getDate() &&
         date.getMonth() === today.getMonth() &&
         date.getFullYear() === today.getFullYear(),
-      timeRange: buildTimeRange(mission, date, heuresBySite),
+      timeRange: buildTimeRange(mission, date, heuresBySite, overrides),
     });
   }
   return days;
@@ -125,11 +135,26 @@ function PlanningPageInner() {
   const missions = planningData?.planning ?? [];
 
   const weekSiteIds = useMemo(() => missions.map((m) => m.site_id), [missions]);
+  const weekDateIsos = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(viewedWeekStart);
+      date.setDate(viewedWeekStart.getDate() + i);
+      return toIsoDateString(date);
+    });
+  }, [viewedWeekStart]);
   const { data: heuresBySite } = useSitesHeuresOuverture(weekSiteIds);
+  const { data: hourOverrides } = useSiteDayHours(weekSiteIds, weekDateIsos);
 
   const weekDays = useMemo(
-    () => getWeekDays(viewedWeekStart, missions, today, heuresBySite ?? new Map()),
-    [viewedWeekStart, missions, today, heuresBySite],
+    () =>
+      getWeekDays(
+        viewedWeekStart,
+        missions,
+        today,
+        heuresBySite ?? new Map(),
+        hourOverrides ?? new Map(),
+      ),
+    [viewedWeekStart, missions, today, heuresBySite, hourOverrides],
   );
 
   const weekSubtitle = t('screens.planning.planningWeekTitle', {

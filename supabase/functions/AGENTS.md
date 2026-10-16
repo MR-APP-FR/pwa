@@ -10,7 +10,7 @@ Jobs automatiques côté Supabase (plus de cron Vercel). Déclenchés par `pg_cr
 |---|---|---|
 | [weather-sync/index.ts](weather-sync/index.ts) | Météo + enrichissement `site_weather`, `site_day_baseline` | Open-Meteo |
 | [weather-brief/index.ts](weather-brief/index.ts) | 9h Paris : brief encourage + push (1 msg / employé planifié) | Web Push |
-| [opening-late/index.ts](opening-late/index.ts) | Relance ouverture manquante | Web Push |
+| [opening-late/index.ts](opening-late/index.ts) | Relance ouverture manquante (horaire effectif `site_day_hours` sinon fiche) | Web Push |
 | [availability-reminder/index.ts](availability-reminder/index.ts) | Rappel dispos mercredi | Web Push |
 | [claim-login/index.ts](claim-login/index.ts) | Login / claim MDP terrain par `login` ou `email` (appel PWA, `verify_jwt: false`) | Auth Admin |
 | [admin-pwa-view/index.ts](admin-pwa-view/index.ts) | Vue terrain admin CRM : mint view_token + list/impersonate employés (`verify_jwt: false`) | Auth Admin |

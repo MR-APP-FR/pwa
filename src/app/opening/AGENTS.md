@@ -33,7 +33,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 ## Transverse
 
 - CRM : day-board [ouverture](../../../admin-desktop-app/app/(dashboard)/crm/ouverture/) + historique forms ; preview PWA affiche panneaux/affaires lundi ; alerte « Parking absent » si Non ; alertes stock bas sur canal Bureau (lecture seule).
-- Cron Edge `opening-late` : push si créneau matin/après-midi sans ouverture.
+- Cron Edge `opening-late` : push si créneau matin/après-midi sans ouverture. Heure attendue = `site_day_hours.ouvre` du jour sinon fiche. Le prompt retard accueil utilise la même heure.
 - Résolution panne depuis ouverture : migration `gre_resolve_panne_from_opening`.
 
 ## Ne pas casser

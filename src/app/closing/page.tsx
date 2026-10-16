@@ -19,6 +19,7 @@ import { useSiteClosingChecklist,
 } from '../../hooks/api/useSiteClosingChecklist';
 import { useSiteTerrainConfig } from '../../hooks/api/useSiteTerrainConfig';
 import { useSiteHeuresOuverture } from '../../hooks/api/useSiteHeuresOuverture';
+import { useSiteDayHours } from '../../hooks/api/useSiteDayHours';
 import { PhotoCaptureField, type CapturedPhoto } from '../../components/forms/PhotoCaptureField';
 import { ConditionalQuestion } from '../../components/forms/ConditionalQuestion';
 import { FormLockedBanner } from '../../components/forms/FormLockedBanner';
@@ -37,6 +38,7 @@ import {
   getExpectedClosingDeadline,
   PARIS_TIME_ZONE,
 } from '../../lib/parisTime';
+import { dayHourKey, effectiveHeuresForDate } from '../../lib/siteDayHours';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PageSectionTitle } from '../../components/layout/PageSectionTitle';
 import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
@@ -187,6 +189,10 @@ function ClosingContent() {
   const { data: closingChecklistItems } = useSiteClosingChecklist(mission?.site_id);
   const { data: terrainConfig } = useSiteTerrainConfig(mission?.site_id);
   const { data: heuresSemaine } = useSiteHeuresOuverture(mission?.site_id);
+  const { data: hourOverrides } = useSiteDayHours(
+    mission?.site_id ? [mission.site_id] : [],
+    missionDateIso ? [missionDateIso] : [],
+  );
   const showParkingPhoto = terrainConfig?.carteParkingEnabled === true;
   const showConfiserie = terrainConfig?.standConfiserie === true;
   const { data: formsStatus } = useMissionForms(mission?.site_id, missionDateIso ?? undefined);
@@ -305,8 +311,16 @@ function ClosingContent() {
     setEnvelopeConfirmed(true);
   }, [existingClosing, missionId]);
 
+  const heuresEffectives =
+    missionDateIso && mission
+      ? effectiveHeuresForDate(
+          heuresSemaine,
+          missionDateIso,
+          hourOverrides?.get(dayHourKey(mission.site_id, missionDateIso)),
+        )
+      : (heuresSemaine ?? null);
   const closingDeadline = missionDateIso
-    ? getExpectedClosingDeadline(missionDateIso, heuresSemaine ?? null)
+    ? getExpectedClosingDeadline(missionDateIso, heuresEffectives ?? null)
     : null;
   const closingDeadlineLabel = closingDeadline
     ? formatClosingDeadlineLabel(closingDeadline)
