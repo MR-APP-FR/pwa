@@ -10,7 +10,7 @@ Messagerie direction → terrain. Un message cible **Tous** ou **une seule zone*
 - Page : [page.tsx](page.tsx)
 - Helpers fil / dates : [conversations.ts](conversations.ts) (`INBOX_CONVERSATION`)
 - Thread : [../../components/messages/MessagesChatThread.tsx](../../components/messages/MessagesChatThread.tsx) — bouton « Messages plus anciens »
-- Autos (`source = appli`) : [../../components/messages/BureauMessageBody.tsx](../../components/messages/BureauMessageBody.tsx) — même grille CRM (colonne emoji fixe + label / `:` / valeur) ; police Inter (body) partout dans la card
+- Autos (`source = appli`) : [../../components/messages/BureauMessageBody.tsx](../../components/messages/BureauMessageBody.tsx) — même grille CRM (colonne emoji fixe + label / `:` / valeur) ; garder `U+FE0F` au parse (sinon `⚠` texte vs `⚠️`) ; police Inter (body) partout dans la card
 
 ## Technique
 
