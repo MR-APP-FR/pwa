@@ -2,7 +2,7 @@
 
 ## Métier
 
-Vue carte de tous les manèges (points de vente) pour se repérer — complément au planning.
+Vue carte des manèges actifs pour se repérer. Complément au planning.
 
 ## Écran
 

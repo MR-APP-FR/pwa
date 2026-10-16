@@ -15,7 +15,7 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 
 | Élément | Détail |
 |---|---|
-| Tables | `user_info`, `user_info_sites`, Storage documents |
+| Tables | `user_info`, `user_info_sites` (manèges `actif` seulement), Storage documents |
 | RLS | Own via `current_employee_id()` |
 | Flag | `user.must_change_password` → redirect 1re connexion |
 | Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». |

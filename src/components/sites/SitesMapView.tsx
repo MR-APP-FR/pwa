@@ -137,7 +137,7 @@ export default function SitesMapView() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   const sitesWithCoords = useMemo(
-    () => (data?.sites ?? []).filter(hasCoordinates),
+    () => (data?.sites ?? []).filter((site) => site.statut === 'actif').filter(hasCoordinates),
     [data?.sites],
   );
 

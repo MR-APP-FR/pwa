@@ -36,6 +36,12 @@ function EditSitesModal({
   const allSites = sitesData?.sites ?? [];
   const groupes = sitesData?.groupes ?? [];
   const [selectedIds, setSelectedIds] = useState<number[]>(initialSelectedIds);
+
+  useEffect(() => {
+    if (allSites.length === 0) return;
+    const activeIds = new Set(allSites.filter((site) => site.statut === 'actif').map((site) => site.id));
+    setSelectedIds((prev) => prev.filter((id) => activeIds.has(id)));
+  }, [allSites]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -82,6 +88,7 @@ function EditSitesModal({
   const filteredGroupes = groupes
     .map((groupe) => {
       const groupSites = allSites.filter((s) => {
+        if (s.statut !== 'actif') return false;
         if (s.group_id !== groupe.id) return false;
         if (!query) return true;
         return (

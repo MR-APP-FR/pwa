@@ -129,7 +129,7 @@ Deno.serve(async () => {
   const vapidOk = vapidPublic.length > 20 && vapidPrivate.length > 20;
 
   try {
-    const [planningRes, infosRes, hoursRes, openingsRes] = await Promise.all([
+    const [planningRes, infosRes, hoursRes, openingsRes, sitesRes] = await Promise.all([
       supabase
         .from("planning")
         .select("site_id, user_id, double_id")
@@ -139,11 +139,15 @@ Deno.serve(async () => {
       supabase.from("site_infos").select("site_id, heures_semaine"),
       supabase.from("site_day_hours").select("site_id, ouvre").eq("day", paris.dateIso),
       supabase.from("opening_form").select("site_id").eq("date", paris.dateIso),
+      supabase.from("site").select("id").eq("statut", "actif"),
     ]);
     if (planningRes.error) throw planningRes.error;
     if (infosRes.error) throw infosRes.error;
     if (hoursRes.error) throw hoursRes.error;
     if (openingsRes.error) throw openingsRes.error;
+    if (sitesRes.error) throw sitesRes.error;
+
+    const activeSiteIds = new Set((sitesRes.data ?? []).map((row) => Number(row.id)));
 
     const opened = new Set((openingsRes.data ?? []).map((r) => Number(r.site_id)));
     const heuresBySite = new Map<number, ReturnType<typeof parseHeures>>();
@@ -168,6 +172,7 @@ Deno.serve(async () => {
     for (const p of planningRes.data ?? []) {
       const siteId = Number(p.site_id);
       if (!Number.isFinite(siteId) || siteId <= 0 || seen.has(siteId)) continue;
+      if (!activeSiteIds.has(siteId)) continue;
       if (p.user_id == null && p.double_id == null) continue;
       if (opened.has(siteId)) continue;
       const heures = heuresBySite.get(siteId);

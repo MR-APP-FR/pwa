@@ -19,6 +19,20 @@ export async function updatePreferredSites(siteIds: number[]): Promise<UpdatePre
   }
   const { userId, supabase } = session;
 
+  let operationalIds = cleanIds;
+  if (cleanIds.length > 0) {
+    const { data: activeSites, error: activeError } = await supabase
+      .from('site')
+      .select('id')
+      .in('id', cleanIds)
+      .eq('statut', 'actif');
+    if (activeError) {
+      return { ok: false, error: `Lecture des manèges échouée : ${activeError.message}` };
+    }
+    const allowed = new Set((activeSites ?? []).map((site) => site.id));
+    operationalIds = cleanIds.filter((id) => allowed.has(id));
+  }
+
   const { data: userInfo, error: userInfoError } = await supabase
     .from('user_info')
     .select('id')
@@ -41,10 +55,10 @@ export async function updatePreferredSites(siteIds: number[]): Promise<UpdatePre
     return { ok: false, error: `Mise à jour des sites échouée : ${deleteError.message}` };
   }
 
-  if (cleanIds.length > 0) {
+  if (operationalIds.length > 0) {
     const { error: insertError } = await supabase
       .from('user_info_sites')
-      .insert(cleanIds.map((siteId) => ({ user_info_id: userInfo.id, site_id: siteId })));
+      .insert(operationalIds.map((siteId) => ({ user_info_id: userInfo.id, site_id: siteId })));
 
     if (insertError) {
       return { ok: false, error: `Mise à jour des sites échouée : ${insertError.message}` };
