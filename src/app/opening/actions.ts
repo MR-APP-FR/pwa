@@ -219,7 +219,7 @@ export async function submitOpeningForm(formData: FormData): Promise<SubmitOpeni
   }
 
   const feuillesCount = parseFeuillesCount(parsed.feuillesDeJour);
-  const lowFeuilles = feuillesCount != null && feuillesCount < 20;
+  const lowFeuilles = feuillesCount != null && feuillesCount < 10;
   const lowTickets = parsed.ticketsOuverture < 500;
   if (lowFeuilles || lowTickets) {
     const { error: rpcError } = await session.supabase.rpc('report_opening_low_stock_to_bureau', {

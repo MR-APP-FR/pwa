@@ -59,7 +59,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | Submit ouverture / fermeture / info-jour | PWA | upsert + triggers Postgres |
 | Chrono lundi hors borne (2e essai) | PWA | RPC `report_chrono_out_of_range` → Bureau (sans « Attendu », noms courts) + intervention urgente |
 | Carte parking absente (ouverture Non) | PWA | RPC `report_parking_card_missing` → Bureau + message zone staff + DM/push déclarant (`staff-push`) |
-| Stock bas à l’ouverture | PWA | RPC `report_opening_low_stock_to_bureau` → Bureau (feuilles/FDJ < 20 / tickets < 500) |
+| Stock bas à l’ouverture | PWA | RPC `report_opening_low_stock_to_bureau` → Bureau (feuilles/FDJ < 10 / tickets < 500) |
 | Manques lundi (panneaux / affaires Non) | PWA | RPC `report_monday_opening_issues_to_bureau` → Bureau (`monday_opening_issues`) |
 | Recalculer les catégories staff | CRM `/crm/users` | RPC `compute_staff_pool_scores` (force) — aussi cron lundi auto |
 | Création employé | CRM | `public.user` + login (pas d’Auth) ; claim PWA à la 1re connexion |
