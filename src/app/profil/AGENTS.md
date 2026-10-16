@@ -2,7 +2,7 @@
 
 ## Métier
 
-Consultation / mise à jour fiche staff : coordonnées, transports, documents (CNI, etc.), avatar. Première connexion si mot de passe temporaire.
+Consultation / mise à jour fiche staff : coordonnées, transports, documents (CNI, etc.), avatar, fiches de paie (lecture). Première connexion si mot de passe temporaire.
 
 ## Écrans
 
@@ -15,17 +15,19 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 
 | Élément | Détail |
 |---|---|
-| Tables | `user_info`, `user_info_sites` (manèges `actif` seulement), Storage documents |
+| Tables | `user_info`, `user_info_sites` (manèges `actif` seulement), Storage documents ; `payslip` (lecture) |
 | RLS | Own via `current_employee_id()` |
 | Flag | `user.must_change_password` → redirect 1re connexion |
-| Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». |
+| Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». Pas de badge pour les fiches de paie. |
+| Fiches de paie | [PayslipsSection](../../components/profil/PayslipsSection.tsx) — absente si aucune ligne ; sinon sélecteur de mois + URL signée bucket `payslips` |
 | Version app | Bas de page (`AppVersionLabel`) — voir [pwa/AGENTS.md](../../lib/pwa/AGENTS.md) ; bump `APP_DISPLAY_VERSION` à chaque release |
 
-Uploads : path en colonne, bucket privé (lecture CRM admin).
+Uploads CNI/avatar : path en colonne, bucket privé (lecture CRM admin). Fiches de paie : upload CRM uniquement.
 
 ## Transverse
 
 - CRM [users](../../../admin-desktop-app/components/crm/users/) : fiche complète, édition admin ; login sans Auth à la création.
+- CRM [payslips](../../../admin-desktop-app/components/crm/payslips/) : upload admin des PDF.
 - Admin CRM sur PWA : [AdminViewPanel](../../components/auth/AdminViewPanel.tsx) + Edge `admin-pwa-view` — voir [auth/AGENTS.md](../../lib/auth/AGENTS.md).
 
 ## Ne pas casser

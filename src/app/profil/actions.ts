@@ -160,3 +160,51 @@ export async function getStaffMediaSignedUrl(path: string): Promise<string | nul
   }
   return data?.signedUrl ?? null;
 }
+
+const PAYSLIPS_BUCKET = 'payslips';
+
+export type MyPayslipItem = {
+  id: number;
+  period: string;
+  file_path: string;
+};
+
+export async function listMyPayslips(): Promise<MyPayslipItem[]> {
+  const session = await requireEmployeeSession();
+  if (!session.ok) return [];
+
+  const { data, error } = await session.supabase
+    .from('payslip')
+    .select('id, period, file_path')
+    .eq('user_id', session.userId)
+    .order('period', { ascending: false });
+
+  if (error) {
+    console.error('listMyPayslips:', error);
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id as number,
+    period: String(row.period),
+    file_path: String(row.file_path),
+  }));
+}
+
+export async function getPayslipSignedUrl(path: string): Promise<string | null> {
+  const trimmed = path.trim();
+  if (!trimmed) return null;
+
+  const session = await requireEmployeeSession();
+  if (!session.ok) return null;
+  if (!trimmed.startsWith(`${session.userId}/`)) return null;
+
+  const { data, error } = await session.supabase.storage
+    .from(PAYSLIPS_BUCKET)
+    .createSignedUrl(trimmed, 60 * 60);
+  if (error) {
+    console.error('getPayslipSignedUrl:', error);
+    return null;
+  }
+  return data?.signedUrl ?? null;
+}

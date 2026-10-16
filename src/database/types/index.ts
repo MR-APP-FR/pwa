@@ -40,3 +40,4 @@ export type { WeekStaffDispatchRow } from './week-staff-dispatch.types';
 export type { PlanningWeekAckRow } from './planning-week-ack.types';
 export type { Sujet } from './sujet.types';
 export type { OpenSiteIntervention, OpenInterventionStatus, PanneCheckinAnswer } from './intervention.types';
+export type { Payslip } from './payslip.types';

@@ -17,7 +17,7 @@ Carte des écrans sous `src/app/`. Layout global : [layout.tsx](layout.tsx) (fon
 | `/messages` | [messages/page.tsx](messages/page.tsx) | Conversations staff (canaux bureau, météo auto, etc.) |
 | `/suggestions` | [suggestions/page.tsx](suggestions/page.tsx) | Boîte à idées |
 | `/sites-map` | [sites-map/page.tsx](sites-map/page.tsx) | Carte Google des manèges |
-| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar ; **vue admin** = switcher employé |
+| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar, fiches de paie (si présentes) ; **vue admin** = switcher employé |
 | `/training` | [training/page.tsx](training/page.tsx) | Parcours formation (contenu statique / léger) |
 | `/api/version` | [api/version/route.ts](api/version/route.ts) | SHA déploiement pour reload auto PWA |
 

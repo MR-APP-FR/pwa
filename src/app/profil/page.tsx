@@ -20,6 +20,7 @@ import { AppVersionLabel } from '../../components/pwa/AppVersionLabel';
 import { clearAdminViewCookies } from '../../lib/auth/adminViewActions';
 import { updatePreferredSites } from './actions';
 import { ProfileMediaCard } from '../../components/profil/ProfileMediaCard';
+import { PayslipsSection } from '../../components/profil/PayslipsSection';
 
 function EditSitesModal({
   isOpen,
@@ -372,6 +373,8 @@ export default function ProfilPage() {
           }}
         />
       </div>
+
+      <PayslipsSection />
 
       <div className="flex items-center justify-between px-5 pt-7 pb-2">
         <p className="text-sm uppercase" style={{ color: colors.TEXT_SECONDARY }}>
