@@ -9,14 +9,15 @@ type ParsedLine =
   | { kind: 'bullet'; text: string };
 
 // Inclure \uFE0F dans le groupe : ⚠ seul = texte ; ⚠️ = emoji (VS16).
+// Alternation en non-capturant sinon field[2] = base emoji (double icône).
 const EMOJI_PREFIX =
-  /^((\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)/u;
+  /^((?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)/u;
 
 const FIELD_RE =
-  /^((\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)\s+(.+?)\s*:\s*(.*)$/u;
+  /^((?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)\s+(.+?)\s*:\s*(.*)$/u;
 
 const HEADLINE_RE =
-  /^((\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)\s+(.*)$/u;
+  /^((?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)\s+(.*)$/u;
 
 const BULLET_RE = /^(?:\u25AA\uFE0F?|\u25FE\uFE0F?|[•\-])\s+(.*)$/u;
 
