@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
-import { FileText } from 'lucide-react';
+import { useEffect, useState, useTransition } from 'react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import {
   getPayslipSignedUrl,
   listMyPayslips,
@@ -22,50 +22,84 @@ function formatPeriodLabel(period: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+async function openPayslipUrl(url: string, downloadName?: string) {
+  if (downloadName) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('fetch_failed');
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = downloadName;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+      return;
+    } catch {
+      // fallback ci-dessous
+    }
+  }
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!opened) window.location.assign(url);
+}
+
 /**
- * Section paramètres : visible seulement s'il existe au moins une fiche de paie.
+ * Fiches de paie — même langage UI que sites accessibles / profil :
+ * titre de section + carte blanche, lignes sobres, actions texte.
  */
 export function PayslipsSection() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const { data: currentUser } = useCurrentUser();
+  const employeeId = currentUser?.user?.id ?? null;
   const [items, setItems] = useState<MyPayslipItem[] | null>(null);
-  const [selectedId, setSelectedId] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     let cancelled = false;
-    void listMyPayslips().then((list) => {
-      if (cancelled) return;
-      setItems(list);
-      if (list.length > 0) {
-        setSelectedId(String(list[0].id));
-      }
-    });
+    setItems(null);
+    setLoadError(null);
+    setActionError(null);
+
+    void listMyPayslips()
+      .then((list) => {
+        if (!cancelled) setItems(list);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setItems([]);
+        setLoadError(t('settings.profile.payslipLoadError'));
+      });
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [employeeId, t]);
 
-  const selected = useMemo(() => {
-    if (!items || !selectedId) return null;
-    return items.find((item) => String(item.id) === selectedId) ?? null;
-  }, [items, selectedId]);
-
-  if (items === null || items.length === 0) {
-    return null;
-  }
-
-  function handleOpen() {
-    if (!selected) return;
-    setError(null);
+  function handleAction(item: MyPayslipItem, mode: 'view' | 'download') {
+    setActionError(null);
+    setBusyId(item.id);
     startTransition(async () => {
-      const url = await getPayslipSignedUrl(selected.file_path);
-      if (!url) {
-        setError(t('settings.profile.payslipOpenError'));
-        return;
+      try {
+        const url = await getPayslipSignedUrl(item.file_path);
+        if (!url) {
+          setActionError(t('settings.profile.payslipOpenError'));
+          return;
+        }
+        const ym = item.period.slice(0, 7);
+        await openPayslipUrl(
+          url,
+          mode === 'download' ? `fiche-paie-${ym}.pdf` : undefined,
+        );
+      } finally {
+        setBusyId(null);
       }
-      window.open(url, '_blank', 'noopener,noreferrer');
     });
   }
 
@@ -77,60 +111,71 @@ export function PayslipsSection() {
       >
         {t('settings.profile.payslipsTitle')}
       </p>
+
       <div
         className="mx-5 overflow-hidden rounded-2xl"
         style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
       >
-        <div className="flex items-start gap-3 px-5 py-4">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: colors.PRIMARY_MUTED }}
-          >
-            <FileText size={18} color={colors.PRIMARY} strokeWidth={2.25} />
+        {items === null ? (
+          <div className="px-5 py-4">
+            <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('settings.profile.payslipLoading')}
+            </p>
           </div>
-          <div className="min-w-0 flex-1 space-y-3">
-            <div>
-              <label
-                htmlFor="payslip-month"
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: colors.TEXT_SECONDARY }}
-              >
-                {t('settings.profile.payslipMonth')}
-              </label>
-              <select
-                id="payslip-month"
-                value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-base"
-                style={{
-                  borderColor: colors.BORDER,
-                  backgroundColor: colors.BG_SECONDARY,
-                  color: colors.TEXT_PRIMARY,
-                }}
-              >
-                {items.map((item) => (
-                  <option key={item.id} value={String(item.id)}>
+        ) : items.length === 0 ? (
+          <div className="px-5 py-4">
+            <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+              {loadError ?? t('settings.profile.payslipEmptyHint')}
+            </p>
+          </div>
+        ) : (
+          items.map((item) => {
+            const busy = busyId === item.id;
+            return (
+              <div key={item.id} className="flex items-center gap-3 px-5 py-3.5">
+                <div
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: colors.PRIMARY }}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-medium" style={{ color: colors.TEXT_PRIMARY }}>
                     {formatPeriodLabel(item.period)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              onClick={handleOpen}
-              disabled={isPending || !selected}
-              className="text-sm font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
-              style={{ color: colors.PRIMARY }}
-            >
-              {isPending ? t('settings.profile.payslipOpening') : t('settings.profile.payslipView')}
-            </button>
-            {error ? (
-              <p className="text-sm" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
-                {error}
-              </p>
-            ) : null}
-          </div>
-        </div>
+                  </p>
+                  <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                    PDF
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleAction(item, 'view')}
+                    className="text-sm font-semibold transition-opacity active:opacity-70 disabled:opacity-45"
+                    style={{ color: colors.PRIMARY }}
+                  >
+                    {busy ? t('settings.profile.payslipOpening') : t('settings.profile.payslipView')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleAction(item, 'download')}
+                    className="text-sm font-medium transition-opacity active:opacity-70 disabled:opacity-45"
+                    style={{ color: colors.TEXT_SECONDARY }}
+                  >
+                    {t('settings.profile.payslipDownload')}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {actionError ? (
+          <p className="px-5 pb-3 text-xs" style={{ color: colors.DANGER_STRONG ?? '#EB5757' }}>
+            {actionError}
+          </p>
+        ) : null}
       </div>
     </>
   );
