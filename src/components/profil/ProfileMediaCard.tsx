@@ -110,7 +110,12 @@ export function ProfileMediaCard({ kind, path, onUploaded }: ProfileMediaCardPro
           >
             {signedUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={signedUrl} alt="" className="h-full w-full object-cover" />
+              <img
+                src={signedUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setSignedUrl(null)}
+              />
             ) : (
               <span className="flex h-full w-full items-center justify-center">
                 <UserRound size={26} color={colors.PRIMARY} strokeWidth={2} />

@@ -123,14 +123,17 @@ export async function startAdminView(accessToken?: string): Promise<
   };
 }
 
-export async function listAdminSwitchableUsers(): Promise<AdminSwitchableUser[]> {
+export async function listAdminSwitchableUsers(): Promise<
+  | { ok: true; employees: AdminSwitchableUser[] }
+  | { ok: false; error: string }
+> {
   const store = await cookies();
   const viewToken = store.get(ADMIN_VIEW_COOKIE)?.value;
-  if (!viewToken) return [];
+  if (!viewToken) return { ok: false, error: 'missing_view_token' };
 
   const result = await callAdminPwaView({ action: 'list', view_token: viewToken });
-  if (!result.ok) return [];
-  return result.data.employees ?? [];
+  if (!result.ok) return result;
+  return { ok: true, employees: result.data.employees ?? [] };
 }
 
 /**
