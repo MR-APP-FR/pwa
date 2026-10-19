@@ -56,7 +56,7 @@ export function PayslipsSection() {
   const { data: currentUser } = useCurrentUser();
   const employeeId = currentUser?.user?.id ?? null;
   const [items, setItems] = useState<MyPayslipItem[] | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [, startTransition] = useTransition();
@@ -64,7 +64,7 @@ export function PayslipsSection() {
   useEffect(() => {
     let cancelled = false;
     setItems(null);
-    setLoadError(null);
+    setLoadFailed(false);
     setActionError(null);
 
     void listMyPayslips()
@@ -74,13 +74,14 @@ export function PayslipsSection() {
       .catch(() => {
         if (cancelled) return;
         setItems([]);
-        setLoadError(t('settings.profile.payslipLoadError'));
+        setLoadFailed(true);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [employeeId, t]);
+    // `t` de useTranslation est une nouvelle fn à chaque render — ne pas la mettre en deps.
+  }, [employeeId]);
 
   function handleAction(item: MyPayslipItem, mode: 'view' | 'download') {
     setActionError(null);
@@ -125,7 +126,9 @@ export function PayslipsSection() {
         ) : items.length === 0 ? (
           <div className="px-5 py-4">
             <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-              {loadError ?? t('settings.profile.payslipEmptyHint')}
+              {loadFailed
+                ? t('settings.profile.payslipLoadError')
+                : t('settings.profile.payslipEmptyHint')}
             </p>
           </div>
         ) : (
