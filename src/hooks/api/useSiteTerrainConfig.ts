@@ -10,9 +10,11 @@ export interface SiteTerrainConfig {
   standConfiserie: boolean;
   carteParkingEnabled: boolean;
   questionParkingLabel: string | null;
+  /** Question pompons le lundi à l'ouverture. */
+  pomponEnabled: boolean;
 }
 
-/** Options terrain du site (`site_infos`) : fond caisse, confiserie, parking. */
+/** Options terrain du site (`site_infos`) : fond caisse, confiserie, parking, pompon. */
 export function useSiteTerrainConfig(siteId: number | undefined) {
   return useQuery({
     queryKey: ['site-terrain-config', siteId],
@@ -21,7 +23,7 @@ export function useSiteTerrainConfig(siteId: number | undefined) {
       const supabase = createClient();
       const { data, error } = await supabase
         .from('site_infos')
-        .select('fond_caisse, stand_confiserie, carte_parking, question_parking')
+        .select('fond_caisse, stand_confiserie, carte_parking, question_parking, pompon')
         .eq('site_id', siteId!)
         .maybeSingle();
       if (error) throw new Error(`useSiteTerrainConfig failed: ${error.message}`);
@@ -46,6 +48,7 @@ export function useSiteTerrainConfig(siteId: number | undefined) {
         standConfiserie: data?.stand_confiserie === true,
         carteParkingEnabled: data?.carte_parking === true,
         questionParkingLabel: questionParking,
+        pomponEnabled: data?.pompon === true,
       };
     },
     staleTime: 5 * 60 * 1000,

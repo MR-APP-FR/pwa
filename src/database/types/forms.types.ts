@@ -117,5 +117,6 @@ export interface DailyInfoRow {
   pannes_autre: string | null;
   carte_parking: boolean | null;
   musique_disney: boolean | null;
+  pompon: boolean | null;
   submitted_at: string;
 }

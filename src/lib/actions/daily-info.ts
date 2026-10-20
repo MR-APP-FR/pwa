@@ -88,6 +88,7 @@ interface SubmitDailyInfoInput {
   pannes: string | null;
   carteParking?: boolean | null;
   musiqueDisney?: boolean | null;
+  pompon?: boolean | null;
   /** Photo optionnelle du nettoyage veille (cf. étape 2 du cadrage prod). */
   nettoyagePhoto?: File | null;
   nettoyagePhotoSource?: PhotoSource | null;
@@ -155,6 +156,7 @@ export async function submitDailyInfo(
   if (input.nettoyageVeille !== undefined) row.nettoyage_veille = input.nettoyageVeille;
   if (input.carteParking !== undefined) row.carte_parking = input.carteParking;
   if (input.musiqueDisney !== undefined) row.musique_disney = input.musiqueDisney;
+  if (input.pompon !== undefined) row.pompon = input.pompon;
   if (photoNettoyageUrl !== null) {
     row.photo_nettoyage_url = photoNettoyageUrl;
     row.photo_source = photoSource;

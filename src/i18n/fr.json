@@ -492,7 +492,8 @@
       "pannesDetail": "Détail libre (optionnel)",
       "pannesDetailPlaceholder": "Précise les circonstances ou actions menées…",
       "carteParking": "Carte parking utilisée ?",
-      "musiqueDisney": "Musique Disney activée ?"
+      "musiqueDisney": "Musique Disney activée ?",
+      "pompon": "Les pompons sont-ils présents ?"
     }
   },
   "common": {

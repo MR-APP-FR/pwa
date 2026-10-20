@@ -492,7 +492,8 @@
       "pannesDetail": "Free-form details (optional)",
       "pannesDetailPlaceholder": "Add context or actions taken…",
       "carteParking": "Parking card used?",
-      "musiqueDisney": "Disney music on?"
+      "musiqueDisney": "Disney music on?",
+      "pompon": "Are the pompons present?"
     }
   },
   "common": {

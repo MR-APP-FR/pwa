@@ -29,7 +29,7 @@ export function useExistingOpeningForm(siteId: number | undefined, dateIso: stri
         supabase
           .from('daily_info')
           .select(
-            'id, site_id, user_id, date, nettoyage_veille, photo_nettoyage_url, photo_source, photo_captured_at, pannes, pannes_sujet_ids, pannes_autre, carte_parking, musique_disney, submitted_at',
+            'id, site_id, user_id, date, nettoyage_veille, photo_nettoyage_url, photo_source, photo_captured_at, pannes, pannes_sujet_ids, pannes_autre, carte_parking, musique_disney, pompon, submitted_at',
           )
           .eq('site_id', siteId)
           .eq('date', dateIso)

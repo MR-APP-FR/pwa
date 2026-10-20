@@ -72,6 +72,7 @@ type OpeningFieldError =
   | 'nettoyageVeille'
   | 'nettoyageVeilleJustification'
   | 'carteParking'
+  | 'pompon'
   | 'musiqueDisneyJustification'
   | 'panneCheckin';
 
@@ -147,6 +148,7 @@ function OpeningContent() {
     () => (missionDateIso ? dateIsoToJourSemaineKey(missionDateIso) === CHRONO_WEEKDAY_KEY : false),
     [missionDateIso],
   );
+  const showPompon = showChrono && terrainConfig?.pomponEnabled === true;
 
   const [form, setForm] = useState<OpeningFormData>({
     missionId,
@@ -167,6 +169,7 @@ function OpeningContent() {
     Record<number, PanneCheckinAnswer | undefined>
   >({});
   const [carteParking, setCarteParking] = useState<boolean | null>(null);
+  const [pompon, setPompon] = useState<boolean | null>(null);
   const [musiqueDisney, setMusiqueDisney] = useState<boolean | null>(null);
   const [musiqueDisneyJustification, setMusiqueDisneyJustification] = useState('');
   const [chrono, setChrono] = useState<DurationValue>({ minutes: 0, seconds: 0 });
@@ -229,6 +232,7 @@ function OpeningContent() {
     if (dailyInfo) {
       setNettoyageVeille(dailyInfo.nettoyage_veille);
       setCarteParking(dailyInfo.carte_parking);
+      setPompon(dailyInfo.pompon);
       setMusiqueDisney(dailyInfo.musique_disney);
       setPannesAutre(dailyInfo.pannes_autre ?? '');
       setSelectedSujetIds(dailyInfo.pannes_sujet_ids ?? []);
@@ -245,6 +249,7 @@ function OpeningContent() {
     nettoyageVeille !== null &&
     !needsNoJustification(nettoyageVeille, nettoyageVeilleJustification) &&
     (!showCarteParking || carteParking !== null) &&
+    (!showPompon || pompon !== null) &&
     (!showMusiqueDisney ||
       (musiqueDisney !== null && !needsNoJustification(musiqueDisney, musiqueDisneyJustification))) &&
     allPanneCheckinsAnswered(openTickets, panneCheckinAnswers);
@@ -267,6 +272,7 @@ function OpeningContent() {
       );
     }
     if (showCarteParking && carteParking === null) items.push(carteParkingLabel);
+    if (showPompon && pompon === null) items.push(t('forms.dailyInfo.pompon'));
     if (showMusiqueDisney) {
       if (musiqueDisney === null) {
         items.push(t('forms.dailyInfo.musiqueDisney'));
@@ -318,6 +324,8 @@ function OpeningContent() {
     showCarteParking,
     carteParking,
     carteParkingLabel,
+    showPompon,
+    pompon,
     showMusiqueDisney,
     musiqueDisney,
     musiqueDisneyJustification,
@@ -341,6 +349,8 @@ function OpeningContent() {
       return 'nettoyageVeilleJustification';
     }
     if (showCarteParking && carteParking === null) return 'carteParking';
+    if (showPompon && pompon === null) return 'pompon';
+    if (showMusiqueDisney && musiqueDisney === null) return 'musiqueDisneyJustification';
     if (showMusiqueDisney && needsNoJustification(musiqueDisney, musiqueDisneyJustification)) {
       return 'musiqueDisneyJustification';
     }
@@ -366,6 +376,8 @@ function OpeningContent() {
       case 'nettoyageVeilleJustification':
       case 'carteParking':
         return t('forms.opening.errorCarteParking');
+      case 'pompon':
+        return t('forms.common.errorRequired');
       case 'musiqueDisneyJustification':
         return t('forms.common.errorNoJustification');
       case 'nettoyageVeille':
@@ -495,6 +507,7 @@ function OpeningContent() {
           pannes: buildPannesDetail(filteredSujetIds, filteredSujetReasons, sujets ?? []),
           carteParking: showCarteParking ? carteParking : null,
           musiqueDisney: showMusiqueDisney ? musiqueDisney : null,
+          pompon: showPompon ? pompon : null,
           nettoyagePhoto: nettoyagePhoto?.file ?? null,
           nettoyagePhotoSource: nettoyagePhoto?.source ?? null,
           nettoyagePhotoCapturedAtMs: nettoyagePhoto?.capturedAtMs ?? null,
@@ -710,6 +723,22 @@ function OpeningContent() {
                 noLabel={t('forms.opening.fondDeCaisseNo')}
                 required
                 error={fieldError === 'carteParking'}
+                disabled={isLocked}
+              />
+            )}
+
+            {showPompon && (
+              <ConditionalQuestion
+                label={t('forms.dailyInfo.pompon')}
+                value={pompon}
+                onChange={(v) => {
+                  setPompon(v);
+                  if (fieldError === 'pompon') setFieldError(null);
+                }}
+                yesLabel={t('forms.opening.fondDeCaisseYes')}
+                noLabel={t('forms.opening.fondDeCaisseNo')}
+                required
+                error={fieldError === 'pompon'}
                 disabled={isLocked}
               />
             )}
