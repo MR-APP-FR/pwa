@@ -1,6 +1,6 @@
 # Ops : crons, automatisations, APIs externes
 
-État au **2026-10-08**. Source de vérité des jobs : `supabase/migrations/20260827220000_gre_supabase_cron_jobs.sql`, `20260828120000_gre_week_staff_dispatch.sql`, `20260906184500_gre_messages_ca_inter_channels.sql`, `20260906164900_gre_weather_brief_cron.sql`, `20261008190000_gre_staff_pool_score_weekly_cron.sql`.
+État au **2026-10-25**. Source de vérité des jobs : `supabase/migrations/20260827220000_gre_supabase_cron_jobs.sql`, `20260828120000_gre_week_staff_dispatch.sql`, `20260906184500_gre_messages_ca_inter_channels.sql`, `20260906164900_gre_weather_brief_cron.sql`, `20261008190000_gre_staff_pool_score_weekly_cron.sql`, `20261025190000_gre_ca_monthly_compare.sql`.
 
 Pastilles CRM (admin) : RPC `get_crm_badge_counts` — compteurs ouverture en retard + bureau non lu (`late_closing` toujours 0) ; consommée par `CrmBadgesProvider` (poll 30s).
 
@@ -20,6 +20,8 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 | `bureau-birthdays-utc5` | `0 5 * * *` | 07:00 | Idem (2e passage si le 1er a loupé / fuseau) |
 | `bureau-weekly-utc7` | `0 7 * * 1` | lundi 09:00 | SQL `internal.post_bureau_weekly()` — message hebdo Bureau |
 | `cr-auto-monthly-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_cr_auto_monthly()` — canal `bureau`, taux de déclaration (`onoff` On **ou** `declaree`) |
+| `ca-monthly-compare-utc7` | `0 7 1 * *` | 1er du mois 09:00 | SQL `internal.post_ca_monthly_compare()` — canal `ca`, CA mois clos vs N-1 / N-2 |
+| `ca-monthly-compare-utc8` | `0 8 1 * *` | 1er du mois 10:00 | Idem (2e passage DST ; fenêtre Paris 8–10) |
 | `ca-daily-pdf-utc19` | `0 19 * * *` | 21:00 | Edge `ca-daily-pdf` : stub canal CA (`📈 CA du jour`, corps vide, PDF au clic) |
 | `ca-daily-pdf-utc20` | `0 20 * * *` | 22:00 été / 21:00 hiver | Idem (2e passage fuseau) |
 | `weather-sync-utc4` | `0 4 * * *` | 06:00 | Edge Function `weather-sync` via `internal.invoke_edge` |
