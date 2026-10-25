@@ -4,6 +4,8 @@
 
 Écran d’atterrissage après login. L’employé voit son affectation du jour, la météo encourageante (popup), les raccourcis mission, les badges (messages, planning assigné, dispos), la bannière push et la relance ouverture tardive.
 
+**Rôle `maintenance`** (`public.user.role`) : home allégée (Interventions + Messages + Carte) — pas d’ouverture / fermeture / planning teneur.
+
 ## Fichiers
 
 | Fichier | Rôle |
