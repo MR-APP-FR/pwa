@@ -18,7 +18,7 @@ Centre opérationnel d’une journée sur un site : état ouverture / info-jour 
 | Tables | `opening_form`, `closing_form`, `daily_info`, `sujets` |
 | Maps lien | `https://maps.google.com/?q=lat,lng` si coords site |
 
-Info-jour : upsert `(site_id, date)` ; pannes → trigger `intervention` côté CRM.
+Info-jour : upsert `(site_id, date)` ; pannes → trigger `intervention` côté CRM (dédup si ticket encore ouvert même site×sujet).
 
 ## Transverse
 

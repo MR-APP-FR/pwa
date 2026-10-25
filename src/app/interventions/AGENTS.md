@@ -30,6 +30,7 @@ Les notes s’accumulent dans `resolution_notes` (`[YYYY-MM-DD] …`) — timeli
 
 - CRM : fiche staff **Rôle PWA** ; dialog interventions affiche `resolution_notes`
 - Assignation CRM : liste staff filtrée sur `role = maintenance` s’il en existe
+- Trigger `create_intervention_from_panne` : pas de nouveau ticket si un ouvert existe déjà pour le même site×sujet (ou site×libellé libre)
 
 ## Ne pas casser
 
