@@ -43,5 +43,13 @@ export type { OpenSiteIntervention, OpenInterventionStatus, PanneCheckinAnswer }
 export type {
   MaintenanceIntervention,
   MaintenanceInterventionStatus,
+  MaintenanceInterventionDetail,
+  InterventionEvent,
+  InterventionPart,
+  InterventionMedia,
+  InterventionVisit,
+  InterventionHoldReason,
+  InterventionPartStatus,
+  InterventionEventKind,
 } from './maintenance-intervention.types';
 export type { Payslip } from './payslip.types';

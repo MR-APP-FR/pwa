@@ -97,6 +97,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | **Web Push** (protocole W3C, via `web-push`) | notifs messages, relances | VAPID public/private | CRM envoi, PWA abonnement, Edge relances |
 | **Google Fonts** | Inter / Sora | aucune | PWA layout |
 | **Supabase** Auth, Postgres, Storage, Edge, pg_cron, pg_net, Vault | backend | anon + service role | les deux |
+| **Storage `intervention-media`** (privé) | photos/vidéos tickets maintenance | path en DB `intervention_media` | PWA tech + CRM lecture signée |
 | **Vercel** | hébergement Next | — | les deux ; **plus de cron Vercel** |
 
 Pas d’autre API météo, pas de Nominatim, pas de FCM serveur dédié (les push passent par les endpoints du navigateur).

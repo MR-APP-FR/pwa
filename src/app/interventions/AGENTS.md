@@ -2,37 +2,49 @@
 
 ## Métier
 
-Parcours PWA du **technicien** (`public.user.role = 'maintenance'`). Voir / planifier / clôturer / reporter les tickets `intervention`. Pas de création de ticket en V1 (CRM + pannes info-jour).
+Parcours PWA du **technicien** (`public.user.role = 'maintenance'`). Work order multi-visites : créer / planifier / démarrer / pause / reprise / attente pièces / médias / terminer. Un ticket reste ouvert jusqu’à clôture explicite.
 
 ## Route
 
 - `/interventions` — [page.tsx](page.tsx), [actions.ts](actions.ts)
-- Home `/` : si rôle maintenance → tuiles Interventions / Messages / Carte (pas ouverture/fermeture)
+- Shell FSM : **Aujourd’hui** | **Semaine** | **File** + FAB créer
+- Home `/` : rôle maintenance → Interventions / Messages / Carte
+
+## Statuts
+
+`signalee` → `planifiee` → `en_cours` ↔ `en_pause` → `en_attente` (pièces/retour) → replanif → `cloturee`
+
+Helpers : [`lib/interventions/fsm.ts`](../../lib/interventions/fsm.ts)
+
+## Tables
+
+| Table | Rôle |
+|---|---|
+| `intervention` | Ticket (+ `hold_reason`, `active_visit_id`) |
+| `intervention_visit` | Présence terrain |
+| `intervention_time_segment` | Chrono start/pause |
+| `intervention_event` | Timeline |
+| `intervention_part` | Pièces à commander / reçues |
+| `intervention_media` | Photos / vidéos (bucket `intervention-media`) |
 
 ## Actions
 
-| Action | Effet |
-|---|---|
-| `listMaintenanceInterventions` | Tickets `signalee` / `planifiee` (RLS maintenance) |
-| `scheduleMaintenanceIntervention` | `assignee = moi`, `scheduled_at`, `planifiee` + note journal |
-| `completeMaintenanceIntervention` | `cloturee` + note requise |
-| `rescheduleMaintenanceIntervention` | nouvelle date + note requise |
+Créer, planifier, démarrer, pause, reprendre, hold, terminer, commentaire, pièces, upload média, détail timeline.
 
-Les notes s’accumulent dans `resolution_notes` (`[YYYY-MM-DD] …`) — timeline légère V1 (pas encore `intervention_visit`).
+Une seule visite `en_cours`/`en_pause` à la fois par tech.
 
 ## RLS
 
-- `is_maintenance_employee()` — `user.role = maintenance`
-- SELECT : admin / reporter / assignee / maintenance
-- UPDATE : assignee **ou** maintenance
+- `is_maintenance_employee()` — SELECT / UPDATE / INSERT tickets
+- Child tables via `can_access_intervention` / `can_mutate_intervention`
 
 ## Transverse
 
-- CRM : fiche staff **Rôle PWA** ; dialog interventions affiche `resolution_notes`
-- Assignation CRM : liste staff filtrée sur `role = maintenance` s’il en existe
-- Trigger `create_intervention_from_panne` : pas de nouveau ticket si un ouvert existe déjà pour le même site×sujet (ou site×libellé libre)
+- CRM : timeline + pièces + galerie dans dialog site ([interventions CRM](../../../../admin-desktop-app/components/crm/interventions/AGENTS.md))
+- Trigger `create_intervention_from_panne` : dédup ouvert site×sujet + event `created`
 
 ## Ne pas casser
 
-- Ne pas ouvrir ce parcours aux teneurs (gate `isMaintenanceRole`)
-- Photos / table visites = V2
+- Hors maintenance : gate `isMaintenanceRole`
+- Offline : submits bloqués (pas de queue)
+- Vidéos : hint taille max ~40 Mo
