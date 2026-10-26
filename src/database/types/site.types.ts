@@ -15,6 +15,8 @@ export interface Site {
   statut: SiteStatut | null;
   nb_teneur: number | null;
   group_id: number;
+  /** Société propriétaire (URSSAF CRM) — distinct de user_info.company_id (paie). */
+  company_id?: number | null;
   daily_info_questions?: string[];
   closing_checklist_items?: string[];
   /** Path Storage bucket `site-photos`, jamais une URL publique. */
