@@ -6,9 +6,13 @@ Parcours PWA du **technicien** (`public.user.role = 'maintenance'`). Work order 
 
 ## Route
 
-- `/interventions` — [page.tsx](page.tsx), [actions.ts](actions.ts)
-- Shell FSM : **Aujourd’hui** | **Semaine** | **File** + FAB créer
-- Home `/` : rôle maintenance → Interventions / Messages / Carte
+- Home `/` = board tech ([MaintenanceHomeBoard](../../components/interventions/MaintenanceHomeBoard.tsx)) sous logo + paramètres
+- Vue **semaine** sticky (bandeau 7 jours) ; clic jour → liste du jour
+- Retards (date prévue passée, non clôturés) : visibles **aujourd’hui** + file **Planifier** (pas de doublon sur le jour d’origine)
+- Footer : **Nouveau** / **Planifier** (file zone→site) / **Pièces** (à commander · commandées · reçues)
+- Sheets swipe-to-dismiss (`SwipeSheet`) ; `/interventions` redirige vers `/`
+- Actions : [actions.ts](actions.ts)
+- Profil tech : identité + notifs + déconnexion (pas CNI / paie / sites)
 
 ## Statuts
 

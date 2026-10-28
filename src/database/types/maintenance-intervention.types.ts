@@ -31,6 +31,9 @@ export interface MaintenanceIntervention {
   id: number;
   site_id: number;
   site_name: string;
+  /** Zone `groupe` du site (null si inconnu). */
+  group_id: number | null;
+  group_name: string;
   description: string;
   pannes_autre: string | null;
   sujet_ids: number[];
@@ -70,6 +73,16 @@ export interface InterventionPart {
   created_by: number | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Ligne pièce enrichie pour la file « Pièces » tech. */
+export interface MaintenancePartListItem extends InterventionPart {
+  site_id: number;
+  site_name: string;
+  group_name: string;
+  ticket_label: string;
+  ticket_status: MaintenanceInterventionStatus;
+  ticket_urgent: boolean;
 }
 
 export interface InterventionMedia {

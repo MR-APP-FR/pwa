@@ -7,6 +7,7 @@ import { LateOpeningPrompt } from '../components/home/LateOpeningPrompt';
 import { HomeAssistantCard } from '../components/home/HomeAssistantCard';
 import { HomeButton } from '../components/home/HomeButton';
 import { HomeFooter } from '../components/home/HomeFooter';
+import { MaintenanceHomeBoard } from '../components/interventions/MaintenanceHomeBoard';
 import { useHomeAssistantTodos } from '../hooks/useHomeAssistantTodos';
 import { PushEnableBanner } from '../components/pwa/PushEnableBanner';
 import { useUpcomingPlanning } from '../hooks/api/usePlanning';
@@ -23,7 +24,6 @@ import { formatWeekdayDayMonth } from '../lib/formatDate';
 import { useSitesHeuresOuverture } from '../hooks/api/useSitesHeuresOuverture';
 import { useSiteDayHours } from '../hooks/api/useSiteDayHours';
 import { useCurrentUser } from '../hooks/api/useCurrentUser';
-import { useMaintenanceInterventions } from '../hooks/api/useMaintenanceInterventions';
 import { buildSiteDayHoursLabel } from '../lib/formatHeuresSite';
 import { dayHourKey, effectiveHeuresForDate } from '../lib/siteDayHours';
 import { isAvailabilityReminderWindow, toIsoDateString, toParisLocalDate } from '../lib/parisTime';
@@ -33,7 +33,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { data: currentUser } = useCurrentUser();
+  const { data: currentUser, isLoading: userLoading } = useCurrentUser();
   const isMaintenance = isMaintenanceRole(currentUser?.user.role);
 
   const { today, nextWeekStart, nextWeekEnd } = useAppDate();
@@ -151,51 +151,16 @@ export default function HomePage() {
     nextWeekAvailabilityHref,
   });
 
-  const { data: maintenanceTickets } = useMaintenanceInterventions(isMaintenance);
-  const maintenanceBadgeCount = useMemo(() => {
-    if (!maintenanceTickets) return 0;
-    return maintenanceTickets.filter((ticket) => {
-      if (!ticket.scheduled_at) return true;
-      const d = new Date(ticket.scheduled_at);
-      if (Number.isNaN(d.getTime())) return true;
-      return toIsoDateString(toParisLocalDate(d)) <= todayIso;
-    }).length;
-  }, [maintenanceTickets, todayIso]);
-
-  if (isMaintenance) {
+  if (userLoading) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="flex min-h-full flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
-          <PushEnableBanner />
-          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#292D82' }}>
-            <p className="text-sm font-semibold text-white">{t('screens.home.maintenanceHomeTitle')}</p>
-            <p className="text-xs text-white/80">{t('screens.home.maintenanceHomeSubtitle')}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            <HomeButton
-              icon="wrench-outline"
-              label={t('screens.home.interventionsButton')}
-              onPress={() => router.push('/interventions')}
-              badgeCount={maintenanceBadgeCount}
-              fullWidth
-            />
-            <HomeButton
-              icon="messages-outline"
-              label={t('screens.home.messagesButton')}
-              onPress={() => router.push('/messages')}
-              badgeCount={unreadMessageCount}
-            />
-            <HomeButton
-              icon="map-pin-outline"
-              label={t('screens.home.sitesMapButton')}
-              onPress={() => router.push('/sites-map')}
-              fullWidth
-            />
-          </div>
-          <HomeFooter />
-        </div>
+      <div className="flex min-h-[40vh] flex-1 items-center justify-center text-sm text-gray-500">
+        Chargement…
       </div>
     );
+  }
+
+  if (isMaintenance) {
+    return <MaintenanceHomeBoard />;
   }
 
   return (

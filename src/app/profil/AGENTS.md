@@ -4,6 +4,8 @@
 
 Consultation / mise à jour fiche staff : coordonnées, transports, documents (CNI, etc.), avatar, fiches de paie (lecture). Première connexion si mot de passe temporaire.
 
+**Rôle `maintenance`** : profil allégé (identité, push, déconnexion) — pas CNI / avatar / paie / sites préférés.
+
 ## Écrans
 
 | Route | Rôle |

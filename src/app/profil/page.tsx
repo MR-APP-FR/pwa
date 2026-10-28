@@ -11,6 +11,7 @@ import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { isPushAttentionNeeded, usePushStatus } from '../../hooks/usePushStatus';
 import { useSites } from '../../hooks/api/useSites';
 import { createClient } from '../../lib/supabase/client';
+import { isMaintenanceRole } from '../../lib/staff-role';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { AdminViewPanel } from '../../components/auth/AdminViewPanel';
@@ -274,6 +275,7 @@ export default function ProfilPage() {
   const { data: currentUserData, isLoading: isUserLoading } = useCurrentUser();
   const { status: pushStatus } = usePushStatus();
   const showPushOnTop = isPushAttentionNeeded(pushStatus);
+  const isMaintenance = isMaintenanceRole(currentUserData?.user.role);
   const preferredSites = currentUserData?.sites ?? [];
   const [isEditSitesOpen, setIsEditSitesOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -330,93 +332,105 @@ export default function ProfilPage() {
         </div>
       </div>
 
-      <div
-        className="mx-5 mt-3 overflow-hidden rounded-2xl"
-        style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
-      >
-        <div className="flex items-center gap-3 px-5 py-4">
+      {!isMaintenance ? (
+        <>
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: colors.PRIMARY_MUTED }}
+            className="mx-5 mt-3 overflow-hidden rounded-2xl"
+            style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
           >
-            <Phone size={18} color={colors.PRIMARY} strokeWidth={2.25} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.TEXT_SECONDARY }}>
-              {t('settings.profile.phone')}
-            </p>
-            <p className="text-base font-medium" style={{ color: telephone ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY }}>
-              {telephone || t('settings.profile.phoneMissing')}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <ProfileMediaCard
-          kind="avatar"
-          path={avatarPath}
-          onUploaded={(nextPath) => {
-            setAvatarPath(nextPath);
-            void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-          }}
-        />
-      </div>
-
-      <div className="mt-3">
-        <ProfileMediaCard
-          kind="cni"
-          path={cniPath}
-          onUploaded={(nextPath) => {
-            setCniPath(nextPath);
-            void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-          }}
-        />
-      </div>
-
-      <PayslipsSection />
-
-      <div className="flex items-center justify-between px-5 pt-7 pb-2">
-        <p className="text-sm uppercase" style={{ color: colors.TEXT_SECONDARY }}>
-          {t('settings.profile.preferredSitesTitle')}
-        </p>
-        <button
-          onClick={() => setIsEditSitesOpen(true)}
-          className="text-sm font-medium"
-          style={{ color: colors.PRIMARY }}
-        >
-          {t('common.edit')}
-        </button>
-      </div>
-      <div
-        className="mx-5 overflow-hidden rounded-2xl"
-        style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
-      >
-        {preferredSites.length === 0 ? (
-          <div className="px-4 py-3">
-            <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-              {t('settings.profile.noPreferredSites')}
-            </p>
-          </div>
-        ) : (
-          preferredSites.map((site) => (
-            <div key={site.id} className="flex items-center px-5 py-3">
+            <div className="flex items-center gap-3 px-5 py-4">
               <div
-                className="w-2 h-2 rounded-full mr-3"
-                style={{ backgroundColor: colors.SUCCESS_STRONG }}
-              />
-              <div className="flex-1">
-                <p className="text-base font-medium" style={{ color: colors.TEXT_PRIMARY }}>
-                  {site.site_name}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: colors.PRIMARY_MUTED }}
+              >
+                <Phone size={18} color={colors.PRIMARY} strokeWidth={2.25} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: colors.TEXT_SECONDARY }}
+                >
+                  {t('settings.profile.phone')}
                 </p>
-                <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-                  {site.ville}{site.ville ? ' • ' : ''}{site.statut}
+                <p
+                  className="text-base font-medium"
+                  style={{ color: telephone ? colors.TEXT_PRIMARY : colors.TEXT_SECONDARY }}
+                >
+                  {telephone || t('settings.profile.phoneMissing')}
                 </p>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+
+          <div className="mt-3">
+            <ProfileMediaCard
+              kind="avatar"
+              path={avatarPath}
+              onUploaded={(nextPath) => {
+                setAvatarPath(nextPath);
+                void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+              }}
+            />
+          </div>
+
+          <div className="mt-3">
+            <ProfileMediaCard
+              kind="cni"
+              path={cniPath}
+              onUploaded={(nextPath) => {
+                setCniPath(nextPath);
+                void queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+              }}
+            />
+          </div>
+
+          <PayslipsSection />
+
+          <div className="flex items-center justify-between px-5 pt-7 pb-2">
+            <p className="text-sm uppercase" style={{ color: colors.TEXT_SECONDARY }}>
+              {t('settings.profile.preferredSitesTitle')}
+            </p>
+            <button
+              onClick={() => setIsEditSitesOpen(true)}
+              className="text-sm font-medium"
+              style={{ color: colors.PRIMARY }}
+            >
+              {t('common.edit')}
+            </button>
+          </div>
+          <div
+            className="mx-5 overflow-hidden rounded-2xl"
+            style={{ backgroundColor: colors.SETTINGS_SECTION_BG, boxShadow: colors.CARD_SHADOW }}
+          >
+            {preferredSites.length === 0 ? (
+              <div className="px-4 py-3">
+                <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                  {t('settings.profile.noPreferredSites')}
+                </p>
+              </div>
+            ) : (
+              preferredSites.map((site) => (
+                <div key={site.id} className="flex items-center px-5 py-3">
+                  <div
+                    className="w-2 h-2 rounded-full mr-3"
+                    style={{ backgroundColor: colors.SUCCESS_STRONG }}
+                  />
+                  <div className="flex-1">
+                    <p className="text-base font-medium" style={{ color: colors.TEXT_PRIMARY }}>
+                      {site.site_name}
+                    </p>
+                    <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                      {site.ville}
+                      {site.ville ? ' • ' : ''}
+                      {site.statut}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : null}
 
       {showPushOnTop ? null : <PushSettingsRow />}
 

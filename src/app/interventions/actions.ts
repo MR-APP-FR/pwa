@@ -25,6 +25,7 @@ import type {
   InterventionVisit,
   MaintenanceIntervention,
   MaintenanceInterventionDetail,
+  MaintenancePartListItem,
 } from '../../database/types';
 
 type SessionOk = Awaited<ReturnType<typeof requireEmployeeSession>> & { ok: true };
@@ -97,19 +98,28 @@ async function enrichRows(
     for (const sid of (r.sujet_ids as number[] | null) ?? []) sujetIdSet.add(sid);
   }
 
-  const [sitesRes, sujetsRes] = await Promise.all([
-    supabase.from('site').select('id, name').in('id', siteIds),
+  const [sitesRes, sujetsRes, groupsRes] = await Promise.all([
+    supabase.from('site').select('id, name, group_id').in('id', siteIds),
     sujetIdSet.size > 0
       ? supabase.from('sujets').select('id, name, site_id').in('id', [...sujetIdSet])
       : Promise.resolve({ data: [] as { id: number; name: string; site_id: number }[], error: null }),
+    supabase.from('groupe').select('id, name').order('id'),
   ]);
 
   if (sitesRes.error) throw new Error('Erreur chargement sites');
   if ('error' in sujetsRes && sujetsRes.error) throw new Error('Erreur chargement sujets');
+  if (groupsRes.error) throw new Error('Erreur chargement zones');
 
-  const siteNameById = new Map<number, string>();
+  const siteById = new Map<number, { name: string; group_id: number | null }>();
   for (const s of sitesRes.data ?? []) {
-    siteNameById.set(s.id, formatSiteName(s.name));
+    siteById.set(s.id, {
+      name: formatSiteName(s.name),
+      group_id: s.group_id == null ? null : Number(s.group_id),
+    });
+  }
+  const groupNameById = new Map<number, string>();
+  for (const g of groupsRes.data ?? []) {
+    groupNameById.set(g.id, g.name);
   }
   const sujetById = new Map<number, { name: string; site_id: number }>();
   for (const sj of sujetsRes.data ?? []) {
@@ -118,6 +128,8 @@ async function enrichRows(
 
   return rawRows.map((r) => {
     const siteId = Number(r.site_id);
+    const site = siteById.get(siteId);
+    const groupId = site?.group_id ?? null;
     const sujetIds = (r.sujet_ids as number[] | null) ?? [];
     const sujetNames: string[] = [];
     for (const sid of sujetIds) {
@@ -128,7 +140,9 @@ async function enrichRows(
     return {
       id: Number(r.id),
       site_id: siteId,
-      site_name: siteNameById.get(siteId) ?? `Site #${siteId}`,
+      site_name: site?.name ?? `Site #${siteId}`,
+      group_id: groupId,
+      group_name: groupId != null ? (groupNameById.get(groupId) ?? `Zone #${groupId}`) : 'Sans zone',
       description: String(r.description ?? ''),
       pannes_autre: (r.pannes_autre as string | null) ?? null,
       sujet_ids: sujetIds,
@@ -747,6 +761,119 @@ export async function addMaintenanceComment(
     visitId: current.active_visit_id == null ? null : Number(current.active_visit_id),
   });
   return { ok: true };
+}
+
+export async function listMaintenanceParts(): Promise<
+  { ok: true; parts: MaintenancePartListItem[] } | { ok: false; error: string }
+> {
+  const session = await requireMaintenanceSession();
+  if (!session.ok) return session;
+
+  const { data: tickets, error: ticketsErr } = await session.supabase
+    .from('intervention')
+    .select('id, site_id, description, pannes_autre, status, urgent')
+    .in('status', OPEN_INTERVENTION_STATUSES);
+
+  if (ticketsErr) {
+    return { ok: false, error: `Impossible de charger les tickets : ${ticketsErr.message}` };
+  }
+
+  const openTickets = tickets ?? [];
+  if (openTickets.length === 0) return { ok: true, parts: [] };
+
+  const ticketIds = openTickets.map((t) => Number(t.id));
+  const ticketById = new Map(openTickets.map((t) => [Number(t.id), t]));
+
+  const { data: parts, error: partsErr } = await session.supabase
+    .from('intervention_part')
+    .select(
+      'id, intervention_id, label, status, ordered_at, received_at, ref, note, created_by, created_at, updated_at',
+    )
+    .in('intervention_id', ticketIds)
+    .order('status', { ascending: true })
+    .order('updated_at', { ascending: false });
+
+  if (partsErr) {
+    return { ok: false, error: `Impossible de charger les pièces : ${partsErr.message}` };
+  }
+
+  const siteIds = [...new Set(openTickets.map((t) => Number(t.site_id)))];
+  const [sitesRes, groupsRes] = await Promise.all([
+    supabaseSites(session.supabase, siteIds),
+    session.supabase.from('groupe').select('id, name').order('id'),
+  ]);
+
+  if (!sitesRes.ok) return { ok: false, error: sitesRes.error };
+  if (groupsRes.error) return { ok: false, error: 'Erreur chargement zones' };
+
+  const groupNameById = new Map<number, string>();
+  for (const g of groupsRes.data ?? []) groupNameById.set(g.id, g.name);
+
+  const statusOrder: Record<string, number> = {
+    a_commander: 0,
+    commande: 1,
+    recu: 2,
+  };
+
+  const rows: MaintenancePartListItem[] = (parts ?? []).map((p) => {
+    const ticket = ticketById.get(Number(p.intervention_id));
+    const siteId = ticket ? Number(ticket.site_id) : 0;
+    const site = sitesRes.byId.get(siteId);
+    const groupId = site?.group_id ?? null;
+    const other = (ticket?.pannes_autre as string | null)?.trim();
+    const desc = String(ticket?.description ?? '').trim();
+    return {
+      id: Number(p.id),
+      intervention_id: Number(p.intervention_id),
+      label: String(p.label),
+      status: (p.status as InterventionPartStatus) ?? 'a_commander',
+      ordered_at: (p.ordered_at as string | null) ?? null,
+      received_at: (p.received_at as string | null) ?? null,
+      ref: (p.ref as string | null) ?? null,
+      note: (p.note as string | null) ?? null,
+      created_by: p.created_by == null ? null : Number(p.created_by),
+      created_at: String(p.created_at),
+      updated_at: String(p.updated_at),
+      site_id: siteId,
+      site_name: site?.name ?? `Site #${siteId}`,
+      group_name:
+        groupId != null ? (groupNameById.get(groupId) ?? `Zone #${groupId}`) : 'Sans zone',
+      ticket_label: other || desc || `Ticket #${p.intervention_id}`,
+      ticket_status: normalizeMaintenanceStatus(String(ticket?.status ?? 'signalee')),
+      ticket_urgent: Boolean(ticket?.urgent),
+    };
+  });
+
+  rows.sort((a, b) => {
+    const so = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
+    if (so !== 0) return so;
+    return a.site_name.localeCompare(b.site_name, 'fr');
+  });
+
+  return { ok: true, parts: rows };
+}
+
+async function supabaseSites(
+  supabase: SupabaseClient,
+  siteIds: number[],
+): Promise<
+  | { ok: true; byId: Map<number, { name: string; group_id: number | null }> }
+  | { ok: false; error: string }
+> {
+  if (siteIds.length === 0) return { ok: true, byId: new Map() };
+  const { data, error } = await supabase
+    .from('site')
+    .select('id, name, group_id')
+    .in('id', siteIds);
+  if (error) return { ok: false, error: 'Erreur chargement sites' };
+  const byId = new Map<number, { name: string; group_id: number | null }>();
+  for (const s of data ?? []) {
+    byId.set(s.id, {
+      name: formatSiteName(s.name),
+      group_id: s.group_id == null ? null : Number(s.group_id),
+    });
+  }
+  return { ok: true, byId };
 }
 
 export async function addMaintenancePart(

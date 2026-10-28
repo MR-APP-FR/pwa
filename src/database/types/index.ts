@@ -46,6 +46,7 @@ export type {
   MaintenanceInterventionDetail,
   InterventionEvent,
   InterventionPart,
+  MaintenancePartListItem,
   InterventionMedia,
   InterventionVisit,
   InterventionHoldReason,
