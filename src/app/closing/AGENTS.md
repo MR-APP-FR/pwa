@@ -2,14 +2,13 @@
 
 ## Métier
 
-Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Ordre UI : **Rémunération** → **Remarques & photo** → **Contrôle enveloppe** → puis Points caisse / Tickets / pannes / checklist / parking / avis Google. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site, GPS KO, ou avant l’heure de fermeture effective Paris) exige une raison et alerte le canal Bureau ; l’UI PWA affiche **chaque** motif actif (bannières), pas un seul. Heure effective = `site_day_hours.ferme` du jour sinon `heures_semaine.ferme`.
+Fin de journée : chiffres caisse, checklist, photo télécollecte, enveloppe, GPS ancré sur l’ouverture. Sections numériques : **Rémunération** (recette / CB / enfants / payes / frais) → **Points caisse** → **Tickets**. Nettoyage : `nettoyage_fait` + photo seau (`photo_seau_*`) si oui, sinon `nettoyage_raison`. Frais divers (`frais` + `frais_raison` si > 0) déduits du calcul enveloppe. Fermeture forcée (loin du site, GPS KO, ou avant l’heure de fermeture effective Paris) exige une raison et alerte le canal Bureau ; l’UI PWA affiche **chaque** motif actif (bannières), pas un seul. Heure effective = `site_day_hours.ferme` du jour sinon `heures_semaine.ferme`.
 
 ## Écran
 
 - Route : `/closing` (`?id=` mission planning)
 - Page : [page.tsx](page.tsx) — mission via `usePlanningById`
 - **Déjà soumis** : `useExistingClosingForm(site, date)` → lecture seule (banner, champs figés, photos via `LockedPhotoThumb` + URL signée, footer Retour).
-- **Vue bureau compacte** (`contact@` / `byron@`, email session ou cookie `pwa_admin_view_ui`) : uniquement Rémunération + Remarques (textarea + photo télécollecte) + Contrôle enveloppe ; nettoyage / seau / parking / reste masqués (valeurs auto `Vue bureau` à la soumission).
 
 ## Technique
 
