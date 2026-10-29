@@ -47,9 +47,34 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { FormMissingFieldsHint } from '../../components/forms/FormMissingFieldsHint';
 import { BottomSheetModal } from '../../components/common/BottomSheetModal';
 import { RADIUS } from '../../constants/design';
+import { ADMIN_VIEW_UI_COOKIE } from '../../lib/auth/adminView';
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
+}
+
+/** Local-parts des emails bureau : formulaire fermeture réduit (3 sections). */
+const CLOSING_COMPACT_LOCAL_PARTS = new Set(['contact', 'byron']);
+
+function isClosingCompactEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const local = email.trim().toLowerCase().split('@')[0] ?? '';
+  return CLOSING_COMPACT_LOCAL_PARTS.has(local);
+}
+
+function readAdminViewUiEmail(): string | null {
+  if (typeof document === 'undefined') return null;
+  const prefix = `${ADMIN_VIEW_UI_COOKIE}=`;
+  const part = document.cookie
+    .split(';')
+    .map((s) => s.trim())
+    .find((s) => s.startsWith(prefix));
+  if (!part) return null;
+  try {
+    return decodeURIComponent(part.slice(prefix.length));
+  } catch {
+    return part.slice(prefix.length);
+  }
 }
 
 /** Libellé deadline fermeture type `19H05` (Europe/Paris). */
@@ -91,35 +116,36 @@ type ClosingSection = {
   fields: ClosingSectionField[];
 };
 
-/** Ordre : Rémunération (chiffres + payes) → Points caisse → Tickets. */
-const EARLY_SECTIONS: ClosingSection[] = [
-  {
-    titleKey: 'forms.closing.sectionPaie',
-    fields: [
-      { key: 'recetteTotale', labelKey: 'forms.closing.recetteTotale', unit: 'eur', required: true },
-      { key: 'carteBleue', labelKey: 'forms.closing.carteBleue', unit: 'eur' },
-      { key: 'confiserie', labelKey: 'forms.closing.confiserie', unit: 'eur' },
-      {
-        key: 'nombreEnfants',
-        labelKey: 'forms.closing.nombreEnfants',
-        unit: 'count',
-        inputMode: 'numeric',
-      },
-      { key: 'payeDuJour', labelKey: 'forms.closing.payeDuJour', unit: 'eur' },
-      {
-        key: 'payeManquanteRecuperee',
-        labelKey: 'forms.closing.payeManquanteRecuperee',
-        unit: 'eur',
-      },
-      { key: 'payeDuDouble', labelKey: 'forms.closing.payeDuDouble', unit: 'eur' },
-      {
-        key: 'frais',
-        labelKey: 'forms.closing.frais',
-        unit: 'eur',
-        helpKey: 'forms.closing.fraisHelp',
-      },
-    ],
-  },
+/** Rémunération en tête ; Points caisse / Tickets après enveloppe (sauf vue bureau compacte). */
+const PAIE_SECTION: ClosingSection = {
+  titleKey: 'forms.closing.sectionPaie',
+  fields: [
+    { key: 'recetteTotale', labelKey: 'forms.closing.recetteTotale', unit: 'eur', required: true },
+    { key: 'carteBleue', labelKey: 'forms.closing.carteBleue', unit: 'eur' },
+    { key: 'confiserie', labelKey: 'forms.closing.confiserie', unit: 'eur' },
+    {
+      key: 'nombreEnfants',
+      labelKey: 'forms.closing.nombreEnfants',
+      unit: 'count',
+      inputMode: 'numeric',
+    },
+    { key: 'payeDuJour', labelKey: 'forms.closing.payeDuJour', unit: 'eur' },
+    {
+      key: 'payeManquanteRecuperee',
+      labelKey: 'forms.closing.payeManquanteRecuperee',
+      unit: 'eur',
+    },
+    { key: 'payeDuDouble', labelKey: 'forms.closing.payeDuDouble', unit: 'eur' },
+    {
+      key: 'frais',
+      labelKey: 'forms.closing.frais',
+      unit: 'eur',
+      helpKey: 'forms.closing.fraisHelp',
+    },
+  ],
+};
+
+const LATE_NUMERIC_SECTIONS: ClosingSection[] = [
   {
     titleKey: 'forms.closing.sectionPointsCaisse',
     fields: [
@@ -146,7 +172,11 @@ const EARLY_SECTIONS: ClosingSection[] = [
   },
 ];
 
-const ALL_NUMERIC_FIELDS = EARLY_SECTIONS.flatMap((s) => s.fields);
+const ALL_NUMERIC_FIELDS = [...PAIE_SECTION.fields, ...LATE_NUMERIC_SECTIONS.flatMap((s) => s.fields)];
+
+/** Valeurs auto si vue bureau compacte (sections / champs masqués). */
+const COMPACT_PARKING_RAISON = 'Vue bureau';
+const COMPACT_NETTOYAGE_RAISON = 'Vue bureau';
 
 const FORM_FIELD_TO_FORMDATA_KEY: Record<ClosingFieldKey, string | null> = {
   missionId: null,
@@ -177,7 +207,16 @@ function ClosingContent() {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
+  const [adminViewEmail, setAdminViewEmail] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAdminViewEmail(readAdminViewUiEmail());
+  }, []);
+
+  const compactClosing =
+    isClosingCompactEmail(currentUser?.user.email) ||
+    isClosingCompactEmail(adminViewEmail);
 
   const missionId = Number(searchParams.get('id'));
   const { data: mission } = usePlanningById(
@@ -373,7 +412,15 @@ function ClosingContent() {
       : 'forms.closing.forceReasonPlaceholderEarly';
 
   const parkingSatisfied =
-    !showParkingPhoto || parkingPhoto !== null || parkingPhotoRaison.trim().length > 0;
+    compactClosing ||
+    !showParkingPhoto ||
+    parkingPhoto !== null ||
+    parkingPhotoRaison.trim().length > 0;
+
+  const nettoyageSatisfied =
+    compactClosing ||
+    (nettoyageFait !== null &&
+      (nettoyageFait === true ? seauPhoto !== null : nettoyageRaison.trim().length > 0));
 
   const formValid =
     form.recetteTotale !== null &&
@@ -381,8 +428,7 @@ function ClosingContent() {
     form.telecollectePhotoSource !== null &&
     parkingSatisfied &&
     (!showConfiserie || form.confiserie !== null) &&
-    nettoyageFait !== null &&
-    (nettoyageFait === true ? seauPhoto !== null : nettoyageRaison.trim().length > 0) &&
+    nettoyageSatisfied &&
     !fraisNeedsReason &&
     envelopeConfirmed;
 
@@ -393,17 +439,19 @@ function ClosingContent() {
     if (photoFile === null || form.telecollectePhotoSource === null) {
       items.push(t('forms.closing.telecollectePhoto'));
     }
-    if (showParkingPhoto && !parkingSatisfied) {
+    if (!compactClosing && showParkingPhoto && !parkingSatisfied) {
       items.push(t('forms.closing.parkingPhotoOrReason'));
     }
-    if (nettoyageFait === null) {
-      items.push(t('forms.closing.nettoyageFait'));
-    } else if (nettoyageFait === true && seauPhoto === null) {
-      items.push(t('forms.closing.photoSeau'));
-    } else if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
-      items.push(
-        t('forms.common.missingNoJustification', { field: t('forms.closing.nettoyageFait') }),
-      );
+    if (!compactClosing) {
+      if (nettoyageFait === null) {
+        items.push(t('forms.closing.nettoyageFait'));
+      } else if (nettoyageFait === true && seauPhoto === null) {
+        items.push(t('forms.closing.photoSeau'));
+      } else if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
+        items.push(
+          t('forms.common.missingNoJustification', { field: t('forms.closing.nettoyageFait') }),
+        );
+      }
     }
     if (fraisNeedsReason) items.push(t('forms.closing.fraisRaison'));
     if (!envelopeConfirmed) items.push(t('forms.closing.envelopeCheckbox'));
@@ -413,6 +461,7 @@ function ClosingContent() {
     form.confiserie,
     form.telecollectePhotoSource,
     photoFile,
+    compactClosing,
     showParkingPhoto,
     parkingSatisfied,
     showConfiserie,
@@ -554,25 +603,27 @@ function ClosingContent() {
       setSubmitError(t('forms.closing.errorPhoto'));
       return false;
     }
-    if (showParkingPhoto && !parkingPhoto) {
+    if (!compactClosing && showParkingPhoto && !parkingSatisfied) {
       setFieldError('parkingPhoto');
       setSubmitError(t('forms.closing.errorParkingPhoto'));
       return false;
     }
-    if (nettoyageFait === null) {
-      setFieldError('nettoyageFait');
-      setSubmitError(t('forms.closing.errorNettoyageFait'));
-      return false;
-    }
-    if (nettoyageFait === true && !seauPhoto) {
-      setFieldError('seauPhoto');
-      setSubmitError(t('forms.closing.errorPhotoSeau'));
-      return false;
-    }
-    if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
-      setFieldError('nettoyageRaison');
-      setSubmitError(t('forms.closing.errorNettoyageRaison'));
-      return false;
+    if (!compactClosing) {
+      if (nettoyageFait === null) {
+        setFieldError('nettoyageFait');
+        setSubmitError(t('forms.closing.errorNettoyageFait'));
+        return false;
+      }
+      if (nettoyageFait === true && !seauPhoto) {
+        setFieldError('seauPhoto');
+        setSubmitError(t('forms.closing.errorPhotoSeau'));
+        return false;
+      }
+      if (nettoyageFait === false && nettoyageRaison.trim().length === 0) {
+        setFieldError('nettoyageRaison');
+        setSubmitError(t('forms.closing.errorNettoyageRaison'));
+        return false;
+      }
     }
     if (fraisNeedsReason) {
       setSubmitError(t('forms.closing.errorFraisRaison'));
@@ -621,10 +672,8 @@ function ClosingContent() {
 
   function startClosingSubmit(reason: string | null) {
     if (!mission || !photoFile || !form.telecollectePhotoSource) return;
-    if (showParkingPhoto && !parkingPhoto) return;
-    if (nettoyageFait === null) return;
-    if (nettoyageFait === true && !seauPhoto) return;
-    if (nettoyageFait === false && nettoyageRaison.trim().length === 0) return;
+    if (!parkingSatisfied) return;
+    if (!nettoyageSatisfied) return;
 
     const date = `${mission.year}-${pad2(mission.month)}-${pad2(mission.day)}`;
     const hasPannes = selectedSujetIds.length > 0 || pannesAutre.trim().length > 0;
@@ -687,15 +736,22 @@ function ClosingContent() {
         }
         if (showParkingPhoto && parkingPhotoRaison.trim()) {
           fd.set('parkingPhotoRaison', parkingPhotoRaison.trim());
+        } else if (compactClosing && showParkingPhoto && !parkingPhoto) {
+          fd.set('parkingPhotoRaison', COMPACT_PARKING_RAISON);
         }
-        fd.set('nettoyageFait', nettoyageFait ? '1' : '0');
-        if (nettoyageFait === true && seauPhoto) {
-          fd.set('seauPhoto', seauPhoto.file);
-          fd.set('seauPhotoSource', seauPhoto.source);
-          fd.set('seauPhotoCapturedAtMs', String(seauPhoto.capturedAtMs));
-        }
-        if (nettoyageFait === false) {
-          fd.set('nettoyageRaison', nettoyageRaison.trim());
+        if (compactClosing) {
+          fd.set('nettoyageFait', '0');
+          fd.set('nettoyageRaison', COMPACT_NETTOYAGE_RAISON);
+        } else {
+          fd.set('nettoyageFait', nettoyageFait ? '1' : '0');
+          if (nettoyageFait === true && seauPhoto) {
+            fd.set('seauPhoto', seauPhoto.file);
+            fd.set('seauPhotoSource', seauPhoto.source);
+            fd.set('seauPhotoCapturedAtMs', String(seauPhoto.capturedAtMs));
+          }
+          if (nettoyageFait === false) {
+            fd.set('nettoyageRaison', nettoyageRaison.trim());
+          }
         }
         if (clientLat != null) fd.set('clientLat', String(clientLat));
         if (clientLng != null) fd.set('clientLng', String(clientLng));
@@ -889,195 +945,13 @@ function ClosingContent() {
             </div>
           )}
           <div className="card-surface space-y-4 px-4 py-4">
-            {EARLY_SECTIONS.map(renderNumericSection)}
-
-            <FormSection title={t('forms.closing.sectionPannes')}>
-              {isLocked ? (
-                <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-                  —
-                </p>
-              ) : (
-              <PannesSection
-                siteId={mission?.site_id}
-                selectedSujetIds={selectedSujetIds}
-                onToggleSujet={(id) =>
-                  setSelectedSujetIds((prev) =>
-                    prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
-                  )
-                }
-                sujetReasons={sujetReasons}
-                onSujetReasonChange={(id, reason) =>
-                  setSujetReasons((prev) => ({ ...prev, [id]: reason }))
-                }
-                pannesAutre={pannesAutre}
-                onPannesAutreChange={setPannesAutre}
-                onClearPannes={() => {
-                  setSelectedSujetIds([]);
-                  setSujetReasons({});
-                  setPannesAutre('');
-                }}
-              />
-              )}
-            </FormSection>
-
-            {closingChecklistItems && closingChecklistItems.length > 0 && (
-              <FormSection title={t('forms.closing.sectionChecklist')}>
-                <div className="flex flex-col gap-2.5">
-                  {closingChecklistItems.map((item) => (
-                    <label
-                      key={item}
-                      className="flex min-h-[44px] items-center gap-3 text-sm font-medium"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checklist[item] ?? false}
-                        disabled={isLocked}
-                        onChange={(e) =>
-                          setChecklist((prev) => ({ ...prev, [item]: e.target.checked }))
-                        }
-                        className="size-5 shrink-0"
-                        style={{ accentColor: colors.PRIMARY }}
-                      />
-                      <span style={{ color: colors.TEXT_PRIMARY }}>
-                        {t(`forms.closing.checklistItems.${item}`)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </FormSection>
-            )}
-
-            {showParkingPhoto && (
-              <FormSection title={t('forms.closing.sectionParkingPhoto')}>
-                {isLocked ? (
-                  existingClosing?.photo_parking_url ? (
-                    <LockedPhotoThumb
-                      label={t('forms.closing.parkingPhoto')}
-                      signedUrl={parkingSigned.data ?? null}
-                      source={existingClosing?.photo_parking_source ?? null}
-                      capturedAtIso={existingClosing?.photo_parking_captured_at ?? null}
-                    />
-                  ) : (
-                    <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
-                      {existingClosing?.photo_parking_raison?.trim() ||
-                        t('forms.closing.parkingPhotoReason')}
-                    </p>
-                  )
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    <PhotoCaptureField
-                      label={t('forms.closing.parkingPhoto')}
-                      value={parkingPhoto}
-                      onChange={(photo) => {
-                        setParkingPhoto(photo);
-                        if (photo) setParkingPhotoRaison('');
-                        if (fieldError === 'parkingPhoto') setFieldError(null);
-                      }}
-                      required={parkingPhotoRaison.trim().length === 0}
-                    />
-                    {!parkingPhoto && (
-                      <div className="space-y-1.5">
-                        <label
-                          className="text-sm font-semibold"
-                          style={{ color: colors.TEXT_PRIMARY }}
-                        >
-                          {t('forms.closing.parkingPhotoReason')}
-                        </label>
-                        <textarea
-                          value={parkingPhotoRaison}
-                          onChange={(e) => {
-                            setParkingPhotoRaison(e.target.value);
-                            if (fieldError === 'parkingPhoto') setFieldError(null);
-                          }}
-                          rows={2}
-                          placeholder={t('forms.closing.parkingPhotoReasonPlaceholder')}
-                          className="w-full rounded-lg border px-3 py-2 text-sm"
-                          style={{
-                            borderColor:
-                              fieldError === 'parkingPhoto' ? colors.DANGER : colors.BORDER,
-                            color: colors.TEXT_PRIMARY,
-                            backgroundColor: colors.SETTINGS_SECTION_BG,
-                          }}
-                        />
-                      </div>
-                    )}
-                    {fieldError === 'parkingPhoto' && (
-                      <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
-                        {t('forms.closing.errorParkingPhoto')}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </FormSection>
-            )}
-
-            <FormSection title={t('forms.closing.sectionAvisGoogle')}>
-              <FormNumberInput
-                label={t('forms.closing.avisGoogleCount')}
-                value={form.avisGoogleCount}
-                onChange={(v) => setForm((f) => ({ ...f, avisGoogleCount: v }))}
-                unit="count"
-                inputMode="numeric"
-                readOnly={isLocked}
-              />
-            </FormSection>
+            {renderNumericSection(PAIE_SECTION)}
 
             <FormSection
               title={t('forms.closing.sectionNotes')}
               optional
               optionalLabel={t('forms.common.optional')}
             >
-              <ConditionalQuestion
-                label={t('forms.closing.nettoyageFait')}
-                value={nettoyageFait}
-                onChange={(v) => {
-                  setNettoyageFait(v);
-                  if (v) {
-                    setNettoyageRaison('');
-                  } else {
-                    setSeauPhoto(null);
-                  }
-                  if (
-                    fieldError === 'nettoyageFait' ||
-                    fieldError === 'nettoyageRaison' ||
-                    fieldError === 'seauPhoto'
-                  ) {
-                    setFieldError(null);
-                  }
-                }}
-                yesLabel={t('forms.opening.fondDeCaisseYes')}
-                noLabel={t('forms.opening.fondDeCaisseNo')}
-                required
-                error={fieldError === 'nettoyageFait'}
-                noJustification={nettoyageRaison}
-                onNoJustificationChange={(v) => {
-                  setNettoyageRaison(v);
-                  if (fieldError === 'nettoyageRaison') setFieldError(null);
-                }}
-                noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
-                noJustificationError={fieldError === 'nettoyageRaison'}
-                disabled={isLocked}
-              />
-              {nettoyageFait === true &&
-                (isLocked ? (
-                  <LockedPhotoThumb
-                    label={t('forms.closing.photoSeau')}
-                    signedUrl={seauSigned.data ?? null}
-                    source={existingClosing?.photo_seau_source ?? null}
-                    capturedAtIso={existingClosing?.photo_seau_captured_at ?? null}
-                  />
-                ) : (
-                  <PhotoCaptureField
-                    label={t('forms.closing.photoSeau')}
-                    value={seauPhoto}
-                    onChange={(photo) => {
-                      setSeauPhoto(photo);
-                      if (fieldError === 'seauPhoto') setFieldError(null);
-                    }}
-                    required
-                  />
-                ))}
-
               <textarea
                 placeholder={isLocked ? undefined : t('forms.closing.observationsPlaceholder')}
                 value={form.observations}
@@ -1093,6 +967,61 @@ function ClosingContent() {
                   opacity: isLocked ? 0.92 : 1,
                 }}
               />
+
+              {!compactClosing && (
+                <>
+                  <ConditionalQuestion
+                    label={t('forms.closing.nettoyageFait')}
+                    value={nettoyageFait}
+                    onChange={(v) => {
+                      setNettoyageFait(v);
+                      if (v) {
+                        setNettoyageRaison('');
+                      } else {
+                        setSeauPhoto(null);
+                      }
+                      if (
+                        fieldError === 'nettoyageFait' ||
+                        fieldError === 'nettoyageRaison' ||
+                        fieldError === 'seauPhoto'
+                      ) {
+                        setFieldError(null);
+                      }
+                    }}
+                    yesLabel={t('forms.opening.fondDeCaisseYes')}
+                    noLabel={t('forms.opening.fondDeCaisseNo')}
+                    required
+                    error={fieldError === 'nettoyageFait'}
+                    noJustification={nettoyageRaison}
+                    onNoJustificationChange={(v) => {
+                      setNettoyageRaison(v);
+                      if (fieldError === 'nettoyageRaison') setFieldError(null);
+                    }}
+                    noJustificationPlaceholder={t('forms.common.noJustificationPlaceholder')}
+                    noJustificationError={fieldError === 'nettoyageRaison'}
+                    disabled={isLocked}
+                  />
+                  {nettoyageFait === true &&
+                    (isLocked ? (
+                      <LockedPhotoThumb
+                        label={t('forms.closing.photoSeau')}
+                        signedUrl={seauSigned.data ?? null}
+                        source={existingClosing?.photo_seau_source ?? null}
+                        capturedAtIso={existingClosing?.photo_seau_captured_at ?? null}
+                      />
+                    ) : (
+                      <PhotoCaptureField
+                        label={t('forms.closing.photoSeau')}
+                        value={seauPhoto}
+                        onChange={(photo) => {
+                          setSeauPhoto(photo);
+                          if (fieldError === 'seauPhoto') setFieldError(null);
+                        }}
+                        required
+                      />
+                    ))}
+                </>
+              )}
 
               {isLocked ? (
                 <LockedPhotoThumb
@@ -1248,6 +1177,143 @@ function ClosingContent() {
                 </label>
               </div>
             </FormSection>
+
+            {!compactClosing && (
+              <>
+                {LATE_NUMERIC_SECTIONS.map(renderNumericSection)}
+
+                <FormSection title={t('forms.closing.sectionPannes')}>
+                  {isLocked ? (
+                    <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                      —
+                    </p>
+                  ) : (
+                    <PannesSection
+                      siteId={mission?.site_id}
+                      selectedSujetIds={selectedSujetIds}
+                      onToggleSujet={(id) =>
+                        setSelectedSujetIds((prev) =>
+                          prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id],
+                        )
+                      }
+                      sujetReasons={sujetReasons}
+                      onSujetReasonChange={(id, reason) =>
+                        setSujetReasons((prev) => ({ ...prev, [id]: reason }))
+                      }
+                      pannesAutre={pannesAutre}
+                      onPannesAutreChange={setPannesAutre}
+                      onClearPannes={() => {
+                        setSelectedSujetIds([]);
+                        setSujetReasons({});
+                        setPannesAutre('');
+                      }}
+                    />
+                  )}
+                </FormSection>
+
+                {closingChecklistItems && closingChecklistItems.length > 0 && (
+                  <FormSection title={t('forms.closing.sectionChecklist')}>
+                    <div className="flex flex-col gap-2.5">
+                      {closingChecklistItems.map((item) => (
+                        <label
+                          key={item}
+                          className="flex min-h-[44px] items-center gap-3 text-sm font-medium"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checklist[item] ?? false}
+                            disabled={isLocked}
+                            onChange={(e) =>
+                              setChecklist((prev) => ({ ...prev, [item]: e.target.checked }))
+                            }
+                            className="size-5 shrink-0"
+                            style={{ accentColor: colors.PRIMARY }}
+                          />
+                          <span style={{ color: colors.TEXT_PRIMARY }}>
+                            {t(`forms.closing.checklistItems.${item}`)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </FormSection>
+                )}
+
+                {showParkingPhoto && (
+                  <FormSection title={t('forms.closing.sectionParkingPhoto')}>
+                    {isLocked ? (
+                      existingClosing?.photo_parking_url ? (
+                        <LockedPhotoThumb
+                          label={t('forms.closing.parkingPhoto')}
+                          signedUrl={parkingSigned.data ?? null}
+                          source={existingClosing?.photo_parking_source ?? null}
+                          capturedAtIso={existingClosing?.photo_parking_captured_at ?? null}
+                        />
+                      ) : (
+                        <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                          {existingClosing?.photo_parking_raison?.trim() ||
+                            t('forms.closing.parkingPhotoReason')}
+                        </p>
+                      )
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        <PhotoCaptureField
+                          label={t('forms.closing.parkingPhoto')}
+                          value={parkingPhoto}
+                          onChange={(photo) => {
+                            setParkingPhoto(photo);
+                            if (photo) setParkingPhotoRaison('');
+                            if (fieldError === 'parkingPhoto') setFieldError(null);
+                          }}
+                          required={parkingPhotoRaison.trim().length === 0}
+                        />
+                        {!parkingPhoto && (
+                          <div className="space-y-1.5">
+                            <label
+                              className="text-sm font-semibold"
+                              style={{ color: colors.TEXT_PRIMARY }}
+                            >
+                              {t('forms.closing.parkingPhotoReason')}
+                            </label>
+                            <textarea
+                              value={parkingPhotoRaison}
+                              onChange={(e) => {
+                                setParkingPhotoRaison(e.target.value);
+                                if (fieldError === 'parkingPhoto') setFieldError(null);
+                              }}
+                              rows={2}
+                              placeholder={t('forms.closing.parkingPhotoReasonPlaceholder')}
+                              className="w-full rounded-lg border px-3 py-2 text-sm"
+                              style={{
+                                borderColor:
+                                  fieldError === 'parkingPhoto' ? colors.DANGER : colors.BORDER,
+                                color: colors.TEXT_PRIMARY,
+                                backgroundColor: colors.SETTINGS_SECTION_BG,
+                              }}
+                            />
+                          </div>
+                        )}
+                        {fieldError === 'parkingPhoto' && (
+                          <p className="text-sm font-medium" style={{ color: colors.DANGER }}>
+                            {t('forms.closing.errorParkingPhoto')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </FormSection>
+                )}
+
+                <FormSection title={t('forms.closing.sectionAvisGoogle')}>
+                  <FormNumberInput
+                    label={t('forms.closing.avisGoogleCount')}
+                    value={form.avisGoogleCount}
+                    onChange={(v) => setForm((f) => ({ ...f, avisGoogleCount: v }))}
+                    unit="count"
+                    inputMode="numeric"
+                    readOnly={isLocked}
+                  />
+                </FormSection>
+              </>
+            )}
           </div>
 
           {submitError && !forceModalOpen && (
