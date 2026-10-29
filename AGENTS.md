@@ -21,6 +21,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 | Messages | [src/app/messages/AGENTS.md](src/app/messages/AGENTS.md) |
 | Mission / carte sites | [src/app/mission/AGENTS.md](src/app/mission/AGENTS.md), [src/app/sites-map/AGENTS.md](src/app/sites-map/AGENTS.md) |
 | Profil / 1re connexion | [src/app/profil/AGENTS.md](src/app/profil/AGENTS.md) |
+| Fiches de paie | [src/app/payslips/AGENTS.md](src/app/payslips/AGENTS.md) |
 | Boîte à idées | [src/app/suggestions/AGENTS.md](src/app/suggestions/AGENTS.md) |
 | Auth / identité RLS | [src/lib/auth/AGENTS.md](src/lib/auth/AGENTS.md) |
 | Web Push | [src/lib/push/AGENTS.md](src/lib/push/AGENTS.md) |

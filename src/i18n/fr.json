@@ -43,6 +43,7 @@
       "settingsTodoBadge": "Paramètres, %{count} à compléter",
       "comingSoon": "Bientôt",
       "suggestionsButton": "Boîte à idées",
+      "payslipsButton": "Fiches de paie",
       "interventionsButton": "Interventions",
       "maintenanceHomeTitle": "Maintenance",
       "maintenanceHomeSubtitle": "Tes tickets du jour et à planifier",
@@ -214,6 +215,10 @@
       "tous": "Tous",
       "noMessage": "Aucun message"
     },
+    "payslips": {
+      "title": "Fiches de paie",
+      "subtitle": "Consulte ou télécharge tes fiches de paie. Elles sont ajoutées par le bureau."
+    },
     "suggestions": {
       "title": "Boîte à idées",
       "intro": "Une idée, une remarque, écris-la ou partage-la ici, elle arrivera directement au bureau 🙂.",
@@ -256,6 +261,8 @@
       "payslipLoadError": "Impossible de charger les fiches. Réessaie plus tard.",
       "payslipLoading": "Chargement…",
       "payslipEmptyHint": "Aucune fiche pour l'instant. Elles apparaîtront ici dès que le bureau les ajoute.",
+      "suggestionsButton": "Boîte à idées",
+      "suggestionsHint": "Une idée ou une remarque pour le bureau",
       "takePhoto": "Prendre en photo",
       "chooseFile": "Galerie",
       "uploading": "Envoi en cours…",

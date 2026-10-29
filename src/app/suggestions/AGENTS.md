@@ -9,6 +9,7 @@ Suggestions anonymes ou signées, hors fil messages bureau. Catégories matérie
 - Route : `/suggestions`
 - Page : [page.tsx](page.tsx)
 - Action : [actions.ts](actions.ts) → RPC `submit_suggestion_anonyme`
+- Entrée : tuile home **sauf** si l’employé a des fiches de paie (alors bouton dans `/profil`)
 
 ## Technique
 

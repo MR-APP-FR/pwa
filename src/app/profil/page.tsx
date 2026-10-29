@@ -4,11 +4,12 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, Search, MapPin, Check, LogOut, Phone } from 'lucide-react';
+import { X, Search, MapPin, Check, LogOut, Phone, Lightbulb } from 'lucide-react';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { isPushAttentionNeeded, usePushStatus } from '../../hooks/usePushStatus';
+import { useHasPayslips } from '../../hooks/useHasPayslips';
 import { useSites } from '../../hooks/api/useSites';
 import { createClient } from '../../lib/supabase/client';
 import { isMaintenanceRole } from '../../lib/staff-role';
@@ -276,6 +277,7 @@ export default function ProfilPage() {
   const { status: pushStatus } = usePushStatus();
   const showPushOnTop = isPushAttentionNeeded(pushStatus);
   const isMaintenance = isMaintenanceRole(currentUserData?.user.role);
+  const hasPayslips = useHasPayslips();
   const preferredSites = currentUserData?.sites ?? [];
   const [isEditSitesOpen, setIsEditSitesOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -433,6 +435,36 @@ export default function ProfilPage() {
       ) : null}
 
       {showPushOnTop ? null : <PushSettingsRow />}
+
+      {!isMaintenance && hasPayslips === true ? (
+        <div className="mx-5 mt-6">
+          <button
+            type="button"
+            onClick={() => router.push('/suggestions')}
+            className="flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-opacity active:opacity-80"
+            style={{
+              borderColor: colors.BORDER,
+              backgroundColor: colors.SETTINGS_SECTION_BG,
+              boxShadow: colors.CARD_SHADOW,
+            }}
+          >
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: colors.ACCENT_ORANGE_MUTED }}
+            >
+              <Lightbulb size={18} color={colors.ACCENT_ORANGE} strokeWidth={2.25} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-semibold" style={{ color: colors.TEXT_PRIMARY }}>
+                {t('settings.profile.suggestionsButton')}
+              </p>
+              <p className="text-sm" style={{ color: colors.TEXT_SECONDARY }}>
+                {t('settings.profile.suggestionsHint')}
+              </p>
+            </div>
+          </button>
+        </div>
+      ) : null}
 
       <AdminViewPanel colors={colors} />
       <DevToolsPanel colors={colors} />

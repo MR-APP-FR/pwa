@@ -15,6 +15,7 @@ const ICON_MAP: Record<string, string> = {
   'video-outline': '/p_play.svg',
   'map-pin-outline': '/p_marker.svg',
   'suggestion-outline': '/p_info.svg',
+  'payslip-outline': '/p_calendar.svg',
   'wrench-outline': '/p_warning.svg',
 };
 

@@ -20,8 +20,15 @@
 | [HomeAssistantCard.tsx](HomeAssistantCard.tsx) | Carte bas d’écran : robot zzz si rien à faire, sinon liste des actions badge |
 | [../pwa/PushEnableBanner.tsx](../pwa/PushEnableBanner.tsx) | Activation Web Push |
 
+## Tuile idées / paie (teneur)
+
+- Si `useHasPayslips()` → tuile **Fiches de paie** → `/payslips` (icône `payslip-outline`).
+- Sinon (ou pendant chargement) → tuile **Boîte à idées** → `/suggestions`.
+- Accès idées alternatif : bouton dans `/profil` quand la tuile home est remplacée.
+
 ## Hooks / données
 
+- `useHasPayslips` — présence ≥1 ligne `payslip` (home + profil)
 - `useUpcomingPlanning` — affectation jour + prochaine (fenêtre 60 j, pas 3 mois)
 - `useSitesHeuresOuverture` — horaires affectation du jour + prochaine
 - `useSiteWeather` — lit `site_weather` (écrit par Edge `weather-sync`)

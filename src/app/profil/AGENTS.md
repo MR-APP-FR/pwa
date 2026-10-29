@@ -21,7 +21,8 @@ Consultation / mise à jour fiche staff : coordonnées, transports, documents (C
 | RLS | Own via `current_employee_id()` |
 | Flag | `user.must_change_password` → redirect 1re connexion |
 | Badge profil | Accueil : compteur photo + CNI + push. Sur `/profil`, cartes manquantes encadrées rouge + pastille « À faire ». Pas de badge pour les fiches de paie. |
-| Fiches de paie | [PayslipsSection](../../components/profil/PayslipsSection.tsx) — toujours visible ; UI alignée sites accessibles (carte + pastille + actions texte Voir/Télécharger) ; URL signée `payslips` ; recharge si employé courant change |
+| Fiches de paie | [PayslipsSection](../../components/profil/PayslipsSection.tsx) — toujours visible (teneur) ; liste via [PayslipsList](../../components/profil/PayslipsList.tsx) ; page dédiée [`/payslips`](../payslips/AGENTS.md) ; URL signée `payslips` |
+| Boîte à idées | Si l’employé a ≥1 fiche (`useHasPayslips`), bouton paramètres → `/suggestions` (la tuile home est remplacée par paie) |
 | Version app | Bas de page (`AppVersionLabel`) — voir [pwa/AGENTS.md](../../lib/pwa/AGENTS.md) ; bump `APP_DISPLAY_VERSION` à chaque release |
 
 Uploads CNI/avatar : path en colonne, bucket privé (lecture CRM admin). Fiches de paie : upload CRM uniquement.

@@ -28,6 +28,7 @@ import { buildSiteDayHoursLabel } from '../lib/formatHeuresSite';
 import { dayHourKey, effectiveHeuresForDate } from '../lib/siteDayHours';
 import { isAvailabilityReminderWindow, toIsoDateString, toParisLocalDate } from '../lib/parisTime';
 import { isMaintenanceRole } from '../lib/staff-role';
+import { useHasPayslips } from '../hooks/useHasPayslips';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -35,6 +36,7 @@ export default function HomePage() {
 
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
   const isMaintenance = isMaintenanceRole(currentUser?.user.role);
+  const hasPayslips = useHasPayslips();
 
   const { today, nextWeekStart, nextWeekEnd } = useAppDate();
   const { data: planningData } = useUpcomingPlanning(60);
@@ -225,11 +227,19 @@ export default function HomePage() {
           label={t('screens.home.trainingVideoButton')}
           onPress={() => router.push('/training')}
         />
-        <HomeButton
-          icon="suggestion-outline"
-          label={t('screens.home.suggestionsButton')}
-          onPress={() => router.push('/suggestions')}
-        />
+        {hasPayslips === true ? (
+          <HomeButton
+            icon="payslip-outline"
+            label={t('screens.home.payslipsButton')}
+            onPress={() => router.push('/payslips')}
+          />
+        ) : (
+          <HomeButton
+            icon="suggestion-outline"
+            label={t('screens.home.suggestionsButton')}
+            onPress={() => router.push('/suggestions')}
+          />
+        )}
         <HomeButton
           icon="map-pin-outline"
           label={t('screens.home.sitesMapButton')}

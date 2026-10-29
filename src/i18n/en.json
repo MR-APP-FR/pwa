@@ -43,6 +43,7 @@
       "settingsTodoBadge": "Settings, %{count} to complete",
       "comingSoon": "Soon",
       "suggestionsButton": "Suggestion box",
+      "payslipsButton": "Payslips",
       "interventionsButton": "Interventions",
       "maintenanceHomeTitle": "Maintenance",
       "maintenanceHomeSubtitle": "Today's tickets and backlog",
@@ -214,6 +215,10 @@
       "tous": "Everyone",
       "noMessage": "No messages"
     },
+    "payslips": {
+      "title": "Payslips",
+      "subtitle": "View or download your payslips. The office adds them here."
+    },
     "suggestions": {
       "title": "Suggestion box",
       "intro": "An idea, a remark — write it or share it here, it will go straight to the office 🙂.",
@@ -256,6 +261,8 @@
       "payslipLoadError": "Could not load payslips. Try again later.",
       "payslipLoading": "Loading…",
       "payslipEmptyHint": "No payslip yet. They will show up here when the office adds them.",
+      "suggestionsButton": "Suggestion box",
+      "suggestionsHint": "An idea or remark for the office",
       "takePhoto": "Take a photo",
       "chooseFile": "Gallery",
       "uploading": "Uploading…",

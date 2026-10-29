@@ -119,5 +119,6 @@ export const HOME_BUTTON_ICON_BG: Record<string, string> = {
   'video-outline': HOME_BUTTON_ICON_GRADIENTS.gray,
   'map-pin-outline': HOME_BUTTON_ICON_GRADIENTS.pink,
   'suggestion-outline': HOME_BUTTON_ICON_GRADIENTS.orange,
+  'payslip-outline': HOME_BUTTON_ICON_GRADIENTS.purple,
   'wrench-outline': HOME_BUTTON_ICON_GRADIENTS.orange,
 };

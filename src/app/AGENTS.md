@@ -16,9 +16,10 @@ Carte des écrans sous `src/app/`. Layout global : [layout.tsx](layout.tsx) (fon
 | `/closing` | [closing/page.tsx](closing/page.tsx) | Formulaire fermeture + photo télécollecte |
 | `/messages` | [messages/page.tsx](messages/page.tsx) | Conversations staff (canaux bureau, météo auto, etc.) |
 | `/suggestions` | [suggestions/page.tsx](suggestions/page.tsx) | Boîte à idées |
+| `/payslips` | [payslips/page.tsx](payslips/page.tsx) | Fiches de paie (PDF signés) — [payslips/AGENTS.md](payslips/AGENTS.md) |
 | `/interventions` | [interventions/page.tsx](interventions/page.tsx) | Mode **maintenance** : tickets planifier / clôturer / reporter — [interventions/AGENTS.md](interventions/AGENTS.md) |
 | `/sites-map` | [sites-map/page.tsx](sites-map/page.tsx) | Carte Google des manèges |
-| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar, fiches de paie (si présentes) ; **vue admin** = switcher employé |
+| `/profil` | [profil/page.tsx](profil/page.tsx) | Fiche employé, documents, avatar, fiches de paie (si présentes) ; **vue admin** = switcher employé ; bouton idées si tuile home remplacée |
 | `/training` | [training/page.tsx](training/page.tsx) | Parcours formation (contenu statique / léger) |
 | `/api/version` | [api/version/route.ts](api/version/route.ts) | SHA déploiement pour reload auto PWA |
 

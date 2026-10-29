@@ -191,6 +191,25 @@ export async function listMyPayslips(): Promise<MyPayslipItem[]> {
   }));
 }
 
+/** True si l’employé a au moins une fiche (home / profil, sans charger la liste). */
+export async function hasMyPayslips(): Promise<boolean> {
+  const session = await requireEmployeeSession();
+  if (!session.ok) return false;
+
+  const { data, error } = await session.supabase
+    .from('payslip')
+    .select('id')
+    .eq('user_id', session.userId)
+    .limit(1);
+
+  if (error) {
+    console.error('hasMyPayslips:', error);
+    return false;
+  }
+
+  return (data?.length ?? 0) > 0;
+}
+
 export async function getPayslipSignedUrl(path: string): Promise<string | null> {
   const trimmed = path.trim();
   if (!trimmed) return null;
