@@ -38,7 +38,11 @@ Les crons **Vercel** du CRM sont **désactivés** (`admin-desktop-app/vercel.jso
 avec le secret Vault **`supabase_anon_key`** (jamais dans git). Sans ce secret, les jobs Edge échouent.
 
 Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (défaut `mailto:noreply@maneges-ravoire.fr`).  
-`ca-daily-pdf` n’a **pas** besoin de `CRM_APP_URL` / `CRON_SECRET` : stub message seulement ; le PDF est généré au clic dans le CRM.
+`ca-daily-pdf` n’a **pas** besoin de `CRM_APP_URL` / `CRON_SECRET` : message + digest IA (`ai_insight`) ; le PDF est généré au clic dans le CRM. Sans `FOUNDRY_*`, insert quand même (corps vide ou fallback chiffré).  
+`?ensure=1&date=` : génération on-demand CRM (bandeau CA) si insight absent — hors hour-gate, n’écrase pas un `staff_message` existant.  
+`closing-vision` : `FOUNDRY_*` ; submit PWA, ensure CRM dialog fermeture, ou POST `{ site_id, date }` / batch `{ date }`.  
+`opening-vision` : idem pour photo nettoyage veille (`daily_info`, nettoyage = Non).  
+`bureau-weekly-digest` / `terrain-forms-week-digest` / `suggestions-cluster-digest` : ensure CRM (Messages / boards O/F / Suggestions Lancer).
 
 ## Edge Functions (`pwa/supabase/functions/`)
 
@@ -50,7 +54,22 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | `availability-reminder` | Mercredi : rappel dispos N+1 + Web Push | Web Push (VAPID) |
 | `claim-login` | Login terrain par `public.user.login` **ou** `email` (**sans filtre `actif`**) : claim MDP 1re fois ou `signInWithPassword` ; MDP trop court → `weak_password` ; `verify_jwt: false` | Auth Admin (service role) |
 | `admin-pwa-view` | Vue admin CRM sur PWA : `mint` (JWT admin → view_token) / `list` / `impersonate` (magic-link employé) ; `verify_jwt: false` | Auth Admin (service role) |
-| `ca-daily-pdf` | 21h Paris : message stub canal CA (PDF généré au clic CRM) | — |
+| `ca-daily-pdf` | 21h Paris : message canal CA + **brief IA** → `ai_insight` + `staff_message` ; PDF au clic CRM | Azure AI Foundry (`FOUNDRY_*`) |
+| `ca-monthly-digest` | Brief IA CA mois → `ai_insight` (`ca_monthly_digest`) ; enrichit message `ca_monthly_compare` (résumé) ; CRM ensure on view | Azure AI Foundry (`FOUNDRY_*`) |
+| `ca-yearly-digest` | Brief IA CA année (cumuls / mois / manèges) → `ai_insight` (`ca_yearly_digest`) | Azure AI Foundry (`FOUNDRY_*`) |
+| `ca-site-digest` | Brief IA CA manège × mois ou année → `ai_insight` (`ca_monthly_site_digest` / `ca_yearly_site_digest`) ; CRM ensure on view site | Azure AI Foundry (`FOUNDRY_*`) |
+| `ca-staff-digest` | Analyse personne CA/retards/seau → `ai_insight` (`ca_staff_person_digest`) ; CRM Lancer / Relancer | Azure AI Foundry (`FOUNDRY_*`) |
+| `bureau-digest` | Digest Bureau « depuis hier » → `ai_insight` (`bureau_since_yesterday`) + `staff_message` (`bureau_digest`) ; CRM ensure Messages | Azure AI Foundry (`FOUNDRY_*`) |
+| `staff-vivier-digest` | Alertes vivier → `ai_insight` (`staff_vivier_digest`, clé `YYYY-MM`) ; CRM ensure Users | Azure AI Foundry (`FOUNDRY_*`) |
+| `bureau-declaration-digest` | Qui relancer déclaration → `ai_insight` (`bureau_declaration_monthly`) + enrich message Bureau | Azure AI Foundry (`FOUNDRY_*`) |
+| `terrain-day-anomalies` | Anomalies jour → `ai_insight` (`…_opening` / `…_closing`) ; ensure ≥14h / ≥21h Paris | Azure AI Foundry (`FOUNDRY_*`) |
+| `planning-week-digest` | Trous planning semaine → `ai_insight` (`planning_week_summary`) | Azure AI Foundry (`FOUNDRY_*`) |
+| `intervention-edt-digest` | Brief EDT interventions → `ai_insight` (`intervention_edt_week`) ; CRM Lancer | Azure AI Foundry (`FOUNDRY_*`) |
+| `bureau-weekly-digest` | Hebdo qui déclarer → `ai_insight` (`bureau_weekly_declaration`) + enrich message Bureau | Azure AI Foundry (`FOUNDRY_*`) |
+| `terrain-forms-week-digest` | Synthèse formulaires semaine → `ai_insight` (`terrain_forms_week`) ; bandeaux O/F | Azure AI Foundry (`FOUNDRY_*`) |
+| `suggestions-cluster-digest` | Clustering suggestions → `ai_insight` (`suggestions_cluster_digest`) ; CRM Lancer | Azure AI Foundry (`FOUNDRY_*`) |
+| `closing-vision` | Après submit fermeture (ou batch) : vision seau + parking → `ai_insight` | Azure AI Foundry (`FOUNDRY_*`) |
+| `opening-vision` | Après submit info-jour (nettoyage veille = Non) : vision photo → `ai_insight` | Azure AI Foundry (`FOUNDRY_*`) |
 
 ## Déclenché par un humain (pas un cron)
 
@@ -99,6 +118,7 @@ Secrets Edge (dashboard Supabase, pas git) : `SUPABASE_URL`, `SUPABASE_SERVICE_R
 | **Supabase** Auth, Postgres, Storage, Edge, pg_cron, pg_net, Vault | backend | anon + service role | les deux |
 | **Storage `intervention-media`** (privé) | photos/vidéos tickets maintenance | path en DB `intervention_media` | PWA tech + CRM lecture signée |
 | **Vercel** | hébergement Next | — | les deux ; **plus de cron Vercel** |
+| **Azure AI Foundry** (sub `Ravoire-AI`) | Digest CA jour (`ca-daily-pdf`) ; vision à venir | Edge secrets `FOUNDRY_ENDPOINT`, `FOUNDRY_API_KEY`, `FOUNDRY_DEPLOYMENT_HAIKU`, `FOUNDRY_DEPLOYMENT_SONNET` (intérim tous = `gpt5-mini`) | Edge PWA + [AZURE-FOUNDRY.md](../../admin-desktop-app/docs/AZURE-FOUNDRY.md) |
 
 Pas d’autre API météo, pas de Nominatim, pas de FCM serveur dédié (les push passent par les endpoints du navigateur).
 

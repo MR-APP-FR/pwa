@@ -186,5 +186,22 @@ export async function submitDailyInfo(
     }
   }
 
+  // Vision photo nettoyage veille (fire-and-forget) si déclaré Non.
+  if (input.nettoyageVeille === false) {
+    const edgeBase = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '');
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (edgeBase && anon) {
+      void fetch(`${edgeBase}/functions/v1/opening-vision`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${anon}`,
+          apikey: anon,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ site_id: input.siteId, date: input.date }),
+      }).catch(() => {});
+    }
+  }
+
   return { ok: true, id: data.id };
 }

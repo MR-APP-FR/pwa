@@ -408,5 +408,22 @@ export async function submitClosingForm(formData: FormData): Promise<SubmitClosi
     }
   }
 
+  // Vision seau / parking (fire-and-forget) si nettoyage ou site carte parking.
+  {
+    const edgeBase = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '');
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (edgeBase && anon) {
+      void fetch(`${edgeBase}/functions/v1/closing-vision`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${anon}`,
+          apikey: anon,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ site_id: siteId, date }),
+      }).catch(() => {});
+    }
+  }
+
   return { ok: true, id: data.id, photoPath };
 }
