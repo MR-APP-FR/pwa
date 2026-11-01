@@ -38,8 +38,9 @@ Flux claim :
 1. Lookup `public.user` par `login`, sinon par `email` (email profil requis pour Auth ; **`actif` non filtré** — un compte inactif peut se connecter)
 2. `signInWithPassword` si Auth existe déjà
 3. Sinon `createUser` + session (`must_change_password = false`)
-4. Auth déjà présent + mauvais MDP → erreur (pas de réécriture)
+4. Auth déjà présent + mauvais MDP → `password_already_set` (message dédié ; pas de réécriture)
 5. MDP trop court (< 6) à la 1re claim → erreur `weak_password` (pas « incorrect »)
+6. Stuck après un claim serveur sans session client → CRM **Réinit. MDP** (techs) / **Réinit. connexion PWA** (staff)
 
 Provisioning local (dev / tests) :
 

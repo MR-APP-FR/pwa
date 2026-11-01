@@ -11,6 +11,7 @@ export type ClaimLoginResult =
       code:
         | 'unknown_login'
         | 'invalid_credentials'
+        | 'password_already_set'
         | 'invalid_input'
         | 'weak_password'
         | 'server_error';
@@ -61,6 +62,9 @@ export async function claimLogin(
     }
     if (payload.error === 'weak_password') {
       return { ok: false, code: 'weak_password' };
+    }
+    if (payload.error === 'password_already_set') {
+      return { ok: false, code: 'password_already_set' };
     }
     if (
       payload.error === 'invalid_credentials' ||

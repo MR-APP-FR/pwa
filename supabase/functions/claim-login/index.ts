@@ -143,7 +143,9 @@ Deno.serve(async (req) => {
       msg.includes("exists")
     ) {
       // Auth déjà présent + MDP saisi faux (signIn a échoué juste avant).
-      return json(401, { error: "invalid_credentials" });
+      // Distinct de « incorrect » générique : souvent 1er claim OK côté serveur
+      // puis échec client, ou MDP oublié après le choix initial.
+      return json(401, { error: "password_already_set" });
     }
     console.error("claim-login createUser", createError.message);
     return json(500, { error: "create_failed" });

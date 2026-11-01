@@ -135,8 +135,10 @@ export function LoginForm({ devBypassEmail }: { devBypassEmail?: string }) {
           message = t('auth.contactValeria');
         } else if (result.code === 'invalid_input') {
           message = t('auth.invalidInput');
-        } else if (result.code === 'weak_password') {
+        } else         if (result.code === 'weak_password') {
           message = t('auth.weakPassword');
+        } else if (result.code === 'password_already_set') {
+          message = t('auth.passwordAlreadySet');
         } else if (result.code === 'server_error') {
           message = t('auth.serverError');
         }
