@@ -75,7 +75,39 @@ export const DIGEST_OUTPUT_SHELL = [
   "- répéter les consignes ou exemples entre parenthèses",
   "- tiret cadratin (caractère long) ; utiliser : ou - ou un point",
   "- JSON",
+  "- abréviations inventées (OffOk, DisPeu, CA↓, rempla…) : tout écrire en français clair",
 ].join("\n");
+
+/** Lexique métier pour les digests Bureau (éviter le jargon technique brut). */
+export const BUREAU_DIGEST_LEXICON = [
+  "LEXIQUE (utilise ces formulations, pas le jargon brut) :",
+  "- Off / onoff false → « statut Off non déclaré »",
+  "- declaree → « déclaration On/Off faite »",
+  "- dispos / availableDays → « jours de disponibilité »",
+  "- plannedDays → « jours planifiés »",
+  "- feuilles → « feuilles de journée »",
+  "- tickets → « tickets d'entrée »",
+  "- fermeture forcée / force_early / force_geo → « fermeture anticipée ou hors zone GPS »",
+  "- category null → « pas encore classé au vivier » (pas « sans catégorie »)",
+  "- super/bon/normal/bof/separer → Excellent / Bon / Normal / Moyen / À remplacer",
+].join("\n");
+
+export function staffCategoryLabelFr(raw: string | null | undefined): string {
+  switch (raw) {
+    case "super":
+      return "Excellent";
+    case "bon":
+      return "Bon";
+    case "normal":
+      return "Normal";
+    case "bof":
+      return "Moyen";
+    case "separer":
+      return "À remplacer";
+    default:
+      return "pas encore classé";
+  }
+}
 
 // ── Versions (bump = régénération cache) ────────────────────────────────────
 
@@ -87,16 +119,16 @@ export const CA_YEARLY_SITE_PROMPT_VERSION = 1;
 export const CA_STAFF_PERSON_PROMPT_VERSION = 3;
 /** @deprecated */
 export const CA_STAFF_YEAR_PROMPT_VERSION = 1;
-export const BUREAU_SINCE_YESTERDAY_PROMPT_VERSION = 2;
+export const BUREAU_SINCE_YESTERDAY_PROMPT_VERSION = 3;
 export const STAFF_VIVIER_PROMPT_VERSION = 4;
-export const BUREAU_DECLARATION_MONTHLY_PROMPT_VERSION = 3;
+export const BUREAU_DECLARATION_MONTHLY_PROMPT_VERSION = 4;
 export const TERRAIN_DAY_ANOMALIES_PROMPT_VERSION = 2;
 export const PLANNING_WEEK_SUMMARY_PROMPT_VERSION = 2;
 export const INTERVENTION_EDT_WEEK_PROMPT_VERSION = 2;
 export const CLOSING_VISION_SEAU_PROMPT_VERSION = 2;
 export const CLOSING_VISION_PARKING_PROMPT_VERSION = 1;
 export const OPENING_VISION_NETTOYAGE_PROMPT_VERSION = 1;
-export const BUREAU_WEEKLY_DECLARATION_PROMPT_VERSION = 1;
+export const BUREAU_WEEKLY_DECLARATION_PROMPT_VERSION = 2;
 export const TERRAIN_FORMS_WEEK_PROMPT_VERSION = 1;
 export const SUGGESTIONS_CLUSTER_PROMPT_VERSION = 1;
 
@@ -545,29 +577,32 @@ export function closingVisionSeauUser(siteId: number, dateIso: string): string {
 
 export const BUREAU_SINCE_YESTERDAY_SYSTEM = [
   "Tu es l'assistant direction Ravoire (parcs / manèges FR).",
-  "Tu résumes la journée terrain pour le canal Bureau.",
+  "Tu résumes la journée terrain pour le canal Bureau, en français clair.",
   "",
   "DONNÉES (JSON) : n'invente rien :",
   "- dateIso, label, lateOpenings[], alertsByKind, samples[], pannes[], counts",
   "",
   DIGEST_OUTPUT_SHELL,
   "",
+  BUREAU_DIGEST_LEXICON,
+  "",
   "Blocs après <<<DETAIL>>> (exactement 4, titres gras) :",
   "",
   "**Priorités**",
-  "- 1 à 3 puces actions concrètes",
+  "- 1 à 3 puces actions concrètes (qui / quoi vérifier)",
   "",
   "**Retards**",
   "Ouvertures en retard : N · sites …   (ou RAS)",
   "",
   "**Alertes**",
-  "Comptes par type (feuilles, tickets, fermeture forcée…) + 1 extrait utile",
+  "Comptes en français clair : feuilles de journée, tickets d'entrée,",
+  "fermetures anticipées ou hors zone GPS — + 1 extrait utile",
   "",
   "**Pannes**",
   "Sites concernés ou RAS",
   "",
   "Exemple de début de sortie :",
-  "Journée chargée côté stock : plusieurs manèges en rupture de feuilles, un retard d'ouverture à Taverny.",
+  "Plusieurs manèges manquent de feuilles de journée, et une fermeture a été anticipée hors zone.",
   "<<<DETAIL>>>",
   "**Priorités**",
 ].join("\n");
@@ -628,22 +663,27 @@ export function staffVivierDigestUser(
 
 export const BUREAU_DECLARATION_MONTHLY_SYSTEM = [
   "Tu es l'assistant direction Ravoire (parcs / manèges FR).",
-  "Tu proposes qui relancer pour la déclaration On / Off.",
-  "Le résumé parle de la situation (taux, volume), pas de toi (« Je suis la direction… » interdit).",
+  "Tu proposes qui relancer pour la déclaration On / Off du mois.",
+  "Le résumé parle de la situation (taux, volume), pas de toi (« Je suis… » interdit).",
   "",
   "DONNÉES (JSON) : n'invente aucun nom hors candidates[] :",
   "- monthKey, label, rates { planned, declared, pct }",
-  "- candidates[] : { name, category, plannedDays, zone }",
+  "- candidates[] : { name, categoryLabel, plannedDays, zone }",
+  "  (categoryLabel déjà en français : Excellent, Bon, … ou « pas encore classé »)",
   "",
   DIGEST_OUTPUT_SHELL,
+  "",
+  BUREAU_DIGEST_LEXICON,
   "",
   "Blocs après <<<DETAIL>>> (exactement 3) :",
   "",
   "**Priorité**",
-  "⚠️ Nom · motif court (catégorie + jours planifiés)   max 6",
+  "⚠️ Prénom Nom · motif en français clair   max 6",
+  "Ex. : « Manal MIR · pas encore classé · 5 jours planifiés »",
+  "Pas « sans catégorie ». Pas d'abréviation.",
   "",
   "**Zones**",
-  "1 à 3 lignes, ou RAS",
+  "1 à 3 lignes, ou : « Pas de zone renseignée : relancer les personnes ci-dessus une par une. »",
   "",
   "**Message**",
   "Une phrase WhatsApp prête à envoyer, avec un VRAI prénom tiré de candidates[]",
@@ -824,23 +864,28 @@ export function openingVisionNettoyageUser(siteId: number, dateIso: string): str
 
 export const BUREAU_WEEKLY_DECLARATION_SYSTEM = [
   "Tu es l'assistant direction Ravoire (parcs / manèges FR).",
-  "Tu proposes qui déclarer / relancer cette semaine (On-Off), en français.",
+  "Tu proposes qui relancer cette semaine pour la déclaration On/Off, en français clair.",
   "",
   "DONNÉES (JSON) : n'invente aucun nom hors candidates[] :",
   "- weekStart, label",
-  "- candidates[] : { name, category, availableDays, plannedDays, onoff, declaree }",
-  "  (déjà filtrés : Off non déclarés OU dispos oui peu planifiés)",
+  "- candidates[] : { name, categoryLabel, availableDays, plannedDays, motif }",
+  "  motif déjà en français (ex. « Off non déclaré », « dispos oui, peu planifié »)",
   "- counts",
   "",
   DIGEST_OUTPUT_SHELL,
   "",
+  BUREAU_DIGEST_LEXICON,
+  "",
   "Blocs après <<<DETAIL>>> (exactement 3) :",
   "",
   "**Priorité**",
-  "⚠️ Nom · motif court (Off + dispos, Excellent Off, …) max 6",
+  "⚠️ Prénom Nom · motif en français clair   max 6",
+  "Recopie / reformule le champ motif (jamais OffOk, DisPeu, Off+dispos…).",
+  "Ex. : « Rocco MILLIOT · Off non déclaré »",
+  "Ex. : « Sweden SAVATIER · dispos oui, peu planifié (5 dispo / 1 planifié) »",
   "",
   "**Dispos**",
-  "1 à 3 lignes sur les dispos oui peu utilisées, ou RAS",
+  "1 à 3 lignes sur les jours de disponibilité peu utilisés, ou RAS",
   "",
   "**Message**",
   "1 phrase WhatsApp avec un vrai prénom de candidates[]",

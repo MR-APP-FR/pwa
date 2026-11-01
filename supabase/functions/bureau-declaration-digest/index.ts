@@ -7,6 +7,7 @@ import {
   BUREAU_DECLARATION_MONTHLY_SYSTEM,
   CA_DIGEST_DETAIL_MARKER,
   bureauDeclarationMonthlyUser,
+  staffCategoryLabelFr,
 } from "../_shared/ai-prompts.ts";
 import {
   findReadyInsight,
@@ -116,8 +117,9 @@ async function loadSnapshot(
   let declared = 0;
   const candidates: Array<{
     name: string;
-    category: string | null;
+    categoryLabel: string;
     plannedDays: number;
+    categoryKey: string | null;
   }> = [];
 
   for (const id of userIds) {
@@ -128,10 +130,12 @@ async function loadSnapshot(
       declared += 1;
       continue;
     }
+    const categoryKey = catByUser.get(id) ?? null;
     candidates.push({
       name: nameById.get(id)!,
-      category: catByUser.get(id) ?? null,
+      categoryLabel: staffCategoryLabelFr(categoryKey),
       plannedDays: plannedDays.get(id) ?? 0,
+      categoryKey,
     });
   }
 
@@ -143,8 +147,8 @@ async function loadSnapshot(
     separer: 1,
   };
   candidates.sort((a, b) => {
-    const ra = catRank[a.category ?? ""] ?? 0;
-    const rb = catRank[b.category ?? ""] ?? 0;
+    const ra = catRank[a.categoryKey ?? ""] ?? 0;
+    const rb = catRank[b.categoryKey ?? ""] ?? 0;
     if (rb !== ra) return rb - ra;
     return b.plannedDays - a.plannedDays;
   });
@@ -158,7 +162,11 @@ async function loadSnapshot(
       declared,
       pct: planned === 0 ? 0 : Math.round((declared / planned) * 100),
     },
-    candidates: candidates.slice(0, 25),
+    candidates: candidates.slice(0, 25).map(({ name, categoryLabel, plannedDays }) => ({
+      name,
+      categoryLabel,
+      plannedDays,
+    })),
   };
 }
 

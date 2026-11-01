@@ -80,20 +80,23 @@ export async function insertInsight(
 ): Promise<AiInsightRow> {
   const { data, error } = await supabase
     .from("ai_insight")
-    .insert({
-      scope: row.scope,
-      scope_key: row.scopeKey,
-      input_hash: row.inputHash,
-      prompt_version: row.promptVersion,
-      content: row.content,
-      model: row.model,
-      status: row.status,
-      payload: row.payload ?? {},
-      error: row.error ?? null,
-      prompt_tokens: row.promptTokens ?? null,
-      completion_tokens: row.completionTokens ?? null,
-      updated_at: new Date().toISOString(),
-    })
+    .upsert(
+      {
+        scope: row.scope,
+        scope_key: row.scopeKey,
+        input_hash: row.inputHash,
+        prompt_version: row.promptVersion,
+        content: row.content,
+        model: row.model,
+        status: row.status,
+        payload: row.payload ?? {},
+        error: row.error ?? null,
+        prompt_tokens: row.promptTokens ?? null,
+        completion_tokens: row.completionTokens ?? null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "scope,scope_key,input_hash,prompt_version" },
+    )
     .select(
       "id, scope, scope_key, input_hash, prompt_version, content, model, status, payload, error, prompt_tokens, completion_tokens, created_at",
     )

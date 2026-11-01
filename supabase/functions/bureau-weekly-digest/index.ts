@@ -7,6 +7,7 @@ import {
   BUREAU_WEEKLY_DECLARATION_SYSTEM,
   CA_DIGEST_DETAIL_MARKER,
   bureauWeeklyDeclarationUser,
+  staffCategoryLabelFr,
 } from "../_shared/ai-prompts.ts";
 import {
   findReadyInsight,
@@ -148,12 +149,11 @@ async function loadSnapshot(supabase: SupabaseClient, weekStart: string) {
 
   type Cand = {
     name: string;
-    category: string | null;
+    categoryLabel: string;
     availableDays: number;
     plannedDays: number;
-    onoff: boolean | null;
-    declaree: boolean | null;
-    reason: string;
+    motif: string;
+    reasonKey: "off_et_dispos" | "off" | "dispos_non_planifiees";
   };
   const candidates: Cand[] = [];
   for (const id of nameById.keys()) {
@@ -163,45 +163,58 @@ async function loadSnapshot(supabase: SupabaseClient, weekStart: string) {
     const planned = plannedDays.get(id) ?? 0;
     const underplanned = available >= 2 && planned === 0;
     if (!isOff && !underplanned) continue;
+    const reasonKey = isOff
+      ? underplanned
+        ? "off_et_dispos"
+        : "off"
+      : "dispos_non_planifiees";
+    const motif =
+      reasonKey === "off_et_dispos"
+        ? `Off non déclaré · ${available} jour(s) dispo / ${planned} planifié(s)`
+        : reasonKey === "off"
+        ? "Off non déclaré"
+        : `dispos oui, peu planifié (${available} dispo / ${planned} planifié)`;
     candidates.push({
       name: nameById.get(id)!,
-      category: catByUser.get(id) ?? null,
+      categoryLabel: staffCategoryLabelFr(catByUser.get(id)),
       availableDays: available,
       plannedDays: planned,
-      onoff: info?.onoff ?? null,
-      declaree: info?.declaree ?? null,
-      reason: isOff
-        ? underplanned
-          ? "off_et_dispos"
-          : "off"
-        : "dispos_non_planifiees",
+      motif,
+      reasonKey,
     });
   }
 
   const catRank: Record<string, number> = {
-    super: 5,
-    bon: 4,
-    normal: 3,
-    bof: 2,
-    separer: 1,
+    Excellent: 5,
+    Bon: 4,
+    Normal: 3,
+    Moyen: 2,
+    "À remplacer": 1,
   };
   candidates.sort((a, b) => {
-    if (a.reason !== b.reason) {
+    if (a.reasonKey !== b.reasonKey) {
       const order = { off_et_dispos: 0, off: 1, dispos_non_planifiees: 2 };
-      return (order[a.reason as keyof typeof order] ?? 9) -
-        (order[b.reason as keyof typeof order] ?? 9);
+      return (order[a.reasonKey] ?? 9) - (order[b.reasonKey] ?? 9);
     }
-    return (catRank[b.category ?? ""] ?? 0) - (catRank[a.category ?? ""] ?? 0);
+    return (catRank[b.categoryLabel] ?? 0) - (catRank[a.categoryLabel] ?? 0);
   });
 
   return {
     weekStart,
     label: weekLabel(weekStart),
-    candidates: candidates.slice(0, 25),
+    candidates: candidates.slice(0, 25).map(
+      ({ name, categoryLabel, availableDays, plannedDays, motif }) => ({
+        name,
+        categoryLabel,
+        availableDays,
+        plannedDays,
+        motif,
+      }),
+    ),
     counts: {
       candidates: candidates.length,
-      off: candidates.filter((c) => c.reason !== "dispos_non_planifiees").length,
-      underplanned: candidates.filter((c) => c.reason === "dispos_non_planifiees")
+      off: candidates.filter((c) => c.reasonKey !== "dispos_non_planifiees").length,
+      underplanned: candidates.filter((c) => c.reasonKey === "dispos_non_planifiees")
         .length,
     },
   };
@@ -249,6 +262,10 @@ async function buildDigest(
     };
   }
   try {
+    const slim = {
+      ...snapshot,
+      candidates: snapshot.candidates.slice(0, 15),
+    };
     const result = await foundryChatCompletion({
       job: "haiku",
       messages: [
@@ -256,13 +273,13 @@ async function buildDigest(
         {
           role: "user",
           content: bureauWeeklyDeclarationUser(
-            snapshot.label,
-            snapshot.weekStart,
-            JSON.stringify(snapshot),
+            slim.label,
+            slim.weekStart,
+            JSON.stringify(slim),
           ),
         },
       ],
-      maxTokens: 900,
+      maxTokens: 1200,
       reasoningEffort: "low",
     });
     const row = await insertInsight(supabase, {
@@ -286,18 +303,28 @@ async function buildDigest(
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    const top = snapshot.candidates.slice(0, 5).map((c) => c.name).join(", ");
+    const topLines = snapshot.candidates
+      .slice(0, 6)
+      .map((c) => `⚠️ ${c.name} · ${c.motif}`);
+    const under = snapshot.candidates
+      .filter((c) => c.motif.includes("peu planifié"))
+      .slice(0, 3)
+      .map((c) => `${c.name} : ${c.availableDays} dispo / ${c.plannedDays} planifié`)
+      .join(" · ");
+    const first = snapshot.candidates[0];
     const fallback = [
-      `Hebdo ${snapshot.label} : ${snapshot.counts.candidates} candidat(s) à regarder.`,
+      `Hebdo ${snapshot.label} : ${snapshot.counts.candidates} personne(s) à relancer (Off non déclaré ou dispos peu utilisées).`,
       CA_DIGEST_DETAIL_MARKER,
       "**Priorité**",
-      top ? `- ${top}` : "- RAS",
+      ...(topLines.length ? topLines : ["- RAS"]),
       "",
       "**Dispos**",
-      "RAS",
+      under || "RAS",
       "",
       "**Message**",
-      "Tu peux confirmer ta déclaration On/Off cette semaine ?",
+      first
+        ? `${first.name.split(/\s+/)[0]}, peux-tu confirmer ta déclaration On/Off pour la semaine ${snapshot.label} ?`
+        : "Tu peux confirmer ta déclaration On/Off cette semaine ?",
     ].join("\n");
     try {
       const row = await insertInsight(supabase, {
