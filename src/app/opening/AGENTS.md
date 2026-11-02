@@ -35,6 +35,7 @@ Le teneur (ou le double) valide l’ouverture du manège : feuilles de jour, tic
 - CRM : day-board [ouverture](../../../admin-desktop-app/app/(dashboard)/crm/ouverture/) + historique forms ; preview PWA affiche panneaux/affaires lundi ; alerte « Parking absent » si Non ; alertes stock bas sur canal Bureau (lecture seule).
 - Cron Edge `opening-late` : push si créneau matin/après-midi sans ouverture. Heure attendue = `site_day_hours.ouvre` du jour sinon fiche. Le prompt retard accueil utilise la même heure.
 - Résolution panne depuis ouverture : migration `gre_resolve_panne_from_opening`.
+- Signalement panne via `daily_info` : trigger `create_intervention_from_panne` en **SECURITY DEFINER** (écrit `intervention` + `intervention_event` sans bloquer le teneur — fix `gre_fix_panne_trigger_security_definer`).
 
 ## Ne pas casser
 

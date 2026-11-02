@@ -45,7 +45,7 @@ Une seule visite `en_cours`/`en_pause` à la fois par tech.
 ## Transverse
 
 - CRM : timeline + pièces + galerie dans dialog site ([interventions CRM](../../../../admin-desktop-app/components/crm/interventions/AGENTS.md))
-- Trigger `create_intervention_from_panne` : dédup ouvert site×sujet + event `created`
+- Trigger `create_intervention_from_panne` : dédup ouvert site×sujet + event `created` ; **SECURITY DEFINER** (sinon RLS `intervention_event` bloque le teneur à l’ouverture)
 
 ## Ne pas casser
 
