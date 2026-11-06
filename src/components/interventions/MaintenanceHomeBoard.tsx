@@ -21,12 +21,14 @@ import {
   MessageSquare,
   Package,
   Pause,
+  Phone,
   Play,
   Plus,
   Video,
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useMaintenanceInterventions } from '../../hooks/api/useMaintenanceInterventions';
@@ -120,6 +122,7 @@ function statusTone(
 export function MaintenanceHomeBoard() {
   const { t } = useTranslation();
   const { colors } = useThemeColors();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { today } = useAppDate();
   const todayIso = toIsoDateString(today);
@@ -425,7 +428,7 @@ export function MaintenanceHomeBoard() {
           boxShadow: '0 -4px 16px rgba(44, 40, 37, 0.04)',
         }}
       >
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -461,6 +464,20 @@ export function MaintenanceHomeBoard() {
                 {grouped.backlog.length}
               </span>
             ) : null}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/annuaire')}
+            className="flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-semibold"
+            style={{
+              borderRadius: RADIUS.md,
+              background: colors.ACCENT_GREEN_MUTED,
+              color: colors.ACCENT_GREEN,
+              border: `1px solid ${colors.ACCENT_GREEN}33`,
+            }}
+          >
+            <Phone size={18} strokeWidth={2.25} />
+            Qui où
           </button>
           <button
             type="button"

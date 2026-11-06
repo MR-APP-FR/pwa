@@ -55,3 +55,7 @@ export type {
   InterventionEventKind,
 } from './maintenance-intervention.types';
 export type { Payslip } from './payslip.types';
+export type {
+  TechPlanningDirectoryRow,
+  TechPlanningStaffRole,
+} from './tech-planning-directory.types';

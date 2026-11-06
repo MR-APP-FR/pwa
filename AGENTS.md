@@ -15,6 +15,7 @@ Next **16** App Router (`src/`), React 19, Tailwind 4, TanStack Query, Zustand. 
 | Carte des routes | [src/app/AGENTS.md](src/app/AGENTS.md) |
 | Accueil, météo, badges | [src/components/home/AGENTS.md](src/components/home/AGENTS.md) |
 | Interventions (tech) | [src/app/interventions/AGENTS.md](src/app/interventions/AGENTS.md) |
+| Annuaire planning (tech) | [src/app/annuaire/AGENTS.md](src/app/annuaire/AGENTS.md) |
 | Ouverture | [src/app/opening/AGENTS.md](src/app/opening/AGENTS.md) |
 | Fermeture | [src/app/closing/AGENTS.md](src/app/closing/AGENTS.md) |
 | Planning / dispos | [src/app/planning/AGENTS.md](src/app/planning/AGENTS.md), [src/app/availability/AGENTS.md](src/app/availability/AGENTS.md) |

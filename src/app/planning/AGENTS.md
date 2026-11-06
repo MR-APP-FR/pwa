@@ -32,4 +32,4 @@ Validation = bouton « Valider mes attributions » → ack `validated` + flags c
 
 - Filtrer via `useAppDate` — cohérent avec accueil et dispos.
 - Deep-link `?week=` pour la todo home.
-- Ne pas exposer le planning des autres employés (RLS suffit — ne pas bypass).
+- Ne pas exposer le planning des autres employés via `/planning` (RLS own). Exception tech : RPC `get_tech_planning_directory` + `/annuaire` ([../annuaire/AGENTS.md](../annuaire/AGENTS.md)).
