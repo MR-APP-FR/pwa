@@ -477,7 +477,7 @@ export function MaintenanceHomeBoard() {
             }}
           >
             <Phone size={18} strokeWidth={2.25} />
-            Qui où
+            Planning
           </button>
           <button
             type="button"

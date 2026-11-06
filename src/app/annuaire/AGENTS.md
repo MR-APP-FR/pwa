@@ -7,7 +7,7 @@ Vue **lecture seule** du planning parc pour les techniciens (`user.role = mainte
 ## Route
 
 - `/annuaire` — gate `isMaintenanceRole` (sinon redirect `/`)
-- Entrée : bouton footer **Qui où** sur [MaintenanceHomeBoard](../../components/interventions/MaintenanceHomeBoard.tsx)
+- Entrée : bouton footer **Planning** sur [MaintenanceHomeBoard](../../components/interventions/MaintenanceHomeBoard.tsx)
 
 ## Données
 

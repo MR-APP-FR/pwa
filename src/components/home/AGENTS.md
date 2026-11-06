@@ -4,7 +4,7 @@
 
 Écran d’atterrissage après login. L’employé voit son affectation du jour, la météo encourageante (popup), les raccourcis mission, les badges (messages, planning assigné, dispos), la bannière push et la relance ouverture tardive.
 
-**Rôle `maintenance`** (`public.user.role`) : home = [MaintenanceHomeBoard](../interventions/MaintenanceHomeBoard.tsx) (semaine tickets + footer Nouveau / Planifier / Qui où / Pièces) — pas d’ouverture / fermeture / planning teneur. Annuaire `/annuaire` = vue parc lecture + tél.
+**Rôle `maintenance`** (`public.user.role`) : home = [MaintenanceHomeBoard](../interventions/MaintenanceHomeBoard.tsx) (semaine tickets + footer Nouveau / Planifier / Planning / Pièces) — pas d’ouverture / fermeture / planning teneur. Annuaire `/annuaire` = vue parc lecture + tél.
 
 ## Fichiers
 

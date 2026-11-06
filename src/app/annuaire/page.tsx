@@ -46,7 +46,7 @@ export default function AnnuairePage() {
           <PageHeader
             pin="static"
             accent="orange"
-            title="Qui est où ?"
+            title="Planning"
             showBack
             onBack={() => router.push('/')}
           />

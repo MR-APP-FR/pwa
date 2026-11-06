@@ -9,7 +9,7 @@ Parcours PWA du **technicien** (`public.user.role = 'maintenance'`). Work order 
 - Home `/` = board tech ([MaintenanceHomeBoard](../../components/interventions/MaintenanceHomeBoard.tsx)) sous logo + paramètres
 - Vue **semaine** sticky (bandeau 7 jours) ; clic jour → liste du jour
 - Retards (date prévue passée, non clôturés) : visibles **aujourd’hui** + file **Planifier** (pas de doublon sur le jour d’origine)
-- Footer : **Nouveau** / **Planifier** (file zone→site) / **Qui où** (`/annuaire`) / **Pièces** (à commander · commandées · reçues)
+- Footer : **Nouveau** / **Planifier** (file zone→site) / **Planning** (`/annuaire`) / **Pièces** (à commander · commandées · reçues)
 - Annuaire lecture seule : [../annuaire/AGENTS.md](../annuaire/AGENTS.md) — planning parc + tél teneur (RPC `get_tech_planning_directory`)
 - Sheets swipe-to-dismiss (`SwipeSheet`) ; `/interventions` redirige vers `/`
 - Actions : [actions.ts](actions.ts)
