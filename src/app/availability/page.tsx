@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useTransition, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatPlanningDayLabel, formatWeekRange } from '../../lib/formatDate';
@@ -11,7 +12,6 @@ import { FormScrollLayout } from '../../components/layout/FormScrollLayout';
 import { FormPinnedPageHeader } from '../../components/layout/FormPinnedPageHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { YesNoToggle } from '../../components/common/YesNoToggle';
-import { RADIUS } from '../../constants/design';
 import { useAvailability } from '../../hooks/api/useAvailability';
 import { useCurrentUser } from '../../hooks/api/useCurrentUser';
 import { isBrowserOffline } from '../../lib/offline';
@@ -20,7 +20,6 @@ import { submitAvailability } from './actions';
 
 interface DayAvailability {
   available: boolean;
-  note: string;
 }
 
 function buildWeekDays(startDate: Date): Date[] {
@@ -34,6 +33,7 @@ function buildWeekDays(startDate: Date): Date[] {
 function AvailabilityContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { colors } = useThemeColors();
   const { t } = useTranslation();
 
@@ -47,14 +47,22 @@ function AvailabilityContent() {
   const weekIso = weekDays.map(toIsoDateString);
 
   const { data: currentUser } = useCurrentUser();
-  const { data: existing } = useAvailability(weekIso[0] ?? '', weekIso[6] ?? '');
+  const employeeId = currentUser?.user.id ?? null;
+  const { data: existing, isLoading: loadingExisting } = useAvailability(
+    weekIso[0] ?? '',
+    weekIso[6] ?? '',
+  );
 
   const [availability, setAvailability] = useState<DayAvailability[]>(
-    weekDays.map(() => ({ available: true, note: '' })),
+    weekDays.map(() => ({ available: true })),
   );
-  const [submitted, setSubmitted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const hasSavedWeek = (existing?.length ?? 0) > 0;
+  const locked = hasSavedWeek && !isEditing;
 
   // Préremplit avec les disponibilités déjà enregistrées (statut des jours).
   useEffect(() => {
@@ -63,7 +71,7 @@ function AvailabilityContent() {
     setAvailability((prev) =>
       prev.map((day, i) => {
         const row = byDate.get(weekIso[i] ?? '');
-        return row ? { available: row.available, note: row.note ?? '' } : day;
+        return row ? { available: row.available } : day;
       }),
     );
     // weekIso dérive des searchParams (stables pour un rendu donné).
@@ -72,6 +80,7 @@ function AvailabilityContent() {
 
   const handleSend = () => {
     setSubmitError(null);
+    setJustSaved(false);
     if (!currentUser?.user) {
       setSubmitError('Session invalide. Reconnecte-toi.');
       return;
@@ -83,7 +92,8 @@ function AvailabilityContent() {
     const days = weekDays.map((date, i) => ({
       date: toIsoDateString(date),
       available: availability[i]?.available ?? true,
-      note: availability[i]?.note ?? null,
+      // Motif d’indispo retiré (demande Valeria / OK Kevin) — colonne DB conservée.
+      note: null,
     }));
     startTransition(async () => {
       const result = await submitAvailability(days);
@@ -91,46 +101,30 @@ function AvailabilityContent() {
         setSubmitError(result.error);
         return;
       }
-      setSubmitted(true);
+      await queryClient.invalidateQueries({
+        queryKey: ['availability', employeeId, weekIso[0] ?? '', weekIso[6] ?? ''],
+      });
+      setIsEditing(false);
+      setJustSaved(true);
     });
   };
 
   const setDayAvailable = (index: number, available: boolean) => {
+    if (locked) return;
     setAvailability((prev) =>
       prev.map((d, i) => (i === index ? { ...d, available } : d)),
-    );
-  };
-
-  const setDayNote = (index: number, note: string) => {
-    setAvailability((prev) =>
-      prev.map((d, i) => (i === index ? { ...d, note } : d)),
     );
   };
 
   const yesLabel = t('forms.opening.fondDeCaisseYes');
   const noLabel = t('forms.opening.fondDeCaisseNo');
 
-  if (submitted) {
-    return (
-      <FormScrollLayout>
-        <div
-          className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6"
-          style={{ backgroundColor: colors.BG_SECONDARY }}
-        >
-          <span className="text-6xl mb-2">&#x2705;</span>
-          <h2 className="text-xl font-bold text-center" style={{ color: colors.TEXT_PRIMARY }}>
-            {t('availability.sent')}
-          </h2>
-          <p className="text-base text-center" style={{ color: colors.TEXT_SECONDARY }}>
-            {t('availability.sentDescription')}
-          </p>
-          <PrimaryButton onClick={() => router.back()} className="mt-4 px-6 py-3 text-base">
-            Retour au planning
-          </PrimaryButton>
-        </div>
-      </FormScrollLayout>
-    );
-  }
+  const footerLabel = (() => {
+    if (pending) return t('availability.sending');
+    if (locked) return t('availability.modify');
+    if (hasSavedWeek) return t('availability.saveChanges');
+    return t('availability.send');
+  })();
 
   return (
     <FormScrollLayout
@@ -142,11 +136,27 @@ function AvailabilityContent() {
             </p>
           )}
           <PrimaryButton
-            onClick={handleSend}
-            disabled={pending}
+            onClick={() => {
+              if (locked) {
+                setJustSaved(false);
+                setIsEditing(true);
+                return;
+              }
+              handleSend();
+            }}
+            disabled={pending || loadingExisting}
             className="w-full py-4 text-base"
+            style={
+              locked
+                ? {
+                    backgroundColor: colors.BG_PRIMARY,
+                    color: colors.PRIMARY,
+                    boxShadow: `inset 0 0 0 1.5px ${colors.PRIMARY}`,
+                  }
+                : undefined
+            }
           >
-            {pending ? 'Envoi…' : t('availability.send')}
+            {footerLabel}
           </PrimaryButton>
         </div>
       }
@@ -163,11 +173,23 @@ function AvailabilityContent() {
         <PageSectionTitle title={formatWeekRange(start, end)} />
 
         <p
-          className="px-5 pt-2 pb-4 text-center text-sm"
+          className="px-5 pt-2 pb-3 text-center text-sm"
           style={{ color: colors.TEXT_SECONDARY }}
         >
           {t('availability.description')}
         </p>
+
+        {(locked || justSaved) && (
+          <p
+            className="mx-4 mb-3 rounded-xl px-3 py-2 text-center text-sm font-semibold"
+            style={{
+              color: colors.ACCENT_GREEN,
+              backgroundColor: colors.ACCENT_GREEN_MUTED,
+            }}
+          >
+            {justSaved ? t('availability.sent') : t('availability.alreadySent')}
+          </p>
+        )}
 
         <div className="space-y-2.5 px-4 pb-4">
           {weekDays.map((date, index) => {
@@ -176,7 +198,8 @@ function AvailabilityContent() {
             return (
               <div
                 key={date.toISOString()}
-                className="card-surface space-y-2.5 px-3.5 py-3"
+                className="card-surface px-3.5 py-3"
+                style={locked ? { opacity: 0.72 } : undefined}
               >
                 <div className="flex items-center justify-between gap-3">
                   <span
@@ -194,27 +217,50 @@ function AvailabilityContent() {
                     onChange={(available) => setDayAvailable(index, available)}
                     yesLabel={yesLabel}
                     noLabel={noLabel}
+                    disabled={locked || pending}
                   />
                 </div>
-                {!day.available && (
-                  <input
-                    type="text"
-                    placeholder={t('availability.unavailableReasonPlaceholder')}
-                    value={day.note}
-                    onChange={(e) => setDayNote(index, e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm"
-                    style={{
-                      color: colors.TEXT_PRIMARY,
-                      borderColor: colors.BORDER,
-                      backgroundColor: colors.BG_SECONDARY,
-                      borderRadius: RADIUS.sm,
-                    }}
-                  />
-                )}
               </div>
             );
           })}
         </div>
+
+        {isEditing && hasSavedWeek ? (
+          <div className="px-5 pb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditing(false);
+                setSubmitError(null);
+                if (!existing || existing.length === 0) return;
+                const byDate = new Map(existing.map((r) => [r.date, r]));
+                setAvailability(
+                  weekDays.map((_, i) => {
+                    const row = byDate.get(weekIso[i] ?? '');
+                    return { available: row?.available ?? true };
+                  }),
+                );
+              }}
+              className="w-full text-center text-sm font-semibold"
+              style={{ color: colors.TEXT_SECONDARY }}
+            >
+              {t('availability.cancelEdit')}
+            </button>
+          </div>
+        ) : null}
+
+        {!hasSavedWeek && !loadingExisting ? (
+          <div className="px-5 pb-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="w-full text-center text-sm"
+              style={{ color: colors.TEXT_SECONDARY }}
+            >
+              {t('availability.backToPlanning')}
+            </button>
+          </div>
+        ) : null}
       </div>
     </FormScrollLayout>
   );

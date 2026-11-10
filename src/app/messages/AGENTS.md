@@ -9,7 +9,7 @@ Messagerie direction → terrain. Un message cible **Tous** ou **une seule zone*
 - Route : `/messages` → liste paginée (pas de sélecteur de conversations / zones)
 - Page : [page.tsx](page.tsx)
 - Helpers fil / dates : [conversations.ts](conversations.ts) (`INBOX_CONVERSATION`)
-- Thread : [../../components/messages/MessagesChatThread.tsx](../../components/messages/MessagesChatThread.tsx) — bouton « Messages plus anciens »
+- Thread : [../../components/messages/MessagesChatThread.tsx](../../components/messages/MessagesChatThread.tsx) — bouton « Messages plus anciens » ; `require_ack` → bouton puis bandeau **Lecture confirmée** (même hauteur)
 - Autos (`source = appli`) : [../../components/messages/BureauMessageBody.tsx](../../components/messages/BureauMessageBody.tsx) — même grille CRM (colonne emoji fixe + label / `:` / valeur) ; garder `U+FE0F` au parse (sinon `⚠` texte vs `⚠️`) ; police Inter (body) partout dans la card
 
 ## Technique
@@ -22,13 +22,14 @@ Messagerie direction → terrain. Un message cible **Tous** ou **une seule zone*
 | Pastilles home | RPC `get_pwa_staff_message_badge_counts` via `useStaffMessageBadges` (pas de corps) |
 | Cache | Mark-read / ack **optimistes** (`patchStaffMessagesRead` / `patchStaffMessageAcked`) — pas de refetch full |
 | Tables | `staff_message`, `staff_message_ack` |
+| RLS staff | `channel = staff` : ciblage employé **seulement** (pas de court-circuit `is_admin`) — évite le fan-out Tous+zones ×7 pour un admin en PWA ; canaux `bureau`/`ca`/`inter` restent admin. CRM lit via **service role**. |
 | Push | CRM + Edge envoient ; PWA reçoit si abonnée ([../../lib/push/AGENTS.md](../../lib/push/AGENTS.md)) |
 
 Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `staff_message_site_ids_one_zone`. Brief météo 9h Paris : Edge `weather-brief` insère un `staff_message` (`meta.kind = weather_brief`, ciblage `user_ids`) + Web Push.
 
 ## Transverse
 
-- CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone Messages, dont Province découpée côté CRM seulement).
+- CRM : [messages](../../../admin-desktop-app/components/crm/messages/) envoi + suivi Lu/Non lu (cible Tous / zone Messages, dont Province découpée côté CRM seulement). Anti double-clic envoi : `sendingRef` tenu jusqu’à fin de `createStaffMessage`.
 - Canaux SQL auto : anniversaires / hebdo / taux déclaration (`bureau`), PDF CA (`ca`), pannes (`inter`), carte parking absente (zone + DM `staff`). La PWA ne voit que `channel = staff`.
 - Planning PWA : `markUnreadPlanningAssignedRead` sans charger l’inbox.
 
@@ -38,3 +39,4 @@ Tri : messages récents en premier. Zone obligatoire côté CRM — trigger `sta
 - Ack = upsert `(message_id, user_id)`.
 - Ne pas réintroduire un split UI par groupe côté PWA sans demande produit.
 - Home badges = RPC count, **jamais** `useStaffMessagesList`.
+- Ne pas remettre `is_admin()` en court-circuit sur `channel = staff` (réintroduit les doublons PWA pour les admins).

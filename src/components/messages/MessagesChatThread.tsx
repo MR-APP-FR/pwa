@@ -139,13 +139,20 @@ function MessageCard({ message }: { message: StaffMessageWithAck }) {
                 {pending ? '…' : t('screens.messages.ackButton')}
               </button>
             ) : (
-              <p
-                className="flex items-center gap-1 text-xs font-semibold"
-                style={{ color: colors.SUCCESS }}
+              <div
+                className="flex w-full items-center justify-center gap-1.5 px-3 text-sm font-semibold"
+                style={{
+                  minHeight: TOUCH_TARGET,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: colors.ACCENT_GREEN_MUTED,
+                  color: colors.ACCENT_GREEN,
+                  fontFamily: 'var(--font-display)',
+                }}
+                aria-label={t('screens.messages.ackedLabel')}
               >
-                <Check size={13} strokeWidth={2.75} />
+                <Check size={15} strokeWidth={2.75} />
                 {t('screens.messages.ackedLabel')}
-              </p>
+              </div>
             )}
           </div>
         ) : null}

@@ -312,6 +312,12 @@
     "notePlaceholder": "Remark",
     "unavailableReasonPlaceholder": "Why unavailable?",
     "send": "Send my availability",
+    "sending": "Sending…",
+    "modify": "Edit my availability",
+    "saveChanges": "Save changes",
+    "alreadySent": "Availability already sent",
+    "cancelEdit": "Cancel",
+    "backToPlanning": "Back to schedule",
     "sent": "Availability sent!",
     "sentDescription": "Your manager will be notified"
   },

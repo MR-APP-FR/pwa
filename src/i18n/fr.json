@@ -312,6 +312,12 @@
     "notePlaceholder": "Commentaire",
     "unavailableReasonPlaceholder": "Pour quelle raison ?",
     "send": "Envoyer mes disponibilités",
+    "sending": "Envoi…",
+    "modify": "Modifier mes disponibilités",
+    "saveChanges": "Enregistrer les modifications",
+    "alreadySent": "Disponibilités déjà envoyées",
+    "cancelEdit": "Annuler",
+    "backToPlanning": "Retour au planning",
     "sent": "Disponibilités envoyées !",
     "sentDescription": "Votre responsable en sera informé"
   },
